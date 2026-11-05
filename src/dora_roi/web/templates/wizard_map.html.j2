@@ -1,0 +1,31 @@
+{% extends "wizard_base.html.j2" %}
+{% block wizard %}
+<section aria-labelledby="h-map">
+  <h2 id="h-map">{{ t("wiz.step.map") }}</h2>
+  <p>{{ t("wiz.map.lead") }}</p>
+  <p class="muted small">{{ t("wiz.map.found", row=wiz.sheet.header_row, sheet=wiz.sheet.sheet_name, n=wiz.sheet.rows | length) }}</p>
+  <form action="/map/{{ wiz.id }}" method="post">
+    <div class="table-wrap"><table class="mapping">
+      <thead><tr><th scope="col">{{ t("wiz.map.source") }}</th><th scope="col">{{ t("wiz.map.samples") }}</th><th scope="col">{{ t("wiz.map.target") }}</th></tr></thead>
+      <tbody>
+      {% for header in wiz.sheet.headers %}{% set i = loop.index0 %}{% set s = suggestions.get(i) %}
+      <tr>
+        <th scope="row"><label for="col{{ i }}">{{ header }}</label></th>
+        <td class="small muted">{{ wiz.sheet.column_samples(i) | join(" · ") }}</td>
+        <td>
+          <select id="col{{ i }}" name="col{{ i }}" aria-describedby="conf{{ i }}">
+            <option value="">{{ t("wiz.map.unmapped") }}</option>
+            {% for f in fields %}
+            <option value="{{ f.key }}" {% if wiz.mapping.get(i) == f.key %}selected{% endif %}>{{ f.label_de if lang == "de" else f.label_en }} ({{ f.target }})</option>
+            {% endfor %}
+          </select>
+          <div id="conf{{ i }}" class="small muted">{% if s and s.field %}<span class="conf {{ s.confidence.value }}">{{ t("wiz.map.confidence." ~ s.confidence.value) }}</span> – {{ s.reason }}{% endif %}</div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <div class="row actions"><a class="btn" href="/map">{{ t("wiz.back") }}</a><button class="btn primary" type="submit">{{ t("wiz.map.continue") }}</button></div>
+  </form>
+</section>
+{% endblock %}

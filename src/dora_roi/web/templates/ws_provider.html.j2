@@ -1,0 +1,40 @@
+{% extends "ws_base.html.j2" %}
+{% from "_macros.html.j2" import severity_badge %}
+{% block page_title %}{{ p.name }}{% endblock %}
+{% block content %}
+<p class="eyebrow">{{ t("prov.title") }} · <span class="mono">{{ p.code }}</span></p>
+<h2 class="provider-name">{{ p.name }}</h2>
+<section class="grid tiles" aria-label="{{ t('prov.title') }}">
+  <div class="card tile"><div class="label">{{ t("prov.group") }}</div><div class="value small-value">{{ p.group_name }}</div></div>
+  <div class="card tile"><div class="label">{{ t("prov.country") }}</div><div class="value small-value">{{ country_name(p.provider.hq_country if p.provider else None) }}</div></div>
+  <div class="card tile"><div class="label">{{ t("prov.spend") }}</div><div class="value">{{ money(p.spend, ws.analysis.reporting_currency) }}</div><div class="sub">{{ pct(p.share) }} {{ t("prov.share") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("prov.contracts") }}</div><div class="value">{{ p.exposure.contracts if p.exposure else 0 }}</div></div>
+</section>
+<section aria-labelledby="h-flags"><h3 id="h-flags">{{ t("prov.flags") }}</h3>
+  {% if p.flags %}<ul class="flags" role="list">{% for fl in p.flags %}<li class="flag {{ fl.level }}"><span class="icon" aria-hidden="true">{{ "!" if fl.level == "high" else "i" }}</span>{{ fl.text }}</li>{% endfor %}</ul>
+  {% else %}<p class="muted">{{ t("prov.none_flags") }}</p>{% endif %}
+</section>
+<div class="grid two">
+<section aria-labelledby="h-pc"><h3 id="h-pc">{{ t("prov.contracts") }}</h3>
+  <div class="table-wrap"><table><thead><tr><th scope="col">{{ t("an.arrangement") }}</th><th scope="col">Function</th><th scope="col">Service</th><th scope="col">Start</th><th scope="col">End</th></tr></thead>
+  <tbody>{% for s in p.services %}<tr><td><a class="mono" href="/w/{{ ws.id }}/register/B_02.02/{{ s.row }}">{{ s.contract_ref }}</a></td><td class="mono small">{{ s.function_id }}</td>
+    <td>{{ s.service_type.value if s.service_type else "—" }}</td><td>{{ display(s.start_date) }}</td><td>{{ display(s.end_date) }}</td></tr>{% else %}<tr><td colspan="5" class="muted">—</td></tr>{% endfor %}</tbody></table></div>
+</section>
+<section aria-labelledby="h-pf"><h3 id="h-pf">{{ t("prov.functions") }}</h3>
+  <div class="table-wrap"><table><thead><tr><th scope="col">Function</th><th scope="col">Criticality</th><th scope="col" class="num">{{ t("prov.contracts") }}</th></tr></thead>
+  <tbody>{% for fn, n in p.functions %}<tr><td><span class="mono small">{{ fn.function_id }}</span> {{ fn.function_name }}</td>
+    <td>{% if fn.is_critical %}<strong>◆ {{ fn.criticality.label }}</strong>{% else %}{{ fn.criticality.label if fn.criticality else "—" }}{% endif %}</td><td class="num">{{ n }}</td></tr>{% else %}<tr><td colspan="3" class="muted">—</td></tr>{% endfor %}</tbody></table></div>
+</section>
+</div>
+<section aria-labelledby="h-chain"><h3 id="h-chain">{{ t("prov.chain") }}</h3>
+  {% if graph_svg %}<div class="graph-scroll card">{{ graph_svg }}</div>{% endif %}
+  {% if chains %}<div class="table-wrap"><table><thead><tr><th scope="col">{{ t("an.arrangement") }}</th><th scope="col">{{ t("an.chain") }}</th></tr></thead>
+    <tbody>{% for ref, names in chains %}<tr><td class="mono">{{ ref }}</td><td>{{ names | join(" → ") }}</td></tr>{% endfor %}</tbody></table></div>
+  {% elif not graph_svg %}<p class="muted">—</p>{% endif %}
+</section>
+<section aria-labelledby="h-pfind"><h3 id="h-pfind">{{ t("prov.findings") }}</h3>
+  {% if p.findings %}<ul class="plain">{% for f in p.findings %}<li>{{ severity_badge(f.severity.value, t) }} <span class="mono small">{{ f.rule_id }}</span> {{ f.message }}
+    {% if f.row and f.template %} <a class="small" href="/w/{{ ws.id }}/register/{{ f.template }}/{{ f.row }}">{{ t("fix.open_row") }}</a>{% endif %}</li>{% endfor %}</ul>
+  {% else %}<p class="muted">{{ t("fix.none") }}</p>{% endif %}
+</section>
+{% endblock %}

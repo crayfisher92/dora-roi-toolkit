@@ -60,3 +60,30 @@ jobs:
           name: sample-reports
           path: out/
           retention-days: 7
+
+  e2e:
+    name: Browser end-to-end and accessibility tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -e ".[dev]"
+      - run: python -m playwright install --with-deps chromium
+      - run: npm install --no-save axe-core@4.10.3
+      - name: Playwright + axe-core (WCAG 2.2 AA)
+        env:
+          E2E_REQUIRED: "1"
+        run: pytest tests/e2e -v
+      - name: Screenshots
+        run: python scripts/make_screenshots.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: docs/screenshots/
+          retention-days: 7

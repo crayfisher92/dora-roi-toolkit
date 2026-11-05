@@ -18,7 +18,7 @@ from markupsafe import Markup
 from dora_roi.model import RegisterOfInformation
 from dora_roi.model.refdata import country_name, region_of
 
-NODE_W = 220
+NODE_W = 236
 NODE_H = 28
 COL_GAP = 110
 ROW_GAP = 10
@@ -177,7 +177,7 @@ def _layout(graph: Graph) -> None:
     graph.height = PAD * 2 + tallest * (NODE_H + ROW_GAP)
 
 
-def _truncate(text: str, limit: int = 30) -> str:
+def _truncate(text: str, limit: int = 29) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 

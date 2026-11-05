@@ -1,0 +1,18 @@
+{% extends "base.html.j2" %}
+{% block title %}{{ t("wiz.title") }} · {{ t("app.name") }}{% endblock %}
+{% block content %}
+<header class="doc"><p class="eyebrow">{{ t("home.map.title") }}</p><h1>{{ t("wiz.title") }}</h1></header>
+<nav aria-label="{{ t('wiz.title') }}">
+<ol class="stepper wizard">
+  {% for key in ("upload", "map", "entity", "preview") %}
+  <li class="step {{ 'done' if loop.index < wstep else 'current' if loop.index == wstep else 'todo' }}">
+    <span {% if loop.index == wstep %}aria-current="step"{% endif %}>
+      <span class="num" aria-hidden="true">{% if loop.index < wstep %}✓{% else %}{{ loop.index }}{% endif %}</span>
+      <span class="label">{{ t("wiz.step." ~ key) }}</span>
+    </span>
+  </li>
+  {% endfor %}
+</ol>
+</nav>
+{% block wizard %}{% endblock %}
+{% endblock %}

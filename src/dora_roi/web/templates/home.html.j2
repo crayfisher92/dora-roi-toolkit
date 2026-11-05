@@ -1,0 +1,48 @@
+{% extends "base.html.j2" %}
+{% block content %}
+<header class="doc">
+  <p class="eyebrow">DORA · Regulation (EU) 2022/2554</p>
+  <h1>{{ t("home.title") }}</h1>
+  <p class="lead">{{ t("home.lead") }}</p>
+</header>
+<div class="grid entry">
+  <section class="card entry-card" aria-labelledby="h-import">
+    <h2 id="h-import">{{ t("home.import.title") }}</h2>
+    <p class="muted">{{ t("home.import.text") }}</p>
+    <form action="/import" method="post" enctype="multipart/form-data" class="stack">
+      <label for="roi-file">{{ t("home.file") }} <span class="muted small">(.xlsx, .zip)</span></label>
+      <input id="roi-file" name="file" type="file" accept=".xlsx,.xlsm,.zip" required>
+      <button class="btn primary" type="submit">{{ t("home.import.button") }}</button>
+    </form>
+    <p class="small"><a href="/template.xlsx">{{ t("home.template") }}</a></p>
+  </section>
+  <section class="card entry-card" aria-labelledby="h-map">
+    <h2 id="h-map">{{ t("home.map.title") }}</h2>
+    <p class="muted">{{ t("home.map.text") }}</p>
+    <a class="btn primary" href="/map">{{ t("home.map.button") }}</a>
+  </section>
+  <section class="card entry-card" aria-labelledby="h-sample">
+    <h2 id="h-sample">{{ t("home.sample.title") }}</h2>
+    <p class="muted">{{ t("home.sample.text") }}</p>
+    <form action="/sample" method="post" class="stack">
+      <button class="btn" type="submit" name="variant" value="dirty">{{ t("home.sample.dirty") }}</button>
+      <button class="btn" type="submit" name="variant" value="clean">{{ t("home.sample.clean") }}</button>
+      <button class="btn" type="submit" name="variant" value="pair">{{ t("home.sample.pair") }}</button>
+    </form>
+  </section>
+</div>
+
+<h2>{{ t("home.recent") }}</h2>
+{% if recent %}
+<div class="table-wrap"><table>
+  <caption class="visually-hidden">{{ t("home.recent") }}</caption>
+  <thead><tr><th scope="col">{{ t("col.workspace") }}</th><th scope="col">{{ t("col.entity") }}</th>
+    <th scope="col" class="num">{{ t("col.score") }}</th><th scope="col" class="num">{{ t("col.errors") }}</th>
+    <th scope="col" class="num">{{ t("col.warnings") }}</th><th scope="col">{{ t("col.created") }}</th></tr></thead>
+  <tbody>{% for w in recent %}{% set c = w.report.severity_counts() %}
+  <tr><td><a href="/w/{{ w.id }}">{{ w.name }}</a></td><td>{{ w.report.maintainer_name or "—" }}</td>
+    <td class="num">{{ w.quality.score }}</td><td class="num">{{ c.error }}</td><td class="num">{{ c.warning }}</td>
+    <td class="small muted">{{ w.created.strftime("%H:%M UTC") }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% else %}<p class="muted">{{ t("home.none") }}</p>{% endif %}
+{% endblock %}

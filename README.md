@@ -17,7 +17,10 @@ It gives GRC consultants and ICT third-party risk teams:
 - **import/export**: multi-sheet Excel (with a blank template generator), CSV folders/zips and
   a **best-effort xBRL-CSV** report package;
 - **concentration-risk analytics** and an **executive summary** (HTML with charts) for a CRO;
-- a **CLI** (`roi`) and a small **web UI** (FastAPI);
+- a **CLI** (`roi`) and the **DORA RoI Workbench** web app: guided *Import → Fix → Analyse →
+  Export* workflow, column-mapping import of a client's own inventory, inline fixing with
+  plain-language explanations, provider pages, an interactive dependency graph, register
+  diff, English/German, WCAG 2.2 AA-tested;
 - a realistic **synthetic dataset** for a fictional Swiss/EU banking group with deliberately
   injected errors.
 
@@ -69,6 +72,27 @@ Pre-generated outputs for the sample live in [`examples/`](examples/):
 [sample workbook](examples/alpenrand-sample.xlsx) and a
 [blank template](examples/roi-blank-template.xlsx).
 
+## The workbench (web UI)
+
+```bash
+roi serve          # or: docker compose up   →  http://127.0.0.1:8000
+```
+
+| | |
+|---|---|
+| ![Overview with stepper and data-quality score](docs/screenshots/02-overview.png) | ![Fix findings inline with suggestions](docs/screenshots/03-fix.png) |
+| **Overview** – stepper, data-quality score, readiness, next best action | **Fix** – findings by template and severity, plain-language help, regulation, inline edit and bulk fix |
+| ![Column-mapping wizard](docs/screenshots/07-mapping.png) | ![Dependency graph coloured by region](docs/screenshots/05-graph.png) |
+| **Mapping wizard** – a client's own inventory, auto-suggested column mapping | **Dependency graph** – providers → subcontractors, by criticality or region |
+| ![Provider page](docs/screenshots/06-provider.png) | ![Register diff](docs/screenshots/08-compare.png) |
+| **Provider page** – risk flags, contracts, functions, chain | **Compare** – last year vs this year |
+
+More: [register browser](docs/screenshots/04-register.png),
+[German interface in dark mode](docs/screenshots/09-fix-dark-de.png). Personas, jobs and the
+screen flow are in [`docs/UX.md`](docs/UX.md); a 5-minute client demo script is in
+[`docs/DEMO.md`](docs/DEMO.md). Screenshots are regenerated with
+`python scripts/make_screenshots.py`.
+
 ### CLI reference
 
 | Command | Purpose | Notable options |
@@ -78,7 +102,8 @@ Pre-generated outputs for the sample live in [`examples/`](examples/):
 | `roi export INPUT -o OUT` | Export | `--format xbrl-csv\|excel\|csv`, `--unzipped`, `--strict`, `--level CON\|IND\|SUB`, `--entry-point`, `--code-map` |
 | `roi template FILE` | Blank Excel template | `--sample [--clean]` to pre-fill |
 | `roi rules` | List rules and provisions | `-f text\|md\|json` |
-| `roi sample OUT` | Generate the synthetic register | `--format xlsx\|csv`, `--clean`, `--seed` |
+| `roi sample OUT` | Generate the synthetic register | `--format xlsx\|csv`, `--clean`, `--previous-year`, `--inventory`, `--seed` |
+| `roi diff OLD NEW` | Compare two registers | `-f md\|json`, `-o FILE` |
 | `roi serve` | Start the web UI | `--host`, `--port` |
 
 `INPUT` may be an `.xlsx` workbook, a folder or `.zip` of CSV files (`b_02.02.csv` …), or an
@@ -174,6 +199,8 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
 | [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md) | Regulatory details that must be verified |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Engineering decisions and their rationale |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Modules, data flow, report schema, extension guide |
+| [`docs/UX.md`](docs/UX.md) | Personas, jobs to be done, screen flow, accessibility principles |
+| [`docs/DEMO.md`](docs/DEMO.md) | 5-minute client demo with the Alpenrand sample |
 
 ## Known limitations
 
@@ -183,7 +210,9 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
   (`--code-map`, see [`examples/code-map.example.json`](examples/code-map.example.json)).
 - No GLEIF look-up (LEIs are checked for syntax and checksum only), no FX conversion.
 - Licensed activities (B_06.01 c0020) are free text.
-- The web UI keeps data in memory and has no authentication – run it locally or behind SSO.
+- The workbench keeps data in memory and has no authentication – run it locally or behind SSO.
+- Per-finding validator messages are English; the interface, rule titles and explanations are
+  English and German.
 
 ## Development
 
@@ -203,7 +232,12 @@ make docs         # regenerate the generated docs (a test fails if they are stal
 make examples     # regenerate examples/
 ```
 
-CI runs lint, strict type checking, tests on Python 3.11–3.13 and a CLI smoke test.
+```bash
+npm install --no-save axe-core@4.10.3 && python -m pytest tests/e2e   # browser + WCAG tests
+```
+
+CI runs lint, strict type checking, tests on Python 3.11–3.13, a CLI smoke test and the
+Playwright/axe-core end-to-end suite (which also regenerates the screenshots).
 
 ## License
 

@@ -1,0 +1,41 @@
+{% extends "ws_base.html.j2" %}
+{% from "_macros.html.j2" import severity_badge %}
+{% block page_title %}{{ t("ws.overview") }}{% endblock %}
+{% block content %}
+<h2 class="visually-hidden">{{ t("ws.overview") }}</h2>
+<section class="grid tiles" aria-label="{{ t('ws.overview') }}">
+  <div class="card tile"><div class="label">{{ t("ws.score") }}</div><div class="value">{{ quality.score }}<span class="muted small">/100</span></div><div class="sub">{{ t("ws.score.help") }}</div></div>
+  <div class="card tile"><div class="label">{{ severity_badge("error", t) }}</div><div class="value">{{ counts.error }}</div></div>
+  <div class="card tile"><div class="label">{{ severity_badge("warning", t) }}</div><div class="value">{{ counts.warning }}</div></div>
+  <div class="card tile"><div class="label">{{ t("ws.records") }}</div><div class="value">{{ "{:,}".format(quality.records) }}</div><div class="sub">{{ ws.changes | length }} {{ t("ws.changes") | lower }}</div></div>
+</section>
+<p class="next-action">
+  {% if counts.error %}<a class="btn primary" href="/w/{{ ws.id }}/fix">{{ t("ws.next.fix", n=counts.error) }}</a>
+  {% elif counts.warning %}<a class="btn primary" href="/w/{{ ws.id }}/fix">{{ t("ws.next.review", n=counts.warning) }}</a>
+  {% else %}<a class="btn primary" href="/w/{{ ws.id }}/analyse">{{ t("ws.next.analyse") }}</a>{% endif %}
+</p>
+{% if notes %}
+<section class="card" aria-labelledby="h-notes"><h2 id="h-notes">{{ t("wiz.notes") }}</h2><ul>{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul></section>
+{% endif %}
+<div class="grid two">
+<section aria-labelledby="h-tpl">
+  <h2 id="h-tpl">{{ t("ws.templates") }}</h2>
+  {% set bt = ws.report.by_template() %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Template</th><th scope="col" class="num">{{ t("ws.records") }}</th><th scope="col" class="num">{{ t("col.errors") }}</th><th scope="col" class="num">{{ t("col.warnings") }}</th></tr></thead>
+    <tbody>{% for m in templates %}{% set c = bt.get(m.TEMPLATE, {}) %}
+    <tr><th scope="row"><a href="/w/{{ ws.id }}/register/{{ m.TEMPLATE }}">{{ m.TEMPLATE }}</a> <span class="small muted">{{ m.TITLE }}</span></th>
+      <td class="num">{{ ws.report.record_counts.get(m.TEMPLATE, 0) }}</td>
+      <td class="num">{% if c.get("error") %}<a href="/w/{{ ws.id }}/fix?template={{ m.TEMPLATE }}&amp;severity=error">{{ c.error }}</a>{% else %}0{% endif %}</td>
+      <td class="num">{{ c.get("warning", 0) }}</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+<section aria-labelledby="h-km">
+  <h2 id="h-km">{{ t("ws.key_messages") }}</h2>
+  <ul class="kf">{% for k in ws.analysis.key_findings[:4] %}
+    <li><span class="lvl {{ k.level.value }}">{{ k.level.value }}</span><div><strong>{{ k.title }}</strong> <span class="muted">{{ k.detail }}</span></div></li>
+  {% endfor %}</ul>
+  <p><a href="/w/{{ ws.id }}/analyse">{{ t("ws.next.analyse") }} →</a></p>
+</section>
+</div>
+{% endblock %}

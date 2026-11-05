@@ -77,6 +77,7 @@ class Workspace:
         self.changes: list[Change] = []
         self.versions: list[Version] = []
         self.visited: set[str] = set()
+        self.import_notes: list[str] | None = None
         self._derived: _Derived | None = None
         self.snapshot("Imported")
 

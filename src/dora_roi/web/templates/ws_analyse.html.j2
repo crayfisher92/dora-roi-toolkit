@@ -1,0 +1,50 @@
+{% extends "ws_base.html.j2" %}
+{% block page_title %}{{ t("an.title") }}{% endblock %}
+{% block content %}
+<h2>{{ t("an.dashboard") }}</h2>
+<section class="grid tiles">
+  <div class="card tile"><div class="label">{{ t("prov.spend") }}</div><div class="value">{{ money(a.total_spend, a.reporting_currency) }}</div><div class="sub">{{ a.totals.contracts }} {{ t("prov.contracts") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("prov.group") }} #1</div><div class="value">{{ pct(a.top1_share) }}</div><div class="sub">HHI {{ "{:,.0f}".format(a.hhi) }} · {{ a.hhi_band }}</div></div>
+  <div class="card tile"><div class="label">{{ t("cmp.cif") }}</div><div class="value">{{ a.totals.critical_functions }}</div><div class="sub">{{ t("common.of") }} {{ a.totals.functions }}</div></div>
+  <div class="card tile"><div class="label">Exit plans</div><div class="value">{{ pct(a.totals.exit_plan_coverage) }}</div><div class="sub">{{ a.totals.critical_services }} critical services</div></div>
+</section>
+<h3>{{ t("ws.key_messages") }}</h3>
+<ul class="kf">{% for k in a.key_findings %}<li><span class="lvl {{ k.level.value }}">{{ k.level.value }}</span><div><strong>{{ k.title }}</strong> <span class="muted">{{ k.detail }}</span></div></li>{% endfor %}</ul>
+<p><a class="btn" href="/w/{{ ws.id }}/download/executive.html" target="_blank" rel="noopener">{{ t("an.exec") }}</a></p>
+<div class="grid dash">
+  <div class="card"><h3>Share of spend by provider group</h3>{{ charts.groups }}</div>
+  <div class="card"><h3>Critical functions by provider group</h3>{{ charts.cif }}</div>
+  <div class="card"><h3>Spend by region (provider · group)</h3>{{ charts.regions }}{{ charts.group_regions }}</div>
+  <div class="card"><h3>Most frequent subcontractors</h3>{{ charts.subcontractors }}</div>
+</div>
+
+<section aria-labelledby="h-graph">
+<h2 id="h-graph">{{ t("an.graph") }}</h2>
+<p class="lead">{{ t("an.graph.lead") }}</p>
+<form method="get" class="filter-row graph-controls">
+  <fieldset><legend>{{ t("an.color_by") }}</legend>
+    <label class="check"><input type="radio" name="color" value="criticality" {% if color == "criticality" %}checked{% endif %}> {{ t("an.color.criticality") }}</label>
+    <label class="check"><input type="radio" name="color" value="region" {% if color == "region" %}checked{% endif %}> {{ t("an.color.region") }}</label>
+  </fieldset>
+  <label class="check"><input type="checkbox" name="critical" value="1" {% if critical %}checked{% endif %}> {{ t("an.critical_only") }}</label>
+  <label class="check"><input type="checkbox" name="isolated" value="1" {% if isolated %}checked{% endif %}> {{ t("an.isolated") }}</label>
+  <button class="btn" type="submit">{{ t("an.update") }}</button>
+</form>
+<div class="legend" aria-label="Legend">
+  {% if color == "region" %}
+  {% for label, var in (("EU", "--series-1"), ("Switzerland", "--series-2"), ("EEA (non-EU)", "--series-3"), ("Third country", "--series-4"), ("Unknown", "--series-muted")) %}
+  <span><i class="key" style="background:var({{ var }})"></i>{{ label }}</span>{% endfor %}
+  <span>◆ {{ t("an.legend.critical") }}</span>
+  {% else %}
+  <span><i class="key" style="background:var(--series-1)"></i>◆ {{ t("an.legend.critical") }}</span>
+  <span><i class="key" style="background:var(--series-muted)"></i>{{ t("an.legend.other") }}</span>
+  {% endif %}
+</div>
+<div class="graph-scroll card" tabindex="0" role="region" aria-label="{{ t('an.graph') }}">{{ graph_svg }}</div>
+<details><summary>{{ t("an.chains") }}</summary>
+  <div class="table-wrap"><table><thead><tr><th scope="col">{{ t("an.arrangement") }}</th><th scope="col">{{ t("an.chain") }}</th></tr></thead>
+  <tbody>{% for ref, names in chains %}<tr><td class="mono">{{ ref }}</td><td>{{ names | join(" → ") }}</td></tr>{% endfor %}</tbody></table></div>
+</details>
+</section>
+{% endblock %}
+{% block scripts %}{{ tooltip_script }}{% endblock %}

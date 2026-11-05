@@ -1,0 +1,19 @@
+{% extends "wizard_base.html.j2" %}
+{% block wizard %}
+<section aria-labelledby="h-prev">
+  <h2 id="h-prev">{{ t("wiz.step.preview") }}</h2>
+  <p>{{ t("wiz.preview.lead") }}</p>
+  <div class="table-wrap"><table class="preview">
+    <thead><tr>{% for k in keys %}<th scope="col">{{ fields[k].label_de if lang == "de" else fields[k].label_en }}<div class="small muted mono">{{ fields[k].target }}</div></th>{% endfor %}</tr></thead>
+    <tbody>{% for r in rows %}<tr>
+      {% for k in keys %}{% set c = r.get(k) %}
+      <td>{% if c %}<span class="{{ 'normalised' if c.changed }}">{{ display(c.value) }}</span>{% if c.changed and c.original is not none %}<div class="small muted"><s>{{ c.original }}</s></div>{% endif %}{% endif %}</td>
+      {% endfor %}
+    </tr>{% endfor %}</tbody>
+  </table></div>
+  <form action="/map/{{ wiz.id }}/import" method="post" class="row actions">
+    <a class="btn" href="/map/{{ wiz.id }}/entity">{{ t("wiz.back") }}</a>
+    <button class="btn primary" type="submit">{{ t("wiz.preview.import") }}</button>
+  </form>
+</section>
+{% endblock %}

@@ -33,7 +33,11 @@
 | `dora_roi.reporting` | Validation report renderers, executive summary, inline SVG charts, Jinja2 templates and shared CSS (light/dark). |
 | `dora_roi.sample` | Fictional *Alpenrand* group catalogue and deterministic generator with injected errors. |
 | `dora_roi.cli` | `roi validate · report · export · template · rules · sample · serve`. |
-| `dora_roi.web` | FastAPI application factory, in-memory store, server-rendered pages. |
+| `dora_roi.workspace` | Editable, versioned register (raw values as source of truth, instant re-validation). |
+| `dora_roi.fixes` / `dora_roi.explain` / `dora_roi.quality` | Fix suggestions and bulk groups; EN/DE plain-language rule explanations; data-quality score and readiness. |
+| `dora_roi.inventory` / `dora_roi.normalise` | Column-mapping import of arbitrary inventories; value normalisation (countries, dates, amounts, booleans, service types). |
+| `dora_roi.diff` / `dora_roi.graph` | Register comparison; layered dependency graph with SVG rendering. |
+| `dora_roi.web` | Workbench: FastAPI routes (`app.py`), view models (`views.py`), EN/DE strings (`i18n.py`), Jinja2 templates, `static/app.css` + `app.js` (progressive enhancement), `devserver.py` for tests/screenshots. |
 | `dora_roi.docs` | Generates `REGULATORY_MAPPING.md`, `DATA_DICTIONARY.md`, `SAMPLE_DATA.md` from the code. |
 
 ## Key design choices
