@@ -232,17 +232,49 @@ def rules(fmt: str) -> None:
 @click.option("--format", "fmt", type=click.Choice(["xlsx", "csv"]), default="xlsx",
               show_default=True)
 @click.option("--clean", is_flag=True, help="Omit the deliberately injected errors.")
+@click.option("--previous-year", is_flag=True,
+              help="Generate last year's (clean) version of the register, for `roi diff`.")
+@click.option("--inventory", is_flag=True,
+              help="Generate a messy German contract inventory for the mapping wizard.")
 @click.option("--seed", type=int, default=2554, show_default=True, help="Random seed.")
-def sample(output: Path, fmt: str, clean: bool, seed: int) -> None:
+def sample(output: Path, fmt: str, clean: bool, previous_year: bool, inventory: bool,
+           seed: int) -> None:
     """Generate the synthetic sample register (fictional Swiss/EU banking group)."""
     from dora_roi.io.csv_folder import write_csv_folder
     from dora_roi.io.excel import write_workbook
-    from dora_roi.sample import generate_sample
+    from dora_roi.sample import generate_previous_year, generate_sample
 
-    result = generate_sample(seed=seed, inject_errors=not clean)
+    if inventory:
+        from dora_roi.sample.inventory_sample import write_sample_inventory
+
+        click.echo(f"Wrote {write_sample_inventory(output)}", err=True)
+        return
+    result = (generate_previous_year(seed=seed) if previous_year
+              else generate_sample(seed=seed, inject_errors=not clean))
     path = (write_workbook(result.source_register, output) if fmt == "xlsx"
             else write_csv_folder(result.source_register, output))
     click.echo(f"Wrote {path} ({len(result.injected)} injected error(s))", err=True)
+
+
+@main.command()
+@click.argument("old_path", metavar="OLD", type=click.Path(path_type=Path))
+@click.argument("new_path", metavar="NEW", type=click.Path(path_type=Path))
+@click.option("-f", "--format", "fmt", type=click.Choice(["md", "json"]), default="md",
+              show_default=True)
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path))
+def diff(old_path: Path, new_path: Path, fmt: str, output: Path | None) -> None:
+    """Compare two versions of a register (added / removed / changed records)."""
+    import dataclasses
+
+    from dora_roi.diff import diff_registers, render_diff_markdown
+
+    old = _load(old_path, None)
+    new = _load(new_path, None)
+    result = diff_registers(old.register, new.register, old_path.name, new_path.name)
+    if fmt == "json":
+        _write(json.dumps(dataclasses.asdict(result), indent=2, default=str), output)
+    else:
+        _write(render_diff_markdown(result), output)
 
 
 @main.command()

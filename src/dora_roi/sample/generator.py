@@ -35,6 +35,7 @@ from dora_roi.model import (
     EntityMaintainingRegister,
     Function,
     HierarchyInGroup,
+    IctServiceType,
     IctThirdPartyProvider,
     Impact,
     NonSubstitutabilityReason,
@@ -144,7 +145,7 @@ def _add_entity(ctx: _Ctx, spec: EntitySpec, holding: str) -> None:
         hierarchy=HierarchyInGroup.PARENT if is_eu_parent else HierarchyInGroup.SUBSIDIARY,
         parent_lei=holding if is_eu_parent else ctx.entity_lei[spec.parent or ""],
         last_update=ctx.ref - timedelta(days=ctx.rng.randint(5, 40)),
-        integration_date=date(2025, 1, 17), currency="EUR",
+        integration_date=date(ctx.ref.year, 1, 17), currency="EUR",
         total_assets=Decimal(spec.total_assets)))
     for code, name, country in spec.branches:
         ctx.reg.add(Branch(branch_code=code, head_office_lei=lei, name=name, country=country))
@@ -540,3 +541,62 @@ def generate_sample(
     injected = _inject(ctx) if inject_errors else []
     parsed = parse_raw(register_to_raw(ctx.reg, "alpenrand-sample"))
     return SampleResult(ctx.reg, parsed.register, parsed.findings, injected, reference_date)
+
+
+PREVIOUS_REFERENCE_DATE = date(2024, 12, 31)
+
+
+def generate_previous_year(seed: int = DEFAULT_SEED) -> SampleResult:
+    """The Alpenrand register as it stood one year earlier (for the register diff demo).
+
+    Compared with the current clean sample: arrangements that started in 2025 did not exist
+    yet, the two arrangements that ended in 2025 were still running, a mainframe provider that
+    has since been exited was still in place, and annual costs were about 8 % lower.
+    """
+    ctx = _Ctx(rng=random.Random(seed), ref=PREVIOUS_REFERENCE_DATE, cat=Catalogue())
+    _build_entities(ctx)
+    _build_providers(ctx)
+    _build_contracts(ctx)
+    reg = ctx.reg
+    new_refs = {s.contract_ref for s in reg.b_02_02
+                if s.start_date and s.start_date > PREVIOUS_REFERENCE_DATE}
+    for model in TEMPLATE_MODELS:
+        records = reg.records(model.TEMPLATE)
+        if "contract_ref" in model.model_fields:
+            records[:] = [r for r in records
+                          if getattr(r, "contract_ref") not in new_refs]  # noqa: B009
+    for c in reg.b_02_01:
+        if c.annual_cost is not None:
+            c.annual_cost = (c.annual_cost * Decimal("0.92")).quantize(Decimal(1000))
+    ctx.provider_cost.clear()
+    for ref, providers in _direct_providers(reg).items():
+        cost = next((c.annual_cost for c in reg.b_02_01 if c.contract_ref == ref), None)
+        for code in providers:
+            ctx.provider_cost[code] += cost or Decimal(0)
+    # an exited mainframe outsourcing arrangement
+    legacy = ProviderSpec("legacy", "Legacy Mainframe Services GmbH", "DE")
+    ctx.provider_spec[legacy.key] = legacy
+    ctx.provider_code[legacy.key] = synthetic_lei(legacy.name)
+    ctx.cat = Catalogue(providers=(*ctx.cat.providers, legacy))
+    de = ctx.cat.entities[0]
+    _add_contract(ctx, OfferingSpec("legacy", IctServiceType.S14, ("core",), (400_000, 400_000),
+                                    Substitutability.MEDIUM, data=True), de,
+                  [ctx.functions[("DE", "core")]], ContractType.STANDALONE, ref="AR-DE-0999")
+    for s in reg.b_02_02:
+        if s.contract_ref == "AR-DE-0999":
+            s.end_date = date(2025, 3, 31)
+    used = {s.provider_code for s in reg.b_02_02} | {e.provider_code for e in reg.b_05_02}
+    _finalise_providers(ctx)
+    reg.b_05_01[:] = [p for p in reg.b_05_01 if p.provider_code in used
+                      or any(q.ultimate_parent_code == p.provider_code for q in reg.b_05_01
+                             if q.provider_code in used)]
+    parsed = parse_raw(register_to_raw(reg, "alpenrand-2024"))
+    return SampleResult(reg, parsed.register, parsed.findings, [], PREVIOUS_REFERENCE_DATE)
+
+
+def _direct_providers(reg: RegisterOfInformation) -> dict[str, set[str]]:
+    out: dict[str, set[str]] = defaultdict(set)
+    for s in reg.b_02_02:
+        if s.contract_ref and s.provider_code:
+            out[s.contract_ref].add(s.provider_code)
+    return dict(out)
