@@ -42,3 +42,18 @@ Status: ✅ done · 🔄 in progress · ⏳ open · ➖ won't do (with reason)
 | B-22 | Low | TPR | Accepted findings and their justifications are missing from the Markdown/HTML validation reports (only JSON has them). | Rendered report. | ✅ accepted findings section in Markdown and HTML reports |
 | B-23 | Low | TPR | Failure-impact table does not show whether each affected service has an exit plan. | Provider page. | ✅ exit-plan column in the failure-impact table |
 | B-24 | Low | SE | An acceptance whose record is later edited (key changes) stays in the store as an orphan. | Code inspection. | ✅ acceptances whose finding disappeared are pruned with an audit entry |
+
+## Cycle 3
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| B-25 | Medium | TPR | **CRO report still counts only direct dependencies** – chart, table and tooltips contradict the key message and the provider pages after B-03, and pure fourth parties never appear. | `build_charts` used `critical_functions`; Nimbus group shown with 14 instead of 16. | ✅ chart and table show functions depending on each group including subcontracting (direct count alongside); pure subcontractors included |
+| B-26 | Low | SE | README screenshots predate the Renewals/Audit tabs and the failure-impact table. | Visual check. | ⏳ regenerated with the release (hardening) |
+| B-27 | Low | SE | `docs/ARCHITECTURE.md` did not list the new modules (impact, renewals, limits, security). | Doc review. | ✅ |
+| B-15 | Low | SE | (cycle 1) Language switch dropped the query string. | — | ✅ `lang_href` keeps all parameters |
+
+Re-review after the fixes (both perspectives, same probes as cycles 1–3: cross-session access,
+cross-origin POST, open redirect, oversized/bomb archives, formula injection, rule crash,
+direct vs indirect dependency figures in app/report/key messages, diff noise) found **no
+remaining High or Medium items**. Open Low items: B-16 (findings export to spreadsheet),
+B-17 (validator messages EN only), B-26 (screenshots, scheduled with the release).

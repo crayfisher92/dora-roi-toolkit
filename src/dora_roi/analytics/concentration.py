@@ -132,6 +132,8 @@ class SubcontractorExposure(BaseModel):
     chains: int = 0
     critical_chains: int = 0
     also_direct_provider: bool = False
+    #: Critical functions depending on it (directly or through supply chains).
+    critical_functions: int = 0
 
 
 class ExpiringContract(BaseModel):
@@ -450,6 +452,7 @@ def analyse(register: RegisterOfInformation,
         (SubcontractorExposure(code=code, name=idx.provider_name(code),
                                group_name=idx.provider_name(idx.group_of(code)),
                                chains=len(chains), critical_chains=len(sub_critical.get(code, ())),
+                               critical_functions=len(critical_incl.get(code, set())),
                                also_direct_provider=code in direct_codes)
          for code, chains in sub_chains.items()),
         key=lambda x: (-x.chains, -x.critical_chains, x.name))

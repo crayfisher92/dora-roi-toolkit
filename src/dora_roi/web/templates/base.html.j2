@@ -19,7 +19,7 @@
     <nav class="tools" aria-label="{{ t('nav.language') }} / {{ t('nav.theme') }}">
       <ul class="lang" role="list">
         {% for code in languages %}
-        <li><a href="{{ path }}?lang={{ code }}" hreflang="{{ code }}" lang="{{ code }}"
+        <li><a href="{{ lang_href(code) }}" hreflang="{{ code }}" lang="{{ code }}"
                {% if code == lang %}aria-current="true"{% endif %}>{{ code | upper }}</a></li>
         {% endfor %}
       </ul>

@@ -22,6 +22,7 @@ from datetime import date
 from pathlib import Path
 from threading import Lock
 from typing import Annotated, Any, Generic, TypeVar
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
@@ -148,8 +149,12 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                ) -> HTMLResponse:
         lang = lang_of(request)
         t = translator(lang)
+        def lang_href(code: str) -> str:
+            params = [(k, v) for k, v in request.query_params.multi_items() if k != "lang"]
+            return request.url.path + "?" + urlencode([*params, ("lang", code)])
+
         html = env.get_template(page_template).render(
-            request=request, lang=lang, t=t, path=request.url.path,
+            request=request, lang=lang, t=t, path=request.url.path, lang_href=lang_href,
             explain=lambda rid: explain(rid, lang), rule_title=lambda rid: rule_title(rid, lang),
             **ctx)
         response = HTMLResponse(html, status_code=status)

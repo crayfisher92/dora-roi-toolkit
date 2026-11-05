@@ -71,18 +71,18 @@ all legal entities of a hyperscaler count as one exposure (DORA Art. 29).</p>
 <div class="grid two">
   <div class="card"><h3>Share of spend – top {{ [cfg.top_n, a.groups | length] | min }} provider groups</h3>
     {{ charts.groups }}</div>
-  <div class="card"><h3>Critical functions supported by provider group</h3>
+  <div class="card"><h3>Critical functions depending on each provider group (incl. subcontracting)</h3>
     {{ charts.cif }}</div>
 </div>
 <details><summary>Table: provider groups</summary>
 <div class="table-wrap"><table>
   <thead><tr><th>Provider group</th><th>HQ</th><th class="num">Spend</th><th class="num">Share</th>
-    <th class="num">Arrangements</th><th class="num">Critical functions</th><th class="num">Indirect (as subcontractor)</th><th>Legal entities</th></tr></thead>
+    <th class="num">Arrangements</th><th class="num">Critical functions (direct)</th><th class="num">Critical functions (incl. subcontracting)</th><th class="num">Indirect arrangements (as subcontractor)</th><th>Legal entities</th></tr></thead>
   <tbody>
   {% for g in a.groups %}
   <tr><td>{{ g.group_name }}</td><td>{{ g.hq_country or "—" }}</td><td class="num">{{ money(g.spend, a.reporting_currency) }}</td>
     <td class="num">{{ pct(g.spend_share) }}</td><td class="num">{{ g.contracts }}</td>
-    <td class="num">{{ g.critical_functions }}</td><td class="num">{{ g.indirect_contracts }}</td>
+    <td class="num">{{ g.critical_functions }}</td><td class="num">{{ g.critical_functions_incl_indirect }}</td><td class="num">{{ g.indirect_contracts }}</td>
     <td class="small">{{ g.providers | join(", ") }}</td></tr>
   {% endfor %}
   </tbody></table></div>

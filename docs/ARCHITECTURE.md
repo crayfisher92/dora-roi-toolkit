@@ -36,7 +36,10 @@
 | `dora_roi.workspace` | Editable, versioned register (raw values as source of truth, instant re-validation). |
 | `dora_roi.fixes` / `dora_roi.explain` / `dora_roi.quality` | Fix suggestions and bulk groups; EN/DE plain-language rule explanations; data-quality score and readiness. |
 | `dora_roi.inventory` / `dora_roi.normalise` | Column-mapping import of arbitrary inventories; value normalisation (countries, dates, amounts, booleans, service types). |
-| `dora_roi.diff` / `dora_roi.graph` | Register comparison; layered dependency graph with SVG rendering. |
+| `dora_roi.diff` / `dora_roi.graph` | Register comparison (material vs administrative changes); layered dependency graph with SVG rendering. |
+| `dora_roi.analytics.impact` / `.renewals` | Failure impact of a provider (direct and through subcontracting); notice-deadline schedule. |
+| `dora_roi.io.limits` | Upload/archive size, compression-ratio and row-count limits. |
+| `dora_roi.web.security` | Security headers/CSP, same-origin (CSRF) check, browser-session isolation, safe redirects. |
 | `dora_roi.web` | Workbench: FastAPI routes (`app.py`), view models (`views.py`), EN/DE strings (`i18n.py`), Jinja2 templates, `static/app.css` + `app.js` (progressive enhancement), `devserver.py` for tests/screenshots. |
 | `dora_roi.docs` | Generates `REGULATORY_MAPPING.md`, `DATA_DICTIONARY.md`, `SAMPLE_DATA.md` from the code. |
 

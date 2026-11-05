@@ -110,3 +110,24 @@ def test_impact_reports_exit_plans() -> None:
     assert flagged
     assert any(f.exit_plan is None for p in reg.b_05_01
                for f in failure_impact(reg, p.provider_code or "").functions)
+
+
+def test_cro_report_counts_indirect_dependencies() -> None:
+    from dora_roi.reporting.executive import build_charts, render_executive_summary
+
+    reg = generate_sample(inject_errors=False).register
+    a = analyse(reg)
+    chart = str(build_charts(a)["cif"])
+    assert "Nimbus Cloud Inc.: 16 critical function(s) depend on it, 15 through a direct" in chart
+    assert "Rheinpark Datacenter GmbH: 11 critical function(s)" in chart
+    html = render_executive_summary(reg, analysis=a)
+    assert "Critical functions (incl. subcontracting)" in html
+    pure = [s for s in a.subcontractors if not s.also_direct_provider]
+    assert pure and all(s.critical_functions >= 0 for s in pure)
+
+
+def test_language_switch_keeps_query() -> None:
+    c = TestClient(create_app())
+    url = c.post("/sample", data={"variant": "clean"}, follow_redirects=False).headers["location"]
+    page = c.get(url + "/fix?template=B_01.02&severity=info").text
+    assert "template=B_01.02&amp;severity=info&amp;lang=de" in page

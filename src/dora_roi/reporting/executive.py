@@ -63,17 +63,26 @@ def build_charts(a: ConcentrationAnalysis, top_n: int = 10) -> dict[str, Markup]
         "groups": hbar_chart(
             [Bar(g.group_name, g.spend_share, pct(g.spend_share),
                  f"{g.group_name}: {pct(g.spend_share)} of spend · {money(g.spend, cur)} · "
-                 f"{g.contracts} arrangement(s) · {g.critical_functions} critical function(s)")
+                 f"{g.contracts} arrangement(s) · {g.critical_functions_incl_indirect} critical "
+                 f"function(s), {g.critical_functions} directly")
              for g in groups],
             title="Share of annual ICT third-party spend by provider group"),
     }
-    cif = sorted((g for g in a.groups if g.critical_functions),
-                 key=lambda g: (-g.critical_functions, -g.spend))[:top_n]
+    # direct + indirect (through subcontracting), including pure fourth parties (B-25)
+    cif_rows: dict[str, tuple[int, int]] = {
+        g.group_name: (g.critical_functions_incl_indirect, g.critical_functions)
+        for g in a.groups if g.critical_functions_incl_indirect}
+    for s in a.subcontractors:
+        if s.group_name not in cif_rows and s.critical_functions:
+            cif_rows[s.group_name] = (s.critical_functions, 0)
+    cif = sorted(cif_rows.items(), key=lambda kv: (-kv[1][0], -kv[1][1], kv[0]))[:top_n]
     charts["cif"] = hbar_chart(
-        [Bar(g.group_name, g.critical_functions, str(g.critical_functions),
-             f"{g.group_name}: supports {g.critical_functions} critical function(s)")
-         for g in cif],
-        title="Critical or important functions supported, by provider group")
+        [Bar(name, total, str(total),
+             f"{name}: {total} critical function(s) depend on it, {direct} through a direct "
+             "contract")
+         for name, (total, direct) in cif],
+        title="Critical or important functions depending on each provider group, including "
+        "through subcontracting")
     regions = sorted(a.hq_regions, key=lambda r: REGION_ORDER.index(r.key)
                      if r.key in REGION_ORDER else 99)
     charts["regions"] = segmented_bar(
