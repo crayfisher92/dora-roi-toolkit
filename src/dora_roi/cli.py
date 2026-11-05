@@ -304,7 +304,7 @@ def check_package(reference: Path, ours: Path | None, output: Path | None) -> No
 @click.option("--port", default=8000, show_default=True, type=int)
 @click.option("--access-log", is_flag=True,
               help="Log every request line (off by default: URLs can contain client data).")
-def serve(host: str, port: int, access_log: bool) -> None:  # pragma: no cover - server
+def serve(host: str, port: int, access_log: bool) -> None:
     """Start the web UI (requires the 'web' extra)."""
     try:
         import uvicorn

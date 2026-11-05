@@ -84,7 +84,8 @@ def _write_codelists(wb: Workbook) -> dict[str, str]:
 
 def _write_readme(wb: Workbook) -> None:
     ws = wb.active
-    assert ws is not None
+    if ws is None:  # pragma: no cover - a new Workbook always has an active sheet
+        raise RuntimeError("workbook has no active sheet")
     ws.title = README_SHEET
     lines = [
         ("DORA Register of Information – workbook", True),

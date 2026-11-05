@@ -186,7 +186,9 @@ def render_svg(graph: Graph, *, color_by: str = "criticality", link_prefix: str 
     """Render the graph as accessible inline SVG (nodes are focusable links)."""
     labels = labels or {}
     if not graph.nodes:
-        return Markup(f'<p class="muted">{escape(labels.get("empty", "No providers."))}</p>')
+        # bandit B704: label escaped
+        return Markup(  # nosec B704
+            f'<p class="muted">{escape(labels.get("empty", "No providers."))}</p>')
     crit_text = labels.get("critical", "supports a critical function")
     parts = [
         f'<svg class="dep-graph" viewBox="0 0 {graph.width:.0f} {graph.height:.0f}" '
@@ -227,7 +229,8 @@ def render_svg(graph: Graph, *, color_by: str = "criticality", link_prefix: str 
             f'<text x="{n.x + 24:.1f}" y="{n.y + NODE_H / 2 + 4:.1f}"{weight}>'
             f"{escape(mark + _truncate(n.name))}</text></a>")
     parts.append("</g></svg>")
-    return Markup("".join(parts))
+    # bandit B704: every interpolated value is escaped (tests: test_xss_*)
+    return Markup("".join(parts))  # nosec B704
 
 
 def chains_table(register: RegisterOfInformation, focus: str | None = None

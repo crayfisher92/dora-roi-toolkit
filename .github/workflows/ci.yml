@@ -29,6 +29,28 @@ jobs:
       - name: Mypy (strict)
         run: mypy
 
+  security:
+    name: Security scans (pip-audit, bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Freeze the runtime + web dependency set in an isolated venv
+        run: |
+          python -m venv /tmp/runtime
+          /tmp/runtime/bin/pip install --upgrade pip
+          /tmp/runtime/bin/pip install ".[web]"
+          /tmp/runtime/bin/pip freeze --exclude-editable | grep -vi '^dora-roi-toolkit' > runtime-requirements.txt
+          cat runtime-requirements.txt
+      - run: pip install pip-audit bandit
+      - name: Dependency vulnerabilities (pip-audit)
+        run: pip-audit -r runtime-requirements.txt --no-deps --progress-spinner off
+      - name: Static analysis (bandit, fail on medium+)
+        run: bandit -r src --severity-level medium --confidence-level medium
+
   test:
     name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest

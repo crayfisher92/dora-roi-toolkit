@@ -293,7 +293,8 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                 if isinstance(got, str):
                     return upload_error(request, got, "wizard_upload.html.j2", wstep=1)
                 name, data = got
-                path = Path(tmp) / name
+                # never use the client-supplied name as a path (T5 in docs/SECURITY.md)
+                path = Path(tmp) / f"inventory{Path(name).suffix.lower()}"
                 path.write_bytes(data)
             try:
                 sheet = read_inventory(path)

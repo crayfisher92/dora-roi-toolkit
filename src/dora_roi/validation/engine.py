@@ -142,7 +142,8 @@ def validate(
     failures: list[RuleFailure] = []
     rules = engine_rules(config)
     for r in rules:
-        assert r.check is not None
+        if r.check is None:  # pragma: no cover - engine_rules() only returns checkable rules
+            continue
         try:
             findings.extend(r.check(ctx))
         except Exception as exc:  # pragma: no cover - defensive: a buggy rule must not hide others

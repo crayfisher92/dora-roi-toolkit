@@ -208,6 +208,7 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
 | [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md) | Regulatory details that must be verified |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Engineering decisions and their rationale |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Modules, data flow, report schema, extension guide |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model (STRIDE), security controls and residual risks; disclosure policy in [`SECURITY.md`](SECURITY.md) |
 | [`docs/UX.md`](docs/UX.md) | Personas, jobs to be done, screen flow, accessibility principles |
 | [`docs/DEMO.md`](docs/DEMO.md) | 5-minute client demo with the Alpenrand sample |
 

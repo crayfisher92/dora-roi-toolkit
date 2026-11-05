@@ -99,7 +99,8 @@ def write_sample_inventory(path: str | Path, limit: int | None = None) -> Path:
     """Write the messy inventory workbook (title row, blank row, header, data)."""
     wb = Workbook()
     ws = wb.active
-    assert ws is not None
+    if ws is None:  # pragma: no cover - a new Workbook always has an active sheet
+        raise RuntimeError("workbook has no active sheet")
     ws.title = "Vertragsinventar"
     ws.append(["Vertragsinventar IKT-Dienstleister – Alpenrand Bank (Europe) AG – "
                "Stand 31.12.2025"])

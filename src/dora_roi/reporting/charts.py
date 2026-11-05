@@ -85,7 +85,8 @@ def hbar_chart(bars: Sequence[Bar], *, title: str, label_width: int = 190,
                      f'y="{y + bar_height / 2 + 4:.1f}">{escape(b.display)}</text>')
         parts.append("</g>")
     parts.append("</svg>")
-    return Markup("".join(parts))
+    # bandit B704: every interpolated value is escaped (tests: test_xss_*)
+    return Markup("".join(parts))  # nosec B704
 
 
 def column_chart(bars: Sequence[Bar], *, title: str, width: int = 500, height: int = 200,
@@ -120,7 +121,8 @@ def column_chart(bars: Sequence[Bar], *, title: str, width: int = 500, height: i
                      f'{escape(_truncate(b.label, 22))}</text>')
         parts.append("</g>")
     parts.append("</svg>")
-    return Markup("".join(parts))
+    # bandit B704: every interpolated value is escaped (tests: test_xss_*)
+    return Markup("".join(parts))  # nosec B704
 
 
 @dataclass(frozen=True)
@@ -138,18 +140,20 @@ def segmented_bar(segments: Sequence[Segment], *, title: str) -> Markup:
     if not segs or total <= 0:
         return Markup('<p class="muted small">No data.</p>')
     bar = "".join(
-        f'<span style="flex:{s.value / total:.6f};background:var({s.color_var})" '
+        f'<span style="flex:{s.value / total:.6f};background:var({escape(s.color_var)})" '
         f'data-tip="{escape(s.label)}: {escape(s.display)}" '
         f'title="{escape(s.label)}: {escape(s.display)}"></span>'
         for s in segs
     )
     legend = "".join(
-        f'<span><i class="key" style="background:var({s.color_var})"></i>'
+        f'<span><i class="key" style="background:var({escape(s.color_var)})"></i>'
         f"{escape(s.label)} · <strong>{escape(s.display)}</strong></span>"
         for s in segs
     )
-    return Markup(f'<div role="img" aria-label="{escape(title)}"><div class="seg-bar">{bar}</div>'
-                  f'<div class="legend">{legend}</div></div>')
+    # bandit B704: every interpolated value is escaped (test_xss_*)
+    return Markup(  # nosec B704
+        f'<div role="img" aria-label="{escape(title)}"><div class="seg-bar">{bar}</div>'
+        f'<div class="legend">{legend}</div></div>')
 
 
 TOOLTIP_SCRIPT = Markup("""<div id="viz-tip" role="tooltip" style="position:fixed;
