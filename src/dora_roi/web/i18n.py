@@ -46,6 +46,9 @@ MESSAGES: dict[str, dict[str, str]] = {
         "home.project.open": "Open a saved project file",
         "home.project.button": "Open project",
         "busy.import": "Working – large registers take a few seconds …",
+        "ex.pdf.unavailable": ("PDF export is not installed on this server – open the HTML "
+                               "report and use your browser's Print → Save as PDF (same "
+                               "layout)."),
         "home.project.saved": "Last saved",
         "home.projects": "Saved projects",
         "home.projects.none": "No saved projects in the projects folder yet.",
@@ -343,6 +346,9 @@ MESSAGES: dict[str, dict[str, str]] = {
         "home.project.open": "Gespeicherte Projektdatei öffnen",
         "home.project.button": "Projekt öffnen",
         "busy.import": "Wird verarbeitet – große Register brauchen einige Sekunden …",
+        "ex.pdf.unavailable": ("PDF-Export ist auf diesem Server nicht installiert – "
+                               "HTML-Bericht öffnen und im Browser Drucken → Als PDF speichern "
+                               "wählen (gleiches Layout)."),
         "home.project.saved": "Zuletzt gespeichert",
         "home.projects": "Gespeicherte Projekte",
         "home.projects.none": "Noch keine Projekte im Projektordner.",

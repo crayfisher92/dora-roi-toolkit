@@ -83,7 +83,7 @@ Then open its US parent **Nimbus Cloud Inc.** from the *Failure impact* table or
 > with third-country entities. That is the hidden concentration DORA Article 29 asks you to
 > assess."
 
-**Click** *Open executive summary* to show the printable CRO report (keep it brief).
+**Click** *Open executive summary* to show the CRO report (keep it brief); the *PDF* button next to it produces the same report as an A4 document for the board pack.
 
 ## 4:00 – What changed since last year? (30 s)
 

@@ -30,7 +30,7 @@
 | `dora_roi.io` | `raw.py` – untyped `RawRegister`; `tables.py` – sheet/file name recognition, header detection, annotation-row skipping; `excel.py` (XlsxWriter), `xlsx_read.py` (python-calamine), `csv_folder.py`, `xbrl_csv.py` – readers and writers; `limits.py` – size and row limits; `parse.py` – raw → typed with field findings; `loader.py` – format detection, `load()` / `save()`. |
 | `dora_roi.validation` | `findings.py` – `Finding`, `Severity`, `Rule` and the rule registry/decorator; `context.py` – `ValidationConfig` and cached indexes; `field_rules.py`, `referential_rules.py`, `supply_chain_rules.py`, `business_rules.py` – the rules; `engine.py` – `validate()` and `ValidationReport`; `references.py` – regulatory reference labels. |
 | `dora_roi.analytics` | `concentration.py` – provider/group exposure, HHI, critical-function dependencies, geography, subcontracting, substitutability, expiries, key messages. |
-| `dora_roi.reporting` | Validation report renderers, executive summary, inline SVG charts, Jinja2 templates and shared CSS (light/dark). |
+| `dora_roi.reporting` | Validation report renderers, executive summary, inline SVG charts, Jinja2 templates and shared CSS (light/dark, print/A4); `pdf.py` renders the print variant to PDF with WeasyPrint (optional, offline). |
 | `dora_roi.sample` | Fictional *Alpenrand* group catalogue and deterministic generator with injected errors; `large.py` – scale-test register (10 000 contracts / 1 000 providers by default). |
 | `dora_roi.cli` | `roi validate · report · export · template · rules · sample · serve`. |
 | `dora_roi.workspace` | Editable, versioned register (raw values as source of truth, instant re-validation). |

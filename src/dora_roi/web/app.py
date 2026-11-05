@@ -61,6 +61,7 @@ from dora_roi.project import SUFFIX as PROJECT_SUFFIX
 from dora_roi.project import ProjectError, list_projects, load_project, save_project
 from dora_roi.reporting import render_html, render_json, render_markdown
 from dora_roi.reporting.executive import build_charts, money, pct, render_executive_summary
+from dora_roi.reporting.pdf import html_to_pdf, pdf_available
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
 from dora_roi.validation import RULES, Finding, finding_key
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
@@ -646,7 +647,8 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     @app.get("/w/{wid}/export", response_class=HTMLResponse)
     def export_page(request: Request, wid: str) -> HTMLResponse:
-        return ws_page(request, ws_or_404(wid), "ws_export.html.j2", "export")
+        return ws_page(request, ws_or_404(wid), "ws_export.html.j2", "export",
+                       pdf=pdf_available())
 
     @app.get("/w/{wid}/download/{kind}")
     def download(wid: str, kind: str) -> Response:
@@ -685,6 +687,16 @@ def create_app(capacity: int = MAX_WORKSPACES,
         if kind == "executive.html":
             return HTMLResponse(render_executive_summary(ws.register, ws.report,
                                                          analysis=ws.analysis))
+        if kind in ("executive.pdf", "validation.pdf"):
+            if not pdf_available():
+                raise HTTPException(status_code=404, detail="PDF export is not installed")
+            if kind == "executive.pdf":
+                html = render_executive_summary(ws.register, ws.report, analysis=ws.analysis,
+                                                pdf=True)
+            else:
+                html = render_html(ws.report, pdf=True)
+            name = f"{stem}-{kind.replace('.pdf', '')}.pdf"
+            return _download(html_to_pdf(html), name, "application/pdf")
         if kind == "analysis.json":
             return JSONResponse(ws.analysis.model_dump(mode="json"))
         if kind == "audit.csv":

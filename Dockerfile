@@ -11,7 +11,7 @@ COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
 RUN --mount=type=secret,id=ca_bundle,required=false \
     if [ -s /run/secrets/ca_bundle ]; then export PIP_CERT=/run/secrets/ca_bundle; fi; \
-    pip wheel --wheel-dir /wheels ".[web]"
+    pip wheel --wheel-dir /wheels ".[web,pdf]"
 
 FROM python:3.12-slim
 LABEL org.opencontainers.image.title="DORA RoI Workbench" \
@@ -19,7 +19,12 @@ LABEL org.opencontainers.image.title="DORA RoI Workbench" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.source="https://github.com/crayfisher92/dora-roi-toolkit"
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 XDG_CACHE_HOME=/tmp/.cache
+# Pango/HarfBuzz and a font for PDF reports (WeasyPrint); nothing else from apt.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 \
+       libharfbuzz-subset0 fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=build /wheels /wheels
 RUN pip install /wheels/*.whl && rm -rf /wheels \
     && useradd --create-home --uid 10001 roi

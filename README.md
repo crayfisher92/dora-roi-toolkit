@@ -44,6 +44,10 @@ docker compose up --build          # → http://127.0.0.1:8000
 pip install -e ".[web]"            # Python ≥ 3.11; add [dev] for tests and linters
 ```
 
+PDF reports additionally need `pip install -e ".[web,pdf]"` (WeasyPrint, which uses the Pango
+library: preinstalled on most Linux desktops, `brew install pango` on macOS; on Windows use the
+Docker image or print the HTML report to PDF – it has the same print layout).
+
 ```bash
 roi sample alpenrand.xlsx          # synthetic register with 25 injected errors
 ```
@@ -58,6 +62,10 @@ roi validate alpenrand.xlsx -f html -o validation.html
 
 ```bash
 roi report alpenrand.xlsx -o executive-summary.html --client "Alpenrand Group"
+```
+
+```bash
+roi report alpenrand.xlsx -o executive-summary.pdf --validation-report validation.pdf
 ```
 
 ```bash
@@ -105,8 +113,8 @@ screen flow are in [`docs/UX.md`](docs/UX.md); a 5-minute client demo script is 
 
 | Command | Purpose | Notable options |
 |---|---|---|
-| `roi validate INPUT` | Validate a register | `-f text\|json\|md\|html`, `-o FILE`, `--fail-on error\|warning\|never`, `--disable RULE`, `--downgrade RULE`, `--reference-date`, `--code-map` |
-| `roi report INPUT -o FILE` | Executive summary (HTML) | `--client`, `--prepared-by`, `--validation-report FILE`, `--json FILE` |
+| `roi validate INPUT` | Validate a register | `-f text\|json\|md\|html\|pdf`, `-o FILE`, `--fail-on error\|warning\|never`, `--disable RULE`, `--downgrade RULE`, `--reference-date`, `--code-map` |
+| `roi report INPUT -o FILE` | Executive summary (`.html` or `.pdf`) | `--client`, `--prepared-by`, `--validation-report FILE`, `--json FILE` |
 | `roi export INPUT -o OUT` | Export | `--format xbrl-csv\|excel\|csv`, `--unzipped`, `--strict`, `--level CON\|IND\|SUB`, `--entry-point`, `--code-map` |
 | `roi template FILE` | Blank Excel template | `--sample [--clean]` to pre-fill |
 | `roi rules` | List rules and provisions | `-f text\|md\|json` |

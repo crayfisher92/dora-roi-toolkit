@@ -94,7 +94,11 @@ def main() -> int:
             run(lambda: client.post(url + "/cell", data={
                 "template": "B_02.01", "row": "4", "column": "c0050", "value": "123"}),
                 "web: inline cell edit (revalidate)")
-            for kind in ("xlsx", "xbrl", "executive.html", "project", "audit.csv"):
+            from dora_roi.reporting.pdf import pdf_available
+
+            kinds = ["xlsx", "xbrl", "executive.html", "project", "audit.csv"]
+            kinds += ["executive.pdf", "validation.pdf"] if pdf_available() else []
+            for kind in kinds:
                 run(partial(client.get, f"{url}/download/{kind}"), f"web: download {kind}")
     slow = [(label, s) for label, s in RESULTS
             if s > args.budget and "not budgeted" not in label]

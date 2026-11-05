@@ -130,3 +130,18 @@ def test_store_evicts_by_row_budget(monkeypatch: pytest.MonkeyPatch) -> None:
     from dora_roi.web.app import max_store_rows
 
     assert max_store_rows() == 500_000
+
+
+def test_executive_summary_stays_concise_for_large_registers() -> None:
+    from dora_roi.analytics import analyse
+    from dora_roi.reporting.executive import PDF_GROUP_LIMIT, render_executive_summary
+
+    reg = generate_large(contracts=1500, providers=400, seed=5).register
+    a = analyse(reg)
+    assert len(a.groups) > PDF_GROUP_LIMIT and len(a.expiring_critical) > 25
+    assert any(len(f.provider_groups) > 6 for f in a.critical_functions)
+    html = render_executive_summary(reg, analysis=a)
+    assert "more</td>" in html and "The 25 soonest of" in html
+    assert f"Top {PDF_GROUP_LIMIT} of" not in html  # the HTML lists every group
+    pdf_html = render_executive_summary(reg, analysis=a, pdf=True)
+    assert f"Top {PDF_GROUP_LIMIT} of {len(a.groups)} provider groups" in pdf_html

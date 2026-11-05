@@ -74,18 +74,20 @@ all legal entities of a hyperscaler count as one exposure (DORA Art. 29).</p>
   <div class="card"><h3>Critical functions depending on each provider group (incl. subcontracting)</h3>
     {{ charts.cif }}</div>
 </div>
-<details><summary>Table: provider groups</summary>
+<details{% if pdf %} open{% endif %}><summary>Table: provider groups</summary>
 <div class="table-wrap"><table>
   <thead><tr><th>Provider group</th><th>HQ</th><th class="num">Spend</th><th class="num">Share</th>
     <th class="num">Arrangements</th><th class="num">Critical functions (direct)</th><th class="num">Critical functions (incl. subcontracting)</th><th class="num">Indirect arrangements (as subcontractor)</th><th>Legal entities</th></tr></thead>
   <tbody>
-  {% for g in a.groups %}
+  {% set shown_groups = a.groups[:pdf_group_limit] if pdf else a.groups %}
+  {% for g in shown_groups %}
   <tr><td>{{ g.group_name }}</td><td>{{ g.hq_country or "—" }}</td><td class="num">{{ money(g.spend, a.reporting_currency) }}</td>
     <td class="num">{{ pct(g.spend_share) }}</td><td class="num">{{ g.contracts }}</td>
     <td class="num">{{ g.critical_functions }}</td><td class="num">{{ g.critical_functions_incl_indirect }}</td><td class="num">{{ g.indirect_contracts }}</td>
     <td class="small">{{ g.providers | join(", ") }}</td></tr>
   {% endfor %}
   </tbody></table></div>
+{% if shown_groups | length < a.groups | length %}<p class="small muted">Top {{ shown_groups | length }} of {{ a.groups | length }} provider groups by spend; the HTML report and the analysis JSON list all of them.</p>{% endif %}
 </details>
 
 <h2>2. Critical or important functions</h2>
@@ -97,7 +99,7 @@ Functions combining single-provider dependency with poor substitutability are th
   <tbody>
   {% for f in a.critical_functions %}
   <tr><td><span class="mono small">{{ f.function_id }}</span> {{ f.function_name }}</td><td class="small">{{ f.entity_name }}</td>
-    <td class="small">{{ f.provider_groups | join(", ") or "—" }}</td>
+    <td class="small">{{ f.provider_groups[:6] | join(", ") or "—" }}{% if f.provider_groups | length > 6 %} and {{ f.provider_groups | length - 6 }} more{% endif %}</td>
     <td class="flag {{ 'yes' if f.single_provider else 'ok' }}">{{ "Yes" if f.single_provider else "No" }}</td>
     <td class="flag {{ 'yes' if f.hard_to_substitute else 'ok' }}">{{ "Yes" if f.hard_to_substitute else "No" }}</td>
     <td class="num">{{ pct(f.exit_plan_coverage) }}</td><td class="num">{{ f.max_chain_rank or "—" }}</td>
@@ -142,10 +144,11 @@ a source of concentration that is invisible when looking at direct providers onl
 <h3>Arrangements supporting critical functions expiring within {{ cfg.expiry_horizon_days }} days</h3>
 <div class="table-wrap"><table>
   <thead><tr><th>Arrangement</th><th>Provider</th><th>End date</th><th class="num">Days left</th><th>Functions</th></tr></thead>
-  <tbody>{% for e in a.expiring_critical %}
+  <tbody>{% for e in a.expiring_critical[:25] %}
   <tr><td class="mono">{{ e.contract_ref }}</td><td>{{ e.provider }}</td><td>{{ e.end_date }}</td>
     <td class="num">{{ e.days_left }}</td><td class="small">{{ e.functions | join(", ") }}</td></tr>
   {% endfor %}</tbody></table></div>
+{% if a.expiring_critical | length > 25 %}<p class="small muted">The 25 soonest of {{ a.expiring_critical | length }} arrangements; the full schedule is on the workbench's Renewals page and in the analysis JSON.</p>{% endif %}
 {% endif %}
 
 <h2>6. ICT service mix</h2>
@@ -177,6 +180,6 @@ is based on the data as reported and may change once they are corrected.{% else 
 </ul>
 <footer>dora-roi-toolkit {{ version }} · generated {{ generated.strftime("%Y-%m-%d %H:%M UTC") }}</footer>
 </main>
-{{ tooltip_script }}
+{% if not pdf %}{{ tooltip_script }}{% endif %}
 </body>
 </html>

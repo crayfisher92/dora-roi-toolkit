@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
@@ -26,6 +27,19 @@ def _write(text: str, output: Path | None) -> None:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(text, encoding="utf-8")
         click.echo(f"Wrote {output}", err=True)
+
+
+def _write_pdf(render_pdf: Callable[[], bytes], output: Path) -> None:
+    from dora_roi.reporting.pdf import PdfUnavailableError
+
+    try:
+        data = render_pdf()
+    except PdfUnavailableError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(EXIT_USAGE)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_bytes(data)
+    click.echo(f"Wrote {output}", err=True)
 
 
 def _load(path: Path, code_map: CodeMap | None) -> LoadResult:
@@ -78,8 +92,9 @@ def main() -> None:
 
 @main.command()
 @input_arg
-@click.option("-f", "--format", "fmt", type=click.Choice(["text", "json", "md", "html"]),
-              default="text", show_default=True, help="Report format.")
+@click.option("-f", "--format", "fmt",
+              type=click.Choice(["text", "json", "md", "html", "pdf"]), default="text",
+              show_default=True, help="Report format (pdf needs -o and the [pdf] extra).")
 @click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path),
               help="Write the report to a file instead of stdout.")
 @click.option("--fail-on", type=click.Choice(["error", "warning", "never"]), default="error",
@@ -94,11 +109,17 @@ def validate(input_path: Path, fmt: str, output: Path | None, fail_on: str,
              reference_date: object, code_map: Path | None) -> None:
     """Validate a register and print or save a report."""
     from dora_roi.reporting import render
+    from dora_roi.reporting.validation_report import render_pdf
 
+    if fmt == "pdf" and output is None:
+        raise click.UsageError("--format pdf needs --output FILE")
     ref = reference_date.date() if hasattr(reference_date, "date") else None
     loaded = _load(input_path, _code_map(code_map))
     report = validate_loaded(loaded, _config(disable, ref, downgrade))
-    _write(render(report, fmt), output)
+    if fmt == "pdf" and output is not None:
+        _write_pdf(lambda: render_pdf(report), output)
+    else:
+        _write(render(report, fmt), output)
     if output is not None or fmt != "text":
         click.echo(_summary_line(report), err=True)
     counts = report.severity_counts()
@@ -110,12 +131,13 @@ def validate(input_path: Path, fmt: str, output: Path | None, fail_on: str,
 @main.command()
 @input_arg
 @click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path), required=True,
-              help="Output HTML file for the executive summary.")
+              help="Output file for the executive summary: .html, or .pdf (needs the [pdf] "
+              "extra).")
 @click.option("--client", "client_name", help="Client name shown in the title.")
 @click.option("--prepared-by", help="Author shown in the header.")
 @click.option("--validation-report", type=click.Path(dir_okay=False, path_type=Path),
               help="Also write the detailed validation report (format from extension: "
-              ".html, .md or .json).")
+              ".html, .pdf, .md or .json).")
 @click.option("--json", "json_path", type=click.Path(dir_okay=False, path_type=Path),
               help="Also write the concentration analysis as JSON.")
 @ref_date_opt
@@ -123,22 +145,33 @@ def validate(input_path: Path, fmt: str, output: Path | None, fail_on: str,
 def report(input_path: Path, output: Path, client_name: str | None, prepared_by: str | None,
            validation_report: Path | None, json_path: Path | None, reference_date: object,
            code_map: Path | None) -> None:
-    """Generate the executive summary (HTML) with concentration-risk analytics."""
+    """Generate the executive summary (HTML or PDF) with concentration-risk analytics."""
     from dora_roi.analytics import AnalyticsConfig, analyse
     from dora_roi.reporting import render
     from dora_roi.reporting.executive import render_executive_summary
+    from dora_roi.reporting.pdf import html_to_pdf
+    from dora_roi.reporting.validation_report import render_pdf
 
     ref = reference_date.date() if hasattr(reference_date, "date") else None
     loaded = _load(input_path, _code_map(code_map))
     vreport = validate_loaded(loaded, _config((), ref))
     cfg = AnalyticsConfig(reference_date=ref)
     analysis = analyse(loaded.register, cfg)
+    as_pdf = output.suffix.lower() == ".pdf"
     html = render_executive_summary(loaded.register, vreport, analysis=analysis, config=cfg,
-                                    client_name=client_name, prepared_by=prepared_by)
-    _write(html, output)
+                                    client_name=client_name, prepared_by=prepared_by,
+                                    pdf=as_pdf)
+    if as_pdf:
+        _write_pdf(lambda: html_to_pdf(html), output)
+    else:
+        _write(html, output)
     if validation_report is not None:
-        fmt = {".md": "md", ".json": "json"}.get(validation_report.suffix.lower(), "html")
-        _write(render(vreport, fmt), validation_report)
+        suffix = validation_report.suffix.lower()
+        if suffix == ".pdf":
+            _write_pdf(lambda: render_pdf(vreport), validation_report)
+        else:
+            fmt = {".md": "md", ".json": "json"}.get(suffix, "html")
+            _write(render(vreport, fmt), validation_report)
     if json_path is not None:
         _write(analysis.model_dump_json(indent=2), json_path)
     click.echo(_summary_line(vreport), err=True)

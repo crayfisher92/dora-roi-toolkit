@@ -39,6 +39,9 @@ SUBST_COLORS = {
 }
 
 
+#: rows of the provider-group table in the PDF (each page of a long table costs ~0.1 s)
+PDF_GROUP_LIMIT = 50
+
 def money(value: Decimal | float | int, currency: str | None = None) -> str:
     """Compact money format: ``EUR 12.4m``, ``CHF 850k``."""
     v = float(value)
@@ -128,8 +131,9 @@ def render_executive_summary(
     config: AnalyticsConfig | None = None,
     client_name: str | None = None,
     prepared_by: str | None = None,
+    pdf: bool = False,
 ) -> str:
-    """Render the executive summary HTML page."""
+    """Render the executive summary HTML page (``pdf=True``: print variant for PDF)."""
     cfg = config or AnalyticsConfig()
     a = analysis or analyse(register, cfg)
     context: dict[str, Any] = {
@@ -145,5 +149,18 @@ def render_executive_summary(
         "pct": pct,
         "tooltip_script": TOOLTIP_SCRIPT,
         "single_cif": [f for f in a.critical_functions if f.single_provider],
+        "pdf": pdf,
+        "pdf_group_limit": PDF_GROUP_LIMIT,
     }
     return environment().get_template("executive.html.j2").render(**context)
+
+
+def render_executive_pdf(
+    register: RegisterOfInformation,
+    validation: ValidationReport | None = None,
+    **kwargs: Any,
+) -> bytes:
+    """PDF executive summary (needs the optional WeasyPrint dependency)."""
+    from dora_roi.reporting.pdf import html_to_pdf
+
+    return html_to_pdf(render_executive_summary(register, validation, pdf=True, **kwargs))
