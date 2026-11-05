@@ -1,0 +1,38 @@
+{% extends "base.html.j2" %}
+{% block content %}
+<header class="doc">
+  <p class="eyebrow">DORA · Regulation (EU) 2022/2554 · Register of Information</p>
+  <h1>Validate a register and explore concentration risk</h1>
+  <p class="meta">Upload the register as an Excel workbook (one sheet per template, B_01.01 – B_07.01),
+  a zip of CSV files, or an xBRL-CSV package.</p>
+</header>
+{% if error %}
+<div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span><div>{{ error }}</div></div>
+{% endif %}
+<form class="drop" action="/upload" method="post" enctype="multipart/form-data">
+  <label for="file"><strong>Choose a file</strong> <span class="muted">(.xlsx or .zip, up to 25 MB)</span></label><br>
+  <input id="file" name="file" type="file" accept=".xlsx,.xlsm,.zip" required>
+  <div class="row" style="justify-content:center"><button class="btn primary" type="submit">Validate and analyse</button>
+  <a class="btn" href="/template.xlsx">Download blank template</a></div>
+</form>
+
+<h2>No file at hand?</h2>
+<p class="muted">Load the synthetic register of the fictional Alpenrand banking group (3 entities, ~45 providers, ~120 arrangements).</p>
+<div class="row">
+  <form action="/sample" method="post"><input type="hidden" name="clean" value="false">
+    <button class="btn" type="submit">Sample with injected errors</button></form>
+  <form action="/sample" method="post"><input type="hidden" name="clean" value="true">
+    <button class="btn" type="submit">Clean sample</button></form>
+</div>
+
+{% if recent %}
+<h2>Recent analyses</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Input</th><th>Entity</th><th class="num">Errors</th><th class="num">Warnings</th><th>Created</th></tr></thead>
+  <tbody>{% for r in recent %}{% set c = r.report.severity_counts() %}
+  <tr><td><a href="/r/{{ r.id }}">{{ r.name }}</a></td><td>{{ r.report.maintainer_name or "—" }}</td>
+    <td class="num">{{ c.error }}</td><td class="num">{{ c.warning }}</td>
+    <td class="small muted">{{ r.created.strftime("%H:%M:%S UTC") }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% endif %}
+{% endblock %}

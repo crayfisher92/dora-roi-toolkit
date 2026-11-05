@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}DORA RoI Toolkit{% endblock %}</title>
+<style>
+{% include "_style.css.j2" %}
+nav.top { background: var(--surface-1); border-bottom: 1px solid var(--border); }
+nav.top .inner { max-width: 1120px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 16px;
+  align-items: center; flex-wrap: wrap; }
+nav.top a { color: var(--text-primary); text-decoration: none; font-weight: 600; }
+nav.top .links { margin-left: auto; display: flex; gap: 16px; font-size: 14px; }
+nav.top .links a { font-weight: 500; color: var(--text-secondary); }
+a { color: var(--accent-ink); }
+.btn { display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: 14px;
+  font-weight: 600; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); cursor: pointer; text-decoration: none; }
+.btn.primary { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
+:root[data-theme="dark"] .btn.primary { color: #0b0b0b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #0b0b0b; } }
+.btn:focus-visible, input:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+.drop { border: 2px dashed var(--axis); border-radius: 12px; padding: 28px; text-align: center;
+  background: var(--surface-1); }
+.drop input[type=file] { margin: 12px auto; max-width: 100%; }
+.dash { grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--grid); margin: 24px 0 8px;
+  overflow-x: auto; }
+.tabs a { padding: 8px 14px; text-decoration: none; color: var(--text-secondary); font-weight: 600;
+  border-bottom: 2px solid transparent; white-space: nowrap; }
+.tabs a:hover { color: var(--text-primary); }
+</style>
+</head>
+<body>
+<nav class="top"><div class="inner">
+  <a href="/">DORA RoI Toolkit</a>
+  <div class="links"><a href="/template.xlsx">Blank template</a><a href="/docs">API</a></div>
+</div></nav>
+<main>
+{% block content %}{% endblock %}
+<footer>dora-roi-toolkit {{ version }} · Not an official EBA/ESA tool and not legal advice · Data is kept in memory only.</footer>
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>
