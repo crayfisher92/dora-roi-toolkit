@@ -126,7 +126,9 @@ def test_format_errors(field: str, value: object, error_type: str) -> None:
 
 
 def test_entity_amount_and_currency() -> None:
-    e = EntityInScope.model_validate({"lei": LEI, "currency": "chf", "total_assets": "1,250,000.50"})
+    e = EntityInScope.model_validate(
+        {"lei": LEI, "currency": "chf", "total_assets": "1,250,000.50"}
+    )
     assert e.currency == "CHF"
     assert e.total_assets == Decimal("1250000.50")
     with pytest.raises(ValidationError):
