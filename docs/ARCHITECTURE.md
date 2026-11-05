@@ -21,6 +21,31 @@
                                                      cli (roi …)   ·   web (FastAPI)
 ```
 
+### DORA programme modules
+
+```
+                    RegisterOfInformation (source of truth for providers, entities, functions)
+                                │ joined by key at evaluation time, never copied (D-049)
+        ┌───────────────────────┼─────────────────────────────┬─────────────────────────┐
+        ▼                       ▼                             ▼                         ▼
+ AssessmentBook          IncidentLog                   FINMA requirements        ConcentrationAnalysis
+ (B_02.01 c0010 →        (answers, timestamps,         (RoI columns, Art. 30     (analytics, unchanged)
+  22 Art. 30 items)       provider/contract/entity      items, incident log)
+        │                 links, history)                      │
+ contracts.analysis      incidents.classify ·                  │
+ → Portfolio →           deadlines · recurring                 │
+   RemediationPlan       → IncidentOverview                    │
+        └───────────────────────┴──────────────┬──────────────┘
+                                               ▼
+                         readiness.build_readiness → ReadinessView (traffic lights, actions)
+                                               ▼
+              Workbench screens (contracts, incidents, FINMA, dashboard) · CLI · HTML/Excel/JSON
+```
+
+Assessments and incidents are workspace state (in memory, D-054) with their own JSON formats;
+outcomes (compliance status, classification, deadlines, coverage, traffic lights) are always
+*derived* from them and the register, never stored (D-057).
+
 ## Packages
 
 | Package / module | Responsibility |
@@ -41,7 +66,14 @@
 | `dora_roi.io.limits` | Upload/archive size, compression-ratio and row-count limits. |
 | `dora_roi.web.security` | Security headers/CSP, same-origin (CSRF) check, browser-session isolation, safe redirects. |
 | `dora_roi.web` | Workbench: FastAPI routes (`app.py`), view models (`views.py`), EN/DE strings (`i18n.py`), Jinja2 templates, `static/app.css` + `app.js` (progressive enhancement), `devserver.py` for tests/screenshots. |
-| `dora_roi.docs` | Generates `REGULATORY_MAPPING.md`, `DATA_DICTIONARY.md`, `SAMPLE_DATA.md` from the code. |
+| `dora_roi.contracts` | `provisions.py` – the 22-item Art. 30 checklist (EN/DE, article references, keyword concepts); `model.py` – `AssessmentBook`/`ContractAssessment` with history, time-bound exceptions and remediation progress, JSON and Excel I/O, history-preserving merge on import; `analysis.py` – register contexts, inheritance from overarching arrangements, `Portfolio`, `RemediationPlan` (priorities, progress, overdue), incident-related provisions; `consistency.py` – register ↔ assessment hints; `extract.py` – local PDF (pypdf)/DOCX/TXT text extraction; `suggest.py` – clause-aware keyword suggestions; `report.py` – remediation plan HTML/PDF/Excel. |
+| `dora_roi.incidents` | `criteria.py` – criteria and `Thresholds`; `model.py` – `Incident`, `Answers`, `IncidentLog` (UTC, display time zone, history); `classify.py` – three-valued classification, recurring groups; `deadlines.py` – reporting timeline; `report.py` – views linked to the register, summary HTML/JSON/Markdown. |
+| `dora_roi.finma` | FINMA Circ. 2018/3 and 2023/1 requirements mapped to RoI columns, Art. 30 items and the incident log; completeness over applicable records; Swiss context. |
+| `dora_roi.scope` | DORA reporting scope of a group dataset: `restrict_to_scope` drops entities outside the DORA scope and what only concerns them before the xBRL-CSV package is built (web download, `roi export --exclude-entity`). |
+| `dora_roi.readiness` | Traffic lights per pillar, priority actions, readiness report (print/PDF-friendly HTML). |
+| `dora_roi.i18n` | EN/DE strings of the programme modules and their reports (merged into the web catalogue). |
+| `dora_roi.web.*_routes` | Route modules for the programme screens, registered through the `Ui` context (`web/context.py`). |
+| `dora_roi.docs` | Generates `REGULATORY_MAPPING.md`, `DATA_DICTIONARY.md`, `SAMPLE_DATA.md`, `ART30_CHECKLIST.md`, `INCIDENT_CLASSIFICATION.md` and `FINMA_MAPPING.md` from the code. |
 
 ## Key design choices
 
@@ -105,6 +137,20 @@ New references must be added to `dora_roi/validation/references.py`.
 ```
 
 `row` is the 1-based row number in the source sheet/file; `column` the ITS column code.
+
+## File formats of the programme modules
+
+| Schema | Content | Produced / read by |
+|---|---|---|
+| `dora-roi-toolkit/contract-assessments/v1` | Assessments per arrangement: items (status, clause, evidence, suggested status, exception, remediation progress/owner/target date), assessor, date, document, notes, inheritance flag, history | `roi sample --assessments`, `roi contracts suggest -o`, workbench export/import |
+| `dora-roi-toolkit/art30-remediation-plan/v1` | Status per arrangement and prioritised actions with target dates | `roi contracts assess -o plan.json` |
+| `dora-roi-toolkit/incident-log/v1` | Incidents with answers, timestamps (UTC), links, report submissions, history; display time zone | `roi sample --incidents`, workbench export/import |
+| `dora-roi-toolkit/incident-summary/v1` | Derived classification (criteria, triggers, open questions), deadlines with states, recurring series | `roi incidents summary -o .json`, workbench |
+| `dora-roi-toolkit/finma-mapping/v1` | Coverage per FINMA requirement (by design, in the register), field fill rates, Swiss context | `roi finma -f json` |
+| `dora-roi-toolkit/readiness/v1` | Traffic lights per pillar and priority actions | `roi readiness --json` |
+
+The Excel assessment workbook (sheet `Assessments`: `contract_ref`, `provision_id`, `status`,
+`clause_ref`, `evidence`, …) is the offline counterpart of the assessments JSON.
 
 ## Performance
 

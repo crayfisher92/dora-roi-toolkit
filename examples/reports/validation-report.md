@@ -3,7 +3,7 @@
 - **Entity:** Alpenrand Bank (Europe) AG (`3912RO6DCAXX71K9W972`)
 - **Reference date:** 2025-12-31
 - **Source:** alpenrand-sample.xlsx
-- **Generated:** 2026-11-05 02:29 UTC (dora-roi-toolkit 0.1.0, 62 rules)
+- **Generated:** 2026-11-05 04:55 UTC (dora-roi-toolkit 0.1.0, 62 rules)
 
 **Result: ❌ FAILED** — 27 error(s), 5 warning(s), 1 info.
 

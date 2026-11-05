@@ -105,3 +105,45 @@ Once the material is available the reconciliation proceeds as follows:
 | A-AN-03 | HHI bands (1 500 / 2 500) are borrowed from competition analysis and used as a communication heuristic; DORA sets no numeric concentration threshold. |
 | A-AN-04 | The "hidden concentration" metric counts the arrangements in whose B_05.02 chain a provider appears at rank ≥ 2. |
 | A-AN-05 | Thresholds for key messages (single group ≥ 25 % of spend, ≥ 5 critical functions per group, ≥ 20 % spend with third-country groups, chain rank ≥ 3, expiry within 365 days) are configurable defaults (`AnalyticsConfig`). |
+
+## DORA Art. 30 contract checklist
+
+`reference/eu/` (official texts) is not in the repository, so the checklist was written from
+the authors' knowledge of Regulation (EU) 2022/2554 and **all items below are open**.
+
+| ID | Assumption |
+|----|------------|
+| A-A30-01 | The checklist covers Art. 30(1), the nine points (a)–(i) of Art. 30(2) and the six points (a)–(f) of Art. 30(3), with (2)(a), (2)(b), (3)(e) and (3)(f) split into their elements – 22 items in total (`docs/ART30_CHECKLIST.md`). Titles, requirement texts and remediation advice **paraphrase** the regulation in English and German; they are not quotations of the official language versions. |
+| A-A30-02 | Art. 30(3) applies when at least one B_02.02 row of the arrangement links it to a function assessed as critical or important in B_06.01 (c0050). An arrangement whose function is not (yet) assessed is treated as not critical. |
+| A-A30-03 | Art. 28(7) termination circumstances are checked as part of Art. 30(2)(h) (termination rights), not as a separate item. The RTS specifying the elements of Art. 30(2)(a) for subcontracting of ICT services supporting critical or important functions (mandate in Art. 30(5); believed to be Commission Delegated Regulation (EU) 2025/532 – **number to be verified**) is referenced but not broken down into items. |
+| A-A30-04 | Inheritance of an overarching arrangement's assessment by its subsequent arrangements (D-050) is a practical convention, not a regulatory rule; competent authorities may expect each arrangement to be documented. |
+| A-A30-05 | Priorities and target dates (D-051) are a methodology choice; DORA sets no remediation deadlines for contracts that pre-date its application. |
+| A-A30-06 | Standard contractual clauses under Art. 30(4) are not assessed. |
+| A-A30-07 | Time-bound exceptions (D-072) are an internal governance instrument; DORA provides no exemption from Art. 30. Alternative assurance (pooled audits, certifications) is a contractual option of Art. 30(3)(e)(ii), not an exception. |
+
+## Major ICT-related incident classification
+
+Written without access to the official texts (`reference/eu/` absent). **All open.**
+
+| ID | Assumption |
+|----|------------|
+| A-INC-01 | The classification RTS is Commission Delegated Regulation (EU) 2024/1772; criteria are in its Art. 1–7 and the materiality thresholds in Art. 9 (cited as "RTS Art. 9(1)…(6)"). The reporting RTS with time limits is Commission Delegated Regulation (EU) 2025/301. Article numbers are cited for orientation and must be verified. |
+| A-INC-02 | An incident is major if it affects *critical services* and either (a) involves a successful, malicious, unauthorised access to network and information systems that may result in data losses, or (b) meets the thresholds of two or more of the other six criteria. |
+| A-INC-03 | Thresholds: clients > 10 % of the service's clients or > 100 000 clients; financial counterparts > 30 %; transactions > 10 % of the daily average number or value; any relevant client/counterpart affected; reputational impact if any of media coverage, repeated complaints, regulatory requirements not met, likely client loss; duration > 24 h or downtime of services supporting critical or important functions > 2 h; impact in ≥ 2 Member States; any adverse impact on availability, authenticity, integrity or confidentiality of data; costs and losses > EUR 100 000. Comparisons are "higher than". No absolute transaction-amount threshold is applied. |
+| A-INC-04 | Reporting: initial notification within 4 h of classification and at the latest 24 h after awareness; intermediate report within 72 h of the initial notification; final report within one month of the latest intermediate report. Any relief for weekends/bank holidays, and entity-type exemptions from it, are **not** modelled (deadlines are conservative). Reporting templates and their content are out of scope. |
+| A-INC-05 | Recurring incidents: individually non-major incidents with the same apparent root cause occurring at least twice within 6 months are assessed together; the toolkit aggregates them by adding counts, durations, downtime and costs, taking the largest denominator, OR-ing yes/no answers and uniting Member States. The RTS may prescribe a different aggregation; the monthly assessment cycle is not enforced. |
+| A-INC-06 | "Critical services affected" is answered by the user; the register only provides a hint (linked arrangements supporting critical or important functions). Financial services requiring authorisation are not derived from the register. |
+| A-INC-07 | Root-cause categories paraphrase those of the reporting templates and are used for information only. Significant cyber threats (voluntary notification) are out of scope. |
+| A-INC-08 | An incident affecting several financial entities of a group is classified once, on the combined answers (clients, transactions, Member States … of all affected entities). The RTS on classification are understood to require classification per financial entity, with aggregated reporting by a group only under conditions set out in the reporting ITS; per-entity classification and aggregated reporting are **not modelled** (D-077). Classifying on combined figures is conservative: it may classify as major earlier than per-entity figures would. |
+
+## Swiss angle (FINMA)
+
+The circulars were not available offline. **All open.**
+
+| ID | Assumption |
+|----|------------|
+| A-FINMA-01 | FINMA Circular 2018/3 "Outsourcing – banks and insurers" requires an up-to-date inventory of outsourced functions (description of the function, provider and sub-providers, service recipient, responsible unit, significance), careful selection, instruction and monitoring of the provider, security and continuity, audit and information rights for the company, its audit firm and FINMA, specific safeguards for outsourcing abroad (enforceable audit rights, restructuring/resolution, access to information from Switzerland) and a written contract. Topics are paraphrased; margin numbers are deliberately not cited. Whether a revision of the circular is in force must be checked. |
+| A-FINMA-02 | FINMA Circular 2023/1 "Operational risks and resilience – banks" requires, among others, ICT and cyber risk management (incl. an ICT inventory and third-party dependencies), management of critical data, business continuity management (BIA, recovery objectives, tested plans) and operational resilience (identification of critical functions, tolerances for disruption, mapping to resources incl. third parties, scenario testing). |
+| A-FINMA-03 | DORA "critical or important functions" and FINMA "significant functions" / "critical functions" overlap but are not identical; RTO (B_06.01 c0080) approximates but is not a tolerance for disruption. The mapping marks these as *partly covered*. |
+| A-FINMA-04 | FINMA expects the reporting of cyber attacks under its own guidance (believed to be FINMA Guidance 05/2020, with different time limits from DORA); the toolkit does not compute FINMA deadlines. |
+| A-FINMA-05 | FINMA Circ. 2018/3 is assumed to apply at group level through consolidated supervision for a Swiss group with EU subsidiaries; the toolkit's group view rests on this assumption. |

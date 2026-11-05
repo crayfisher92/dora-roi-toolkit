@@ -21,7 +21,7 @@ import zipfile
 from collections import OrderedDict
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from threading import Lock
 from typing import Annotated, Any, Generic, TypeVar
@@ -34,10 +34,12 @@ from jinja2 import ChoiceLoader, Environment, PackageLoader, select_autoescape
 
 from dora_roi import __version__
 from dora_roi.audit import audit_csv, column_label
+from dora_roi.contracts.provisions import clause_label
 from dora_roi.diff import diff_registers
 from dora_roi.explain import explain, rule_title
 from dora_roi.fixes import bulk_groups, findings_by_template, suggest
 from dora_roi.graph import build_graph, chains_table, render_svg
+from dora_roi.incidents.classify import classify
 from dora_roi.inventory import (
     FIELDS,
     FIELDS_BY_KEY,
@@ -64,7 +66,10 @@ from dora_roi.reporting.executive import build_charts, money, pct, render_execut
 from dora_roi.reporting.pdf import PdfBusyError, html_to_pdf, pdf_available
 from dora_roi.reporting.validation_report import render_xlsx
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
+from dora_roi.sample.programme import load_sample_programme
 from dora_roi.validation import RULES, Finding, finding_key
+from dora_roi.web import contracts_routes, incidents_routes, programme_routes
+from dora_roi.web.context import Ui
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
 from dora_roi.web.security import (
     CURRENT_SESSION,
@@ -157,7 +162,8 @@ def _env() -> Environment:
     )
     env.globals.update(money=money, pct=pct, version=__version__, display=display,
                        country_name=country_name, templates=TEMPLATE_MODELS, RULES=RULES,
-                       languages=LANGUAGES, finding_key=finding_key)
+                       languages=LANGUAGES, finding_key=finding_key,
+                       clause_label=clause_label)
     return env
 
 
@@ -355,14 +361,16 @@ def create_app(capacity: int = MAX_WORKSPACES,
                                kind="sample")
             new_ws = Workspace("Alpenrand 2025", register_to_raw(cur.source_register),
                                kind="sample")
+            load_sample_programme(new_ws)
             own(old_ws)
             own(new_ws)
             return RedirectResponse(f"/w/{new_ws.id}/compare?other={old_ws.id}", status_code=303)
         clean = variant == "clean"
         result = generate_sample(inject_errors=not clean)
         name = "Alpenrand (clean)" if clean else "Alpenrand (25 injected errors)"
-        return add_workspace(Workspace(name, register_to_raw(result.source_register),
-                                       kind="sample"))
+        ws = Workspace(name, register_to_raw(result.source_register), kind="sample")
+        load_sample_programme(ws)
+        return add_workspace(ws)
 
     # ------------------------------------------------------------------ mapping wizard
 
@@ -492,7 +500,8 @@ def create_app(capacity: int = MAX_WORKSPACES,
     def overview(request: Request, wid: str) -> HTMLResponse:
         ws = ws_or_404(wid)
         return ws_page(request, ws, "ws_overview.html.j2", "import",
-                       notes=ws.import_notes)
+                       notes=ws.import_notes,
+                       readiness=programme_routes.workspace_readiness(ws, lang_of(request)))
 
     @app.get("/w/{wid}/fix", response_class=HTMLResponse)
     def fix(request: Request, wid: str, template: str | None = None,
@@ -569,10 +578,12 @@ def create_app(capacity: int = MAX_WORKSPACES,
         page = min(max(page, 1), pages)
         shown = rows[(page - 1) * PAGE_SIZE: page * PAGE_SIZE]
         counts = {m.TEMPLATE: len(ws.table(m.TEMPLATE).rows) for m in TEMPLATE_MODELS}
+        art30 = ws.portfolio.by_ref() if template == "B_02.01" else None
         return ws_page(request, ws, "ws_register.html.j2", "fix", template=template, model=model,
                        rows=shown, total=len(rows), flagged=flagged, q=q, issues=issues,
                        page=page, pages=pages, table_counts=counts,
-                       provider_link=_provider_link(ws))
+                       provider_link=_provider_link(ws), art30=art30,
+                       contract_url=contracts_routes.contract_url)
 
     @app.get("/w/{wid}/register/{template}/{row}", response_class=HTMLResponse)
     def register_row(request: Request, wid: str, template: str, row: int) -> HTMLResponse:
@@ -582,9 +593,14 @@ def create_app(capacity: int = MAX_WORKSPACES,
         except EditError as exc:
             raise HTTPException(status_code=404) from exc
         findings = ws.findings_for(template, row)
+        art30 = None
+        if template in ("B_02.01", "B_02.02"):
+            ref = display(raw_row.values.get("c0010"))
+            art30 = ws.portfolio.by_ref().get(ref) if ref else None
         return ws_page(request, ws, "ws_row.html.j2", "fix", template=template,
                        model=TEMPLATES_BY_CODE[template], raw_row=raw_row, findings=findings,
-                       by_column={f.column: f for f in findings if f.column}, suggest=suggest)
+                       by_column={f.column: f for f in findings if f.column}, suggest=suggest,
+                       art30=art30, contract_url=contracts_routes.contract_url)
 
     @app.post("/w/{wid}/register/{template}/{row}")
     async def register_row_save(request: Request, wid: str, template: str, row: int
@@ -628,8 +644,13 @@ def create_app(capacity: int = MAX_WORKSPACES,
         graph = build_graph(ws.register, focus=code)
         svg = render_svg(graph, link_prefix=f"/w/{wid}/provider/",
                          labels=_graph_labels(t)) if graph.edges else None
+        art30 = next((pc for pc in ws.portfolio.providers if pc.code == code), None)
+        now = datetime.now(UTC)
+        incidents = [(i, classify(i, now)) for i in ws.incidents.ordered()
+                     if code in i.provider_codes]
         return ws_page(request, ws, "ws_provider.html.j2", "analyse", p=profile, graph_svg=svg,
-                       chains=chains_table(ws.register, code))
+                       chains=chains_table(ws.register, code), art30=art30,
+                       contract_url=contracts_routes.contract_url, incidents=incidents)
 
     @app.get("/w/{wid}/analyse", response_class=HTMLResponse)
     def analyse_page(request: Request, wid: str, color: str = "criticality",
@@ -658,8 +679,10 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     @app.get("/w/{wid}/export", response_class=HTMLResponse)
     def export_page(request: Request, wid: str) -> HTMLResponse:
-        return ws_page(request, ws_or_404(wid), "ws_export.html.j2", "export",
-                       pdf=pdf_available())
+        ws = ws_or_404(wid)
+        package_errors = len(ws.dora_report().errors) if ws.out_of_scope else None
+        return ws_page(request, ws, "ws_export.html.j2", "export", pdf=pdf_available(),
+                       package_errors=package_errors)
 
     @app.get("/w/{wid}/download/{kind}")
     def download(request: Request, wid: str, kind: str) -> Response:
@@ -668,7 +691,12 @@ def create_app(capacity: int = MAX_WORKSPACES,
             raise HTTPException(status_code=404)
         user = user_of(request)
         response = render_download(ws, kind, user, lang_of(request))
-        ws.record_export(EXPORT_LABELS[kind], user=user)  # audit trail: who exported what
+        if kind == "xbrl" and ws.out_of_scope:  # the package is the submission view (D-079)
+            ws.record_export(f"{EXPORT_LABELS[kind]} without {len(ws.out_of_scope)} "
+                             "entit(y/ies) outside the DORA scope", user=user,
+                             report=ws.dora_report())
+        else:
+            ws.record_export(EXPORT_LABELS[kind], user=user)  # audit trail: who exported what
         return response
 
     def render_download(ws: Workspace, kind: str, user: str, lang: str) -> Response:
@@ -689,8 +717,9 @@ def create_app(capacity: int = MAX_WORKSPACES,
             return _download(buf.getvalue(), f"{stem}-csv.zip", "application/zip")
         if kind == "xbrl":
             options = XbrlCsvOptions()
-            pkg = package_name(ws.register, options)
-            files, _ = build_package_files(ws.register, options)
+            dora = ws.dora_register()  # entities outside the DORA scope are left out (P-15)
+            pkg = package_name(dora, options)
+            files, _ = build_package_files(dora, options)
             buf = io.BytesIO()
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
                 for rel, text in files.items():
@@ -831,6 +860,12 @@ def create_app(capacity: int = MAX_WORKSPACES,
                              "readiness": q.readiness.value,
                              "counts": ws.report.severity_counts(),
                              "records": ws.report.record_counts})
+
+    ui = Ui(render=render, ws_page=ws_page, ws_or_404=ws_or_404, lang_of=lang_of,
+            read_upload=read_upload, workspaces=my_workspaces, user_of=user_of)
+    contracts_routes.register(app, ui)
+    incidents_routes.register(app, ui)
+    programme_routes.register(app, ui)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> Response:

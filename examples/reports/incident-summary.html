@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICT-related incident summary · Alpenrand Group</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #6f6d68;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --ord-1: #86b6ef;
+  --ord-2: #3987e5;
+  --ord-3: #1c5cab;
+  --ord-4: #0d366b;
+  --series-muted: #c3c2b7;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --accent-ink: #1c5cab;
+  --good-ink: #006300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --surface-2: #232321;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #a3a29b;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --ord-1: #184f95;
+    --ord-2: #2a78d6;
+    --ord-3: #5598e7;
+    --ord-4: #9ec5f4;
+    --series-muted: #4a4a46;
+    --accent-ink: #86b6ef;
+    --good-ink: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --surface-2: #232321;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted: #a3a29b;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --ord-1: #184f95;
+  --ord-2: #2a78d6;
+  --ord-3: #5598e7;
+  --ord-4: #9ec5f4;
+  --series-muted: #4a4a46;
+  --accent-ink: #86b6ef;
+  --good-ink: #0ca30c;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text-primary);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+header.doc { margin-bottom: 24px; }
+header.doc .eyebrow { color: var(--text-muted); font-size: 13px; text-transform: uppercase;
+  letter-spacing: .06em; margin: 0 0 4px; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; font-weight: 650; }
+h2 { font-size: 20px; margin: 40px 0 12px; font-weight: 620; }
+h3 { font-size: 16px; margin: 24px 0 8px; font-weight: 600; }
+p { margin: 0 0 12px; }
+.meta { color: var(--text-secondary); font-size: 14px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; }
+.grid { display: grid; gap: 16px; }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.tile .label { color: var(--text-secondary); font-size: 13px; }
+.tile .value { font-size: 30px; font-weight: 650; line-height: 1.15; margin-top: 4px; }
+.tile .sub { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+.banner { display: flex; gap: 12px; align-items: flex-start; border-radius: 10px; padding: 14px 18px;
+  border: 1px solid var(--border); background: var(--surface-1); margin: 16px 0; }
+.banner .icon { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+.banner.fail .icon { background: var(--status-critical); }
+.banner.pass .icon { background: var(--status-good); }
+.banner.warn .icon { background: var(--status-warning); color: #0b0b0b; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+  padding: 2px 8px 2px 6px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); white-space: nowrap; }
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.badge.error::before { background: var(--status-critical); }
+.badge.warning::before { background: var(--status-warning); }
+.badge.info::before { background: var(--series-muted); }
+.badge.error::after { content: ""; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-1); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--grid);
+  vertical-align: top; }
+th { color: var(--text-secondary); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0; }
+tr:last-child td { border-bottom: none; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.mono { white-space: nowrap; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px; }
+.muted { color: var(--text-muted); }
+.small { font-size: 13px; }
+details { margin: 8px 0; }
+details > summary { cursor: pointer; color: var(--text-secondary); font-size: 14px; }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--text-secondary); font-size: 12px; }
+.chart .value-label { fill: var(--text-primary); font-variant-numeric: tabular-nums; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .baseline { stroke: var(--axis); stroke-width: 1; }
+.chart .bar { fill: var(--series-1); }
+.chart .bar.alt { fill: var(--series-2); }
+.chart .bar.muted { fill: var(--series-muted); }
+.chart .hit:hover + .bar, .chart .bar:hover { opacity: .8; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px;
+  color: var(--text-secondary); margin: 4px 0 8px; }
+.legend .key { display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  margin-right: 6px; vertical-align: -1px; }
+.seg-bar { display: flex; gap: 2px; height: 22px; border-radius: 6px; overflow: hidden;
+  margin: 8px 0; }
+.seg-bar > span { display: block; height: 100%; min-width: 2px; }
+.callouts li { margin-bottom: 8px; }
+footer { margin-top: 48px; color: var(--text-muted); font-size: 12.5px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+.filter-row input, .filter-row select { font: inherit; font-size: 14px; padding: 6px 10px;
+  border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-primary); }
+@media print {
+  body { background: #fff; }
+  .card, .table-wrap { break-inside: avoid; }
+  .filter-row { display: none; }
+}/* Shared styles of the programme reports (remediation plan, incident summary, readiness). */
+.section-lead { color: var(--text-secondary); max-width: 80ch; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650;
+  padding: 2px 9px 2px 7px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); white-space: nowrap; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--series-muted); }
+.pill.high::before, .pill.red::before, .pill.missing::before, .pill.gaps::before,
+.pill.major::before, .pill.overdue::before { background: var(--status-critical); }
+.pill.medium::before, .pill.amber::before, .pill.partial::before, .pill.incomplete::before,
+.pill.provisional::before, .pill.due::before { background: var(--status-warning); }
+.pill.low::before, .pill.green::before, .pill.present::before, .pill.compliant::before,
+.pill.not_major::before, .pill.done::before { background: var(--status-good); }
+.rag { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px; }
+.rag .card { border-left-width: 6px; }
+.rag .red { border-left-color: var(--status-critical); }
+.rag .amber { border-left-color: var(--status-warning); }
+.rag .green { border-left-color: var(--status-good); }
+.rag .grey { border-left-color: var(--series-muted); }
+.rag h3 { margin: 0 0 4px; font-size: 15px; }
+.rag .metric { font-size: 24px; font-weight: 650; }
+.actions-list { padding-left: 20px; }
+.actions-list li { margin-bottom: 6px; }
+td.wrap, th.wrap { min-width: 220px; }
+.evidence { color: var(--text-secondary); font-size: 12.5px; }
+.toc { columns: 2; font-size: 14px; }
+@page { size: A4; margin: 16mm 14mm; }
+@media print {
+  :root, :root[data-theme="dark"] { color-scheme: light; }
+  body { font-size: 11.5px; }
+  main { max-width: none; padding: 0; }
+  h2 { break-after: avoid; page-break-after: avoid; }
+  tr, .card, .tile { break-inside: avoid; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  th { position: static; }
+  .table-wrap { overflow: visible; border: none; }
+  a { color: inherit; text-decoration: none; }
+  .no-print { display: none !important; }
+  .page-break { break-before: page; page-break-before: always; }
+}
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.incident-detail { margin-top: 16px; }
+.incident-detail h2 { margin-top: 0; }</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA · Art. 17–19 · Major ICT-related incident classification</p>
+  <h1>ICT-related incident summary – Alpenrand Group</h1>
+  <p class="meta">2026-11-05 05:56 (Europe/Berlin) · 5 incident(s) · 1 open · 1 major · 0 undetermined · 0 overdue report(s) · 1 recurring series meeting the major criteria</p>
+</header>
+
+<h2 id="h-log">Incidents</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-log"><table>
+  <thead><tr><th scope="col">ID</th><th scope="col">Title</th><th scope="col">Status</th>
+    <th scope="col">Classification</th><th scope="col">Next reporting deadline</th><th scope="col">Providers</th></tr></thead>
+  <tbody>  <tr><td class="mono">INC-2026-014</td><td>Nimbus EMEA region outage – core banking and payments unavailable<div class="small muted">2026-11-05 00:55</div></td>
+    <td>Open</td>
+    <td><span class="pill major">Major</span></td>
+    <td><span class="pill due">Due</span>
+      Initial notification · 2026-11-05 08:25</td>
+    <td class="small">Nimbus Cloud Services EMEA Ltd</td></tr>
+  <tr><td class="mono">INC-2025-012</td><td>SEPA instant payments rejected – Kronos gateway certificate expired<div class="small muted">2025-11-18 15:30</div></td>
+    <td>Closed</td>
+    <td><span class="pill not_major">Not major</span></td>
+    <td>—</td>
+    <td class="small">Kronos Payments B.V.</td></tr>
+  <tr><td class="mono">INC-2025-011</td><td>Regulatory reporting batch delayed (RegFlow)<div class="small muted">2025-10-30 23:15</div></td>
+    <td>Closed</td>
+    <td><span class="pill not_major">Not major</span></td>
+    <td>—</td>
+    <td class="small">RegFlow Reporting S.A.</td></tr>
+  <tr><td class="mono">INC-2025-009</td><td>Phishing campaign against staff mailboxes – contained<div class="small muted">2025-09-12 09:40</div></td>
+    <td>Closed</td>
+    <td><span class="pill not_major">Not major</span></td>
+    <td>—</td>
+    <td class="small">Cirrus Platforms Ireland Ltd</td></tr>
+  <tr><td class="mono">INC-2025-006</td><td>SEPA instant payments rejected – Kronos gateway certificate expired<div class="small muted">2025-07-03 11:05</div></td>
+    <td>Closed</td>
+    <td><span class="pill not_major">Not major</span></td>
+    <td>—</td>
+    <td class="small">Kronos Payments B.V.</td></tr>
+</tbody></table></div>
+
+<section class="card incident-detail" aria-labelledby="h-INC-2026-014">
+  <h2 id="h-INC-2026-014"><span class="mono">INC-2026-014</span> Nimbus EMEA region outage – core banking and payments unavailable</h2>
+  <p>Critical services are affected and 5 of the six other criteria meet their thresholds (two are required).</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label="INC-2026-014 – Classification"><table>
+    <thead><tr><th scope="col">Criterion</th><th scope="col">Status</th><th scope="col">Observed</th></tr></thead>
+    <tbody><tr><td>Critical services affected <span class="small muted">RTS Art. 6</span></td>
+      <td><span class="pill major">Met</span></td>
+      <td class="small">critical services affected: yes (required)</td></tr><tr><td>Clients, financial counterparts and transactions <span class="small muted">RTS Art. 1, Art. 9(1)</span></td>
+      <td><span class="pill major">Met</span></td>
+      <td class="small">share of clients: 14.6 % (&gt; 10%)<br>clients affected: 182,000 (&gt; 100,000)<br>share of daily transactions: 41.0 % (&gt; 10%)</td></tr><tr><td>Reputational impact <span class="small muted">RTS Art. 2, Art. 9(2)</span></td>
+      <td><span class="pill major">Met</span></td>
+      <td class="small">media coverage: yes (any)<br>repeated complaints: yes (any)</td></tr><tr><td>Duration and service downtime <span class="small muted">RTS Art. 3, Art. 9(3)</span></td>
+      <td><span class="pill major">Met</span></td>
+      <td class="small">downtime: 4.5 h (&gt; 2 h)</td></tr><tr><td>Geographical spread <span class="small muted">RTS Art. 4, Art. 9(4)</span></td>
+      <td><span class="pill major">Met</span></td>
+      <td class="small">Member States: DE, FR, IT, LU (≥ 2)</td></tr><tr><td>Data losses <span class="small muted">RTS Art. 5, Art. 9(5)</span></td>
+      <td>Not met</td>
+      <td class="small"></td></tr><tr><td>Economic impact <span class="small muted">RTS Art. 7, Art. 9(6)</span></td>
+      <td><span class="pill major">Met</span></td>
+      <td class="small">costs and losses: EUR 350,000 (&gt; EUR 100,000)</td></tr></tbody></table></div>
+  <h3>Next reporting deadline</h3>
+  <ul><li><strong>Initial notification</strong> – 2026-11-05 08:25 (4 h after classification) · Due</li><li><strong>Intermediate report</strong> – 2026-11-08 08:25 (72 h after the initial notification) · Projected</li><li><strong>Final report</strong> – 2026-12-08 08:25 (1 month after the intermediate report) · Projected</li></ul>
+</section>
+
+<h2 id="h-rec">Recurring incidents</h2>
+<p class="section-lead">Incidents that are not major individually but share the same apparent root cause and occurred at least twice within six months are assessed together. When together they meet the criteria, they are reported as one major incident.</p>
+<ul><li><strong>kronos-certificate-rotation</strong>: INC-2025-006, INC-2025-012 –
+  <span class="pill major">Major</span>
+  Together these incidents meet the major criteria – report them as one major incident.</li></ul>
+
+<h2>Method and caveats</h2>
+<p class="section-lead">Classification per DORA Art. 18 and the RTS on classification (Delegated Regulation (EU) 2024/1772): major when critical services are affected and either a successful malicious unauthorised access occurred or two or more of the other six criteria meet their thresholds. Unknown answers are evaluated both ways; the outcome is definitive only when they cannot change it. Reporting deadlines per Delegated Regulation (EU) 2025/301 without weekend relief. Thresholds and article numbers are open assumptions (A-INC-*).</p>
+<footer>Generated by the DORA RoI Toolkit. Not legal advice: the checklist, thresholds and mappings are the authors&#39; reading of the texts and are listed as assumptions in docs/ASSUMPTIONS.md. · dora-roi-toolkit 0.1.0</footer>
+</main>
+</body>
+</html>

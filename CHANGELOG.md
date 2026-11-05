@@ -8,6 +8,34 @@ format; they are listed under **Changed** with migration notes.
 
 ## [Unreleased]
 
+### Added
+
+**DORA programme modules** (on the same register, in the workbench and the CLI, EN/DE)
+- **Art. 30 contract gap analysis**: 22-item checklist with article references
+  (`roi contracts checklist`); present / partial / missing per provision with clause
+  reference and evidence, linked to B_02.01 (status on register rows and provider pages);
+  inheritance from overarching arrangements; portfolio by criticality; prioritised
+  remediation plan as HTML, PDF, Excel and JSON with progress (planned / in negotiation /
+  agreed), owners, agreed or proposed target dates and approved time-bound exceptions;
+  re-importable assessment workbook; local keyword suggestions from PDF/DOCX/TXT contracts
+  (no network, clearly marked as suggestions); register ↔ contract consistency hints.
+- **Major ICT incident classification**: guided questionnaire on the RTS criteria with
+  unknown answers, triggered thresholds, initial / intermediate / final reporting deadlines
+  with live countdown, incident log with history, recurring incidents, links to providers,
+  arrangements and functions, contractual support (Art. 30(2)(f), (3)(b)) per incident,
+  summary as HTML, PDF and JSON (`roi incidents criteria|summary`).
+- **Switzerland (FINMA)**: RoI fields, Art. 30 items and the incident log mapped to FINMA
+  Circ. 2018/3 and 2023/1 with coverage by design and in the register (`roi finma`); a
+  **DORA reporting scope** so a Swiss group keeps one dataset – entities outside the scope
+  are left out of the xBRL-CSV package (`roi export --exclude-entity`), which is validated
+  as such.
+- **DORA readiness dashboard** per client and CRO report (HTML/PDF, `roi readiness`):
+  register, contracts, incidents, concentration and FINMA as traffic lights with priority
+  actions.
+- Programme data in project files and in the audit trail (changes and exports); Alpenrand
+  sample assessments, contract document and incidents (`roi sample --assessments
+  --incidents --contract-document`); 10-minute demo in `docs/DEMO.md`.
+
 ## [0.1.0] - 2026-11-05
 
 First public release: a working toolkit for preparing, checking and analysing a DORA Register

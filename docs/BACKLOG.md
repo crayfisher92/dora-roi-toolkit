@@ -77,3 +77,74 @@ history of the period.
 
 No High or Medium items remain open.
 
+
+---
+
+# DORA programme modules (branch `contracts-incidents`)
+
+Review of the Art. 30 contract gap analysis, incident classification, FINMA mapping and
+readiness dashboard, with the same two perspectives and severity scale as above, after
+merging the hardening work of the base branch. IDs `P-xx`.
+
+## Programme cycle 1
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| P-01 | High | SE | **Programme data is not saved in project files.** Art. 30 assessments and the incident log are lost when a workspace is saved as `.roiproj` and reopened (and on every autosave restart). | `save_project` → `load_project` of the sample: 13 assessments / 5 incidents → 0 / 0. | ✅ optional `programme` table in `.roiproj` (D-069); round-trip, legacy-file and tamper tests |
+| P-02 | High | SE | **Assessment and incident changes do not trigger autosave and are missing from the audit trail.** Only register edits call `on_change` and append a `Change`. | `ws.contracts.save(...)` → 0 `on_change` calls; audit CSV has no programme entries. | ✅ `Workspace.programme_changed` → audit trail (kinds `art30`/`incident`) + autosave; shown on the audit page and in the CSV (D-070) |
+| P-03 | Medium | SE | **Programme mutations are not serialised** by the workspace lock introduced in B-09; two concurrent saves of the same assessment can interleave history entries. | Code inspection (`contracts_routes`, `incidents_routes`). | ✅ all programme mutations under `ws.lock`; 8-thread test |
+| P-04 | Medium | SE | **Art. 30 portfolio recomputed several times per request**: ~1.2 s each on a 10 000-contract register (contracts page: twice; overview: readiness + FINMA). | Timing with `sample.large.generate_large()`. | ✅ portfolio cached on the workspace, invalidated on edits/programme changes (D-071) |
+| P-05 | Medium | SE | **Incident timestamps are not validated.** Occurrence after awareness, classification before awareness or resolution before the start are accepted and silently produce wrong durations and deadlines. | Incident with classified_at = detected − 1 d → initial notification due in the past; duration 0 h. | ✅ chronology validator on `Incident`; field-specific form errors; report submissions checked |
+| P-06 | Medium | TPR | **No risk acceptance for contract gaps.** Hyperscalers rarely grant unrestricted audit rights; banks accept the residual risk with compensating controls. Such gaps stay open forever and keep the contracts pillar red. | No field or action for it; base B-12 only covers validation findings. | ✅ time-bound exceptions (reason, approver, end date) – status *Gaps under exception*, *Approved exceptions* in plan/Excel, expiry → open gap (D-072) |
+| P-07 | Medium | TPR | **Concentration pillar is red because of contract expiries and notice deadlines** (contract lifecycle, not concentration), and its actions are the English key-message titles even in the German report. | Sample: concentration red from "5 arrangements expire …" / "2 notice deadlines …"; DE report shows English text. | ✅ concentration light from concentration metrics; expiries, notice deadlines and "renegotiate before notice deadline" in the contracts pillar; translated actions (D-073) |
+| P-08 | Medium | TPR | **Readiness report has no PDF, and its print layout breaks in WeasyPrint** (pills stretch across the page, one card per row → 8 pages), although the base now produces PDFs for the other reports. | `html_to_pdf(render_readiness_html(...))`, page images. | ✅ PDF downloads/CLI `.pdf` via WeasyPrint; print CSS without `min()` grid tracks and inline flex (6 instead of 8 pages) |
+| P-09 | Low | SE | Programme reports (plan, incident summary, readiness) are served with the app CSP instead of the stricter report CSP. | Response header of `/contracts/plan.html`. | ✅ report CSP for plan, incident summary and readiness report |
+| P-10 | Low | TPR | Suggestion snippets cross clause boundaries (an audit match in clause 12 shows the end of clause 11). | Screenshot 12-assessment. | ✅ snippet clipped to the matched clause |
+| P-11 | Low | TPR | No consistency hints between register and assessment (e.g. notice periods reported in B_02.02 while the termination clause is assessed missing; exit plan = true but no exit clause). | Inspection. | ✅ consistency hints on the assessment page (notice periods, locations, subcontractors, exit plan, audit date) |
+| P-12 | Low | TPR | Possible recurring incidents without a recurrence key are not pointed out (same provider and root-cause category within six months). | Inspection. | ✅ *Possible recurring incidents* (same provider and root-cause category within 6 months, no common key) |
+
+## Programme cycle 2
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| P-13 | Medium | SE | **A malformed .docx crashes the request** (HTTP 500): a member whose declared size or CRC does not match raises `BadZipFile`, which the extractor does not catch; members that lie about their size are not covered by a ratio guard. | Crafted docx with patched size headers → uncaught `BadZipFile: Bad CRC-32`. | ✅ `zipfile`/`zlib` errors → *corrupt .docx file* (400); members read through a bounded stream; ratio guard as in `io.limits` |
+| P-14 | Medium | TPR | **Importing assessments or an incident log discards history.** An imported entry with the same key replaces the existing one including its history (who decided what, when). | Book with 2 history entries + import of the same ref → 1 entry left. | ✅ imports merge histories (duplicates dropped, time order) and append an *imported* entry; the page reports new vs updated |
+| P-15 | Medium | TPR | **"One dataset" is not possible for a Swiss group:** the Swiss bank's own arrangements cannot be kept in the register without flowing into the DORA xBRL-CSV submission – there is no way to mark entities as outside the DORA scope and leave them (and arrangements used only by them) out of the supervisory package. | FIN-OS-04 note; export uses the whole register. | ✅ DORA reporting scope on the FINMA page and `roi export --exclude-entity`; the xBRL-CSV package is built from the register restricted to the scope (`dora_roi.scope`), saved in project files and audited (D-074) |
+| P-16 | Medium | TPR | **No remediation progress.** The plan lists gaps, but not whether negotiation has started or a clause is agreed and awaiting signature – the question the board asks about the 18 high-priority gaps. | Only the client-status column of the Excel export, which cannot be read back. | ✅ progress (planned / in negotiation / agreed), owner and agreed target date per gap – form, re-importable workbook, plan (HTML/PDF/Excel), contracts page, readiness line and *overdue* action (D-075) |
+| P-17 | Low | TPR | The incident page does not show the contractual leverage with the affected provider (incident assistance Art. 30(2)(f), reporting obligations Art. 30(3)(b)). | Inspection. | ✅ *Contractual support (Art. 30)* panel on the incident page: 30(2)(f) and 30(3)(b) for the linked arrangements (D-076) |
+| P-18 | Low | SE | The assessment form (22 fieldsets, ~150 controls) has no in-page navigation; keyboard and screen-reader users must tab through everything to reach one provision. | Keyboard walk-through. | ✅ provision index (links with status) at the top of the assessment form; each fieldset is a link target |
+| P-19 | Low | TPR | Incidents affecting several entities are classified once on combined answers; per-entity classification and aggregated group reporting are not modelled. | Inspection. | ➖ documented (A-INC-08, D-077) and stated on the incident form; conservative by construction |
+
+## Programme cycle 3
+
+Probes: an error only in the rows of an entity outside the DORA scope (CLI `--strict`,
+export page, readiness light); acceptances after restricting the register; the plan of the
+same register on two dates; closing a gap that had remediation progress; DE wording.
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| P-20 | Medium | SE | **The supervisory package is not validated as such.** With entities outside the DORA scope, `roi export --strict` refuses (and the export page warns about) errors that are only in the excluded rows, and would accept a package whose own content was never validated. | XRF-004 in an `AR-LU-0016` row: `--strict --exclude-entity` → refused although the package does not contain the row. | ✅ the restricted register is validated with the import findings of its remaining rows (`scope.findings_in`); used by `roi export --strict` and shown on the export page; cached on the workspace (D-079) |
+| P-21 | Medium | TPR | **Readiness register light mixes the Swiss part into the DORA submission status.** | Same register: register light amber "1 error" although the submission is clean. | ✅ register light, score and actions from the submission view, with a line saying how many entities are not counted; also `roi readiness --exclude-entity` (D-079) |
+| P-22 | Medium | TPR | **Proposed target dates slide with the plan date** – every day the plan is produced, the 90-day target moves one day; an unmanaged gap never looks late, which an internal auditor would flag immediately. | Plan of the sample on 2026-11-05 and 2027-01-01: same gap, target 2027-02-03 vs 2027-04-01. | ✅ anchored to the date of the assessment that found the gap; *proposed date passed* in the plan, count of late high-priority gaps in the readiness report (D-078) |
+| P-23 | Low | SE | Accepted warnings were not applied to the package validation (and acceptance keys contain row numbers, which differ in the restricted register). | Accepted BUS-016 counted as open in the package report. | ✅ acceptances applied read-only, matched without the row |
+| P-24 | Low | SE | Closing a gap that had remediation progress wrote "remediation not started" into the history. | Save present after negotiating. | ✅ remediation changes are only described for gaps |
+| P-25 | Low | SE | German texts mixed Swiss and German spelling (*ausserhalb* / *außerhalb*). | i18n grep. | ✅ standard German spelling throughout, as in the rest of the interface |
+| P-26 | Low | TPR | `roi readiness` had no way to show the submission view. | CLI help. | ✅ `--exclude-entity` |
+| P-27 | Low | TPR | The plan workbook's *By provider* sheet shows gaps but not remediation progress per provider. | Workbook. | ⏳ open (the plan sheet carries progress per action; pivot in Excel) |
+| P-28 | Low | SE | An entity marked out of scope that later becomes the maintaining entity made the xBRL download fail (`ScopeError`). | Edit of B_01.01 after marking. | ✅ the maintainer is always in scope (`Workspace.dora_register`) |
+
+Re-review after the fixes (both perspectives, the probes of cycles 1–3 plus a German
+walk-through of the scope, remediation and incident screens, axe-core light/dark and 360 px
+reflow) found **no remaining High or Medium items**. Open Low item: P-27.
+
+## After merging the base's review cycle 4
+
+The base added an audit trail of exports (B-30), a PDF concurrency limit (B-31) and
+"prepared by" on executive summaries (B-34). Checked against the programme modules:
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| P-29 | Medium | TPR | **Programme reports and data exports are missing from the new export audit trail** – the readiness report for the CRO, the remediation plan and the incident summary are exactly the documents internal audit asks about – and they did not name the preparer. | Audit CSV after downloading the readiness report: no entry. | ✅ every programme report/data download is logged (what, who, register state); reports say *prepared by*; the xBRL entry with a DORA scope records the package's own validation (D-080) |
+| P-30 | Medium | SE | **Programme PDFs answered HTTP 500 when the PDF limit was reached** instead of 503 + Retry-After like the base's PDFs. | `PdfBusyError` raised by `html_to_pdf` in `pdf_response`. | ✅ 503 with `Retry-After` |
+
+No High or Medium items remain open.

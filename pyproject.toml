@@ -27,10 +27,15 @@ dependencies = [
     "jinja2>=3.1",
     "python-calamine>=0.4",  # fast spreadsheet reading; rejects DTDs/entities (D-045)
     "xlsxwriter>=3.1",  # fast spreadsheet writing (D-045)
+    "tzdata; sys_platform == 'win32'",  # IANA time zones for incident timestamps
 ]
 
 [project.optional-dependencies]
+contracts = [
+    "pypdf>=4.0",   # text extraction from contract PDFs (DOCX/TXT need no extra package)
+]
 web = [
+    "dora-roi-toolkit[contracts]",
     "fastapi>=0.110",
     "uvicorn>=0.27",
     "python-multipart>=0.0.9",
@@ -108,6 +113,7 @@ ignore = ["RUF001", "RUF002", "RUF003", "SIM905"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PTH", "N802"]
+"src/dora_roi/sample/contract_docs.py" = ["E501"]  # contract paragraphs are one line each
 
 [tool.ruff.lint.isort]
 known-first-party = ["dora_roi"]

@@ -1,0 +1,153 @@
+{% extends "ws_base.html.j2" %}
+{% from "_incident_macros.html.j2" import countdown, outcome_pill, deadline_state with context %}
+{% from "_macros.html.j2" import pill %}
+{% block page_title %}{{ inc.id }} · {{ t("inc.name") }}{% endblock %}
+{% block content %}
+{% set c = view.classification %}
+<p><a href="/w/{{ ws.id }}/incidents">← {{ t("inc.ui.back") }}</a></p>
+<p class="eyebrow">{{ t("inc.page_title") }}</p>
+<h2 class="provider-name"><span class="mono">{{ inc.id }}</span>{% if not new %} {{ inc.title }}{% endif %}</h2>
+{% if request.query_params.get("saved") %}<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("inc.ui.saved") }}</div></div>{% endif %}
+
+{% if not new %}
+<section class="card result-card result-{{ c.outcome.value }}" aria-labelledby="h-result">
+  <h3 id="h-result">{{ t("inc.classification") }}: {{ outcome_pill(c.outcome, t) }} <span class="small muted">· {{ t("inc.st." ~ inc.status.value) }}</span></h3>
+  <p>{{ t("inc.basis." ~ c.basis, n=c.met_count) }}</p>
+  <div class="table-wrap"><table class="criteria-table">
+    <caption class="visually-hidden">{{ t("inc.classification") }}</caption>
+    <thead><tr><th scope="col">{{ t("inc.criterion") }}</th><th scope="col">{{ t("g.status") }}</th><th scope="col">{{ t("inc.observed") }}</th><th scope="col">{{ t("inc.threshold") }}</th></tr></thead>
+    <tbody>{% for key, r in c.results.items() %}{% set info = criteria[key] %}
+    <tr><th scope="row">{{ info.title(lang) }}<div class="small muted">{{ info.dora }} · {{ info.rts }}</div></th>
+      <td>{% if r.met %}{{ pill("major", t("inc.met")) }}{% elif r.met is none %}{{ pill("provisional", t("inc.unknown")) }}{% else %}{{ pill("not_major", t("inc.not_met")) }}{% endif %}</td>
+      <td class="small">{% for tr in r.triggers %}{{ t("inc.tr." ~ tr.key) }}: <strong>{{ tr.value }}</strong> ({{ tr.limit }}){% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</td>
+      <td class="small">{{ info.threshold(lang) }}</td></tr>
+    {% endfor %}</tbody></table></div>
+  {% if c.open_questions %}<p class="small"><strong>{{ t("inc.open_questions") }}:</strong>
+    {% for q in c.open_questions %}<a href="#q-{{ q }}">{{ t("inc.q." ~ q) }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+</section>
+
+{% if view.deadlines %}
+<section class="card" aria-labelledby="h-deadlines">
+  <h3 id="h-deadlines">{{ t("inc.ui.reporting") }}</h3>
+  <ol class="deadlines plain">
+  {% for d in view.deadlines %}
+    <li class="deadline">
+      <div><strong>{{ t("inc.report." ~ d.kind.value) }}</strong> {{ deadline_state(d, now, t) }}
+        <div class="small muted">{{ t("inc.ui.due") }} {{ local(d.due) }} ({{ tzname }}) · {{ t("inc.dl.basis." ~ d.basis) }}</div></div>
+      <div>{% if d.submitted_at %}{{ t("inc.ui.submitted") }} {{ local(d.submitted_at) }}
+        {% else %}{{ countdown(d, now, t, humanise) }}{% endif %}</div>
+      {% if not d.submitted_at %}
+      <form method="post" action="{{ action_url }}" class="row report-form">
+        <input type="hidden" name="action" value="report"><input type="hidden" name="kind" value="{{ d.kind.value }}">
+        <label for="sub-{{ d.kind.value }}">{{ t("inc.ui.submitted_at") }}</label>
+        <input id="sub-{{ d.kind.value }}" name="submitted_at" type="datetime-local" value="{{ local(now, True) }}">
+        <button class="btn" type="submit">{{ t("inc.ui.record", report=t("inc.report." ~ d.kind.value)) }}</button>
+      </form>
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ol>
+  <p class="small muted">{{ t("inc.ui.deadline_note") }}</p>
+</section>
+{% endif %}
+
+<div class="grid two">
+<section class="card" aria-labelledby="h-links"><h3 id="h-links">{{ t("inc.ui.links") }}</h3>
+  <dl class="links">
+    <dt>{{ t("g.providers") }}</dt><dd>{% for p in view.providers %}{% if p.in_register %}<a href="/w/{{ ws.id }}/provider/{{ p.code }}">{{ p.name }}</a>{% else %}{{ p.name }} <span class="small muted">({{ t("inc.ui.not_in_register") }})</span>{% endif %}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</dd>
+    <dt>{{ t("g.contracts") }}</dt><dd>{% for k in view.contracts %}{% if k.in_register %}<a class="mono" href="/w/{{ ws.id }}/contract/{{ k.code | urlencode }}">{{ k.code }}</a>{% else %}<span class="mono">{{ k.code }}</span>{% endif %}{% if not loop.last %}, {% endif %}{% else %}—{% endfor %}</dd>
+    <dt>{{ t("g.functions") }}</dt><dd>{% for f in view.functions %}{% if f.critical %}◆ {% endif %}<span class="mono small">{{ f.function_id }}</span> {{ f.name }}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</dd>
+    <dt>{{ t("g.entity") }}</dt><dd>{% for e in view.entities %}{{ e.name }}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</dd>
+  </dl>
+  {% if leverage %}
+  <h4 id="h-leverage">{{ t("inc.ui.leverage") }}</h4>
+  <p class="small muted">{{ t("inc.ui.leverage_help") }}</p>
+  <div class="table-wrap"><table class="compact">
+    <caption class="visually-hidden">{{ t("inc.ui.leverage") }}</caption>
+    <thead><tr><th scope="col">{{ t("g.contract") }}</th>{% for p in leverage_provisions %}<th scope="col"><abbr title="{{ p.title(lang) }}">{{ p.article | replace("DORA ", "") }}</abbr></th>{% endfor %}</tr></thead>
+    <tbody>{% for c, its in leverage %}<tr><th scope="row"><a class="mono" href="/w/{{ ws.id }}/contract/{{ c.ref | urlencode }}">{{ c.ref }}</a>{% if c.context.critical %} ◆{% endif %}<div class="small muted">{{ c.context.provider_names }}</div></th>
+      {% for it in its %}<td>{% if it is none %}<span class="muted small">{{ t("inc.ui.leverage_na") }}</span>{% else %}{{ pill("exception" if it.excepted else it.status.value, t("cs.exception") if it.excepted else t("st." ~ it.status.value)) }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table></div>
+  {% endif %}
+</section>
+<section class="card" aria-labelledby="h-status"><h3 id="h-status">{{ t("inc.ui.status_actions") }}</h3>
+  <form method="post" action="{{ action_url }}" class="row">
+    {% if inc.status.value == "open" %}<button class="btn" type="submit" name="action" value="resolve">{{ t("inc.ui.resolve") }}</button>{% endif %}
+    {% if inc.status.value != "closed" %}<button class="btn" type="submit" name="action" value="close">{{ t("inc.ui.close") }}</button>{% endif %}
+    {% if inc.status.value != "open" %}<button class="btn" type="submit" name="action" value="reopen">{{ t("inc.ui.reopen") }}</button>{% endif %}
+  </form>
+  {% if inc.history %}<h4>{{ t("c30.ui.history") }}</h4>
+  <ol class="plain history">{% for e in inc.history | reverse %}<li><time datetime="{{ e.at.isoformat() }}">{{ local(e.at) }}</time> · {{ t("inc.ev." ~ e.action) }}{% if e.note %} – {{ e.note }}{% endif %}{% if e.by %} <span class="muted">({{ e.by }})</span>{% endif %}</li>{% endfor %}</ol>{% endif %}
+</section>
+</div>
+{% endif %}
+
+<h3>{{ t("inc.ui.questionnaire") }}</h3>
+<p class="small muted">{{ t("inc.ui.questionnaire_lead", tz=tzname) }}</p>
+<form method="post" action="{{ action_url }}" class="incident-form" novalidate>
+  <input type="hidden" name="action" value="save">
+  <fieldset class="card provision"><legend>{{ t("inc.ui.s.incident") }}</legend>
+    <div class="form-grid">
+      <div class="field full {% if error_field == 'title' %}has-error{% endif %}"><label for="title">{{ t("inc.ui.f.title") }} <span class="req" aria-hidden="true">*</span></label>
+        <input id="title" name="title" value="{{ inc.title }}" maxlength="200" required {% if error_field == 'title' %}aria-invalid="true"{% endif %}></div>
+      <div class="field full"><label for="description">{{ t("inc.ui.f.description") }}</label><textarea id="description" name="description" rows="3" maxlength="4000">{{ inc.description }}</textarea></div>
+      {% for name in ("occurred_at", "detected_at", "classified_at", "resolved_at") %}
+      <div class="field {% if error_field == name %}has-error{% endif %}"><label for="{{ name }}">{{ t("inc.ui.f." ~ name) }}{% if name == "detected_at" %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+        <input id="{{ name }}" name="{{ name }}" type="datetime-local" value="{{ local(inc[name], True) }}" {% if name == "detected_at" %}required{% endif %} {% if error_field == name %}aria-invalid="true"{% endif %} aria-describedby="h-{{ name }}">
+        <span id="h-{{ name }}" class="small muted">{{ t("inc.ui.h." ~ name) }}</span></div>
+      {% endfor %}
+      <div class="field"><label for="status">{{ t("g.status") }}</label><select id="status" name="status">{% for s in statuses %}<option value="{{ s.value }}" {% if inc.status == s %}selected{% endif %}>{{ t("inc.st." ~ s.value) }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="owner">{{ t("g.owner") }}</label><input id="owner" name="owner" value="{{ inc.owner }}" maxlength="200"></div>
+      <div class="field"><label for="root_cause">{{ t("inc.ui.f.root_cause") }}</label><select id="root_cause" name="root_cause"><option value="">—</option>{% for r in causes %}<option value="{{ r.value }}" {% if inc.root_cause == r %}selected{% endif %}>{{ t("inc.rc." ~ r.value) }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="recurrence_key">{{ t("inc.ui.f.recurrence_key") }}</label><input id="recurrence_key" name="recurrence_key" value="{{ inc.recurrence_key }}" maxlength="120" aria-describedby="h-rk"><span id="h-rk" class="small muted">{{ t("inc.ui.h.recurrence_key") }}</span></div>
+      <div class="field"><label for="authority_reference">{{ t("inc.ui.f.authority_reference") }}</label><input id="authority_reference" name="authority_reference" value="{{ inc.authority_reference }}" maxlength="120"></div>
+    </div>
+  </fieldset>
+
+  <fieldset class="card provision"><legend>{{ t("inc.ui.s.affected") }}</legend>
+    <p class="small muted">{{ t("inc.ui.h.affected") }}</p>
+    <div class="form-grid">
+      <div class="field"><label for="provider">{{ t("g.providers") }}</label>
+        <select id="provider" name="provider" multiple size="7" aria-describedby="h-multi">{% for code, name in providers %}<option value="{{ code }}" {% if code in inc.provider_codes %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="contract">{{ t("g.contracts") }}</label>
+        <select id="contract" name="contract" multiple size="7" aria-describedby="h-multi">{% for ref in contracts %}<option value="{{ ref }}" {% if ref in inc.contract_refs %}selected{% endif %}>{{ ref }}</option>{% endfor %}</select></div>
+      <div class="field"><fieldset class="checks"><legend>{{ t("g.entity") }}</legend>
+        {% for lei, name in entities %}<label class="check"><input type="checkbox" name="entity" value="{{ lei }}" {% if lei in inc.entity_leis %}checked{% endif %}> {{ name }}</label>{% endfor %}
+        <p class="small muted">{{ t("inc.ui.h.group") }}</p></fieldset></div>
+    </div>
+    <p id="h-multi" class="small muted">{{ t("inc.ui.h.multi") }}</p>
+  </fieldset>
+
+  {% for key, fields in sections %}{% set info = criteria[key] %}
+  <fieldset class="card provision criterion-set" id="sec-{{ key.value }}"><legend>{{ loop.index }}. {{ info.title(lang) }} <span class="small muted">{{ info.dora }} · {{ info.rts }}</span></legend>
+    <p class="small">{{ info.question(lang) }}</p>
+    <p class="small muted">{{ t("inc.threshold") }}: {{ info.threshold(lang) }}</p>
+    {% if key.value == "critical_services" and view.supports_critical %}<p class="small hint">◆ {{ t("inc.ui.hint_critical") }}</p>{% endif %}
+    <div class="form-grid">
+    {% for name in fields %}
+      {% if name in bool_fields %}{% set v = inc.answers[name] %}
+      <div class="field" id="q-{{ name }}"><fieldset class="tri {% if error_field == name %}has-error{% endif %}"><legend>{{ t("inc.q." ~ name) }}</legend>
+        {% for val, label in (("yes", t("g.yes")), ("no", t("g.no")), ("", t("g.unknown"))) %}
+        <label class="check"><input type="radio" name="a-{{ name }}" value="{{ val }}" {% if (v is true and val == "yes") or (v is false and val == "no") or (v is none and val == "") %}checked{% endif %}> {{ label }}</label>
+        {% endfor %}</fieldset></div>
+      {% elif name == "member_states" %}
+      <div class="field full" id="q-member_states"><fieldset class="checks states"><legend>{{ t("inc.q.member_states") }}</legend>
+        {% for code in states %}<label class="check"><input type="checkbox" name="ms" value="{{ code }}" {% if inc.answers.member_states and code in inc.answers.member_states %}checked{% endif %}> <span class="mono">{{ code }}</span> {{ country_name(code) }}</label>{% endfor %}</fieldset>
+        {% if view.suggested_states %}<p class="small hint">{{ t("inc.ui.hint_states", states=view.suggested_states | join(", ")) }}</p>{% endif %}</div>
+      {% else %}{% set v = inc.answers[name] %}
+      <div class="field {% if error_field == name %}has-error{% endif %}" id="q-{{ name }}"><label for="a-{{ name }}">{{ t("inc.q." ~ name) }}</label>
+        <input id="a-{{ name }}" name="a-{{ name }}" inputmode="decimal" value="{{ '' if v is none else v }}" autocomplete="off" {% if error_field == name %}aria-invalid="true"{% endif %}></div>
+      {% endif %}
+    {% endfor %}
+    </div>
+  </fieldset>
+  {% endfor %}
+  <div class="row actions sticky-actions"><button class="btn primary" type="submit">{{ t("inc.ui.save_classify") }}</button></div>
+</form>
+
+{% if not new %}
+<details class="danger-zone"><summary>{{ t("inc.ui.delete") }}</summary>
+  <form method="post" action="{{ action_url }}"><p>{{ t("inc.ui.delete_confirm") }}</p><button class="btn danger" type="submit" name="action" value="delete">{{ t("inc.ui.delete") }}</button></form>
+</details>
+{% endif %}
+{% endblock %}

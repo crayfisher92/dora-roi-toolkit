@@ -42,6 +42,16 @@ choices that follow from it are in [DECISIONS.md](DECISIONS.md) (D-024 onwards).
 | J8 | *When I'm done, I want the files the supervisor and the CRO need.* | both | Export step: xBRL-CSV (best effort), corrected Excel, reports |
 | J9 | *I want to work in German or English, with the keyboard, in light or dark mode.* | both | i18n EN/DE, WCAG 2.2 AA, theme toggle |
 
+### Jobs added with the DORA programme modules
+
+| # | Job | Persona | Feature |
+|---|---|---|---|
+| J10 | *When I review a client's ICT contracts, I want to record clause by clause what is missing, and give them a prioritised plan.* | Lena | Art. 30 checklist per arrangement (present/partial/missing, clause, evidence), portfolio by criticality, remediation plan HTML/Excel |
+| J11 | *When I receive a 60-page contract, I want a first pass in minutes – without sending it anywhere.* | Lena | Local PDF/DOCX extraction and keyword suggestions, clearly marked for review, audit trail of tool vs. reviewer |
+| J12 | *When an incident hits, I want to know within the hour whether it is major and when the supervisor must be notified.* | Thomas | Guided questionnaire with the RTS criteria, "undetermined" with open questions, reporting countdown, recurring incidents |
+| J13 | *As the Swiss parent, I want the EU register to serve our FINMA documentation too.* | Thomas | FINMA mapping with coverage by design and in the data, list of what to maintain in addition |
+| J14 | *Before the risk committee, I want one page that says where we stand on DORA.* | both | Readiness dashboard with traffic lights and priority actions; printable report |
+
 ## Information architecture and screen flow
 
 ```
@@ -65,8 +75,20 @@ choices that follow from it are in [DECISIONS.md](DECISIONS.md) (D-024 onwards).
  │ ③ Analyse – concentration dashboard; dependency graph (colour by criticality/region)  │
  │ ④ Export  – xBRL-CSV (best effort), Excel with fixes, CSV, validation & CRO reports   │
  │ Compare   – diff against another workspace or an uploaded previous version            │
+ │ ── DORA programme ──────────────────────────────────────────────────────────────────  │
+ │ DORA readiness – traffic lights per pillar, priority actions → printable CRO report   │
+ │ Art. 30 contracts – portfolio by criticality ▸ arrangement: checklist form, document  │
+ │             upload → suggestions (unsaved draft) → review → save; plan HTML/Excel     │
+ │ Incidents – log, countdowns, recurring series ▸ incident: result, deadlines, report   │
+ │             submissions, questionnaire (yes / no / unknown), history                  │
+ │ Switzerland (FINMA) – requirement ↔ RoI fields / Art. 30 / incident log, coverage     │
  └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+The programme screens sit in a second navigation row so that the RoI workflow stepper keeps
+its meaning (*Import → Fix → Analyse → Export*). The register shows the Art. 30 status on
+B_02.01 rows and the provider page lists the provider's contract compliance and incidents,
+so users can move between the views without re-finding records.
 
 ### Screen notes
 
@@ -107,5 +129,9 @@ choices that follow from it are in [DECISIONS.md](DECISIONS.md) (D-024 onwards).
   fix it* and *why it matters*, then cites DORA / ITS.
 - **Never lose data.** Invalid values stay visible and editable; every edit creates a new
   version, and versions can be compared.
+- **Suggestions are never decisions.** Machine-generated content (contract suggestions) is
+  labelled, shows its evidence and is not saved until a person reviews it.
+- **Deadlines without noise.** Countdowns update visually but are not ARIA live regions; the
+  deadline itself is always shown as a date and time with its time zone.
 - **Calm visual language.** One accent colour, status colours only for severity, data colours
   only in charts (validated for colour-vision deficiencies in both themes).

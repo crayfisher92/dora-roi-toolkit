@@ -21,6 +21,12 @@
   <button class="btn" type="submit">{{ t("user.save") }}</button>
   <span id="user-help" class="small muted">{{ t("user.help") }}</span>
 </form>
+<section class="card programme-teaser" aria-labelledby="h-prog">
+  <h2 id="h-prog">{{ t("rd.title") }}</h2>
+  <ul class="teaser-list" role="list">{% for p in readiness.pillars %}
+    <li><a href="/w/{{ ws.id }}/dashboard"><span class="pill {{ p.rag.value }}">{{ t("rag." ~ p.rag.value) }}</span> {{ t("rd.pillar." ~ p.key) }}: <strong>{{ p.metric }}</strong></a></li>{% endfor %}
+  </ul>
+</section>
 {% if notes %}
 <section class="card" aria-labelledby="h-notes"><h2 id="h-notes">{{ t("wiz.notes") }}</h2><ul>{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul></section>
 {% endif %}

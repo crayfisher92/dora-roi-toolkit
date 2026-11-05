@@ -23,6 +23,9 @@ from pathlib import Path
 from typing import Any
 
 from dora_roi.analytics import ConcentrationAnalysis, analyse
+from dora_roi.contracts.analysis import Portfolio, evaluate
+from dora_roi.contracts.model import AssessmentBook
+from dora_roi.incidents.model import IncidentLog
 from dora_roi.io.parse import parse_raw, parse_row
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RegisterOfInformation, RoIRecord
@@ -91,6 +94,9 @@ class Acceptance:
 class _Derived:
     register: RegisterOfInformation
     report: ValidationReport
+    parse_findings: list[Finding] = field(default_factory=list)
+    #: Validation of the register restricted to the DORA scope (P-20), computed on demand.
+    dora_report: ValidationReport | None = None
 
 
 ParseKey = tuple[str, int | None, tuple[tuple[str, Any], ...]]
@@ -122,6 +128,13 @@ class Workspace:
         self.acceptances: dict[str, Acceptance] = {}
         self.visited: set[str] = set()
         self.import_notes: list[str] | None = None
+        #: DORA Art. 30 contract assessments, keyed by B_02.01 arrangement reference.
+        self.contracts = AssessmentBook()
+        #: ICT-related incidents with their classification answers and reporting history.
+        self.incidents = IncidentLog()
+        #: LEIs of entities kept in the dataset but outside the DORA reporting scope (e.g. the
+        #: Swiss bank of a group); left out of the xBRL-CSV package (``dora_roi.scope``).
+        self.out_of_scope: set[str] = set()
         #: Browser session that owns the workspace in the web app (``""`` elsewhere).
         self.owner: str = ""
         #: Called after every change (used for autosaving project files).
@@ -131,6 +144,7 @@ class Workspace:
         self.lock = threading.RLock()
         self._derived: _Derived | None = None
         self._analysis: ConcentrationAnalysis | None = None
+        self._portfolio: Portfolio | None = None
         self._parse_cache: dict[ParseKey, tuple[RoIRecord, list[Finding]]] = {}
         self._row_index: dict[str, dict[int, RawRow]] = {}
         self.snapshot("Imported", user=user)
@@ -166,7 +180,7 @@ class Workspace:
                 report = validate(register, parse_findings=parse_findings, config=self.config,
                                   source=self.source)
                 self._apply_acceptances(report)
-                self._derived = _Derived(register, report)
+                self._derived = _Derived(register, report, list(parse_findings))
             return self._derived
 
     def _apply_acceptances(self, report: ValidationReport) -> None:
@@ -192,6 +206,7 @@ class Workspace:
     def _invalidate(self) -> None:
         self._derived = None
         self._analysis = None
+        self._portfolio = None
         self._row_index = {}
 
     @property
@@ -212,6 +227,95 @@ class Workspace:
     @property
     def quality(self) -> QualityScore:
         return quality_score(self.report)
+
+    @property
+    def portfolio(self) -> Portfolio:
+        """Art. 30 compliance of every arrangement (cached until the register or the
+        assessments change – :meth:`programme_changed`)."""
+        with self.lock:
+            if self._portfolio is None:
+                self._portfolio = evaluate(self.register, self.contracts)
+            return self._portfolio
+
+    def replace_programme(self, contracts: AssessmentBook | None = None,
+                          incidents: IncidentLog | None = None,
+                          out_of_scope: set[str] | None = None) -> None:
+        """Replace the programme data wholesale (sample loading, opening a project)."""
+        with self.lock:
+            if contracts is not None:
+                self.contracts = contracts
+            if incidents is not None:
+                self.incidents = incidents
+            if out_of_scope is not None:
+                self.out_of_scope = set(out_of_scope)
+                if self._derived is not None:
+                    self._derived.dora_report = None
+            self._portfolio = None
+
+    def dora_register(self) -> RegisterOfInformation:
+        """The register restricted to the DORA reporting scope (for the xBRL-CSV package).
+
+        The maintaining entity is always in scope, even if it was marked before an edit made
+        it the maintainer."""
+        from dora_roi.scope import restrict_to_scope
+
+        register = self.register
+        maintainer = register.maintainer.lei if register.maintainer else None
+        return restrict_to_scope(register, self.out_of_scope - {maintainer or ""})[0]
+
+    def dora_report(self) -> ValidationReport:
+        """Validation of the xBRL-CSV package's content: the register restricted to the DORA
+        scope, with the import findings of the rows that remain (P-20). Without entities
+        outside the scope this is :attr:`report`."""
+        from dora_roi.scope import findings_in, restrict_to_scope
+
+        with self.lock:
+            derived = self._derive()
+            register = derived.register
+            maintainer = register.maintainer.lei if register.maintainer else None
+            excluded = self.out_of_scope - {maintainer or ""}
+            if not excluded:
+                return derived.report
+            if derived.dora_report is None:
+                dora, _ = restrict_to_scope(register, excluded)
+                report = validate(
+                    dora, parse_findings=findings_in(derived.parse_findings, dora),
+                    config=self.config, source=self.source)
+                # accepted findings count as accepted here too (read-only: no pruning); rows
+                # differ in the restricted register, so they are matched without the row
+                def locate(key: str) -> tuple[str, ...]:
+                    rule, template, _row, column, record = (key.split("|", 4) + [""] * 5)[:5]
+                    return rule, template, column, record
+
+                accepted = {locate(k): a for k, a in self.acceptances.items()}
+                open_: list[Finding] = []
+                for f in report.findings:
+                    acc = accepted.get(locate(finding_key(f)))
+                    if acc is not None and f.severity is not Severity.ERROR:
+                        report.accepted.append(
+                            f.model_copy(update={"accepted_reason": acc.reason}))
+                    else:
+                        open_.append(f)
+                report.findings = open_
+                derived.dora_report = report
+            return derived.dora_report
+
+    def programme_changed(self, kind: str, subject: str, summary: str,
+                          user: str = DEFAULT_USER) -> None:
+        """Record a change of the DORA programme data in the audit trail and autosave.
+
+        ``kind`` is ``"art30"`` (contract assessments) or ``"incident"`` (incident log);
+        ``subject`` the arrangement reference or incident id. Callers hold :attr:`lock`
+        while mutating :attr:`contracts` / :attr:`incidents`.
+        """
+        area = {"art30": "Art. 30", "incident": "Incidents"}.get(kind, kind)
+        with self.lock:
+            self.changes.append(Change(kind, area, 0, subject[:200] or None, None, None,
+                                       user=user, note=summary[:500]))
+            self._portfolio = None
+            if self._derived is not None:  # the DORA scope may have changed
+                self._derived.dora_report = None
+            self._changed()
 
     # ------------------------------------------------------------------ access
 
@@ -357,10 +461,12 @@ class Workspace:
             self._invalidate()
             self._changed()
 
-    def record_export(self, what: str, user: str = DEFAULT_USER) -> None:
-        """Log an export in the audit trail with the register's state at that moment."""
+    def record_export(self, what: str, user: str = DEFAULT_USER,
+                      report: ValidationReport | None = None) -> None:
+        """Log an export in the audit trail with the register's state at that moment
+        (``report``: the validation the export rests on, default the whole dataset's)."""
         with self.lock:
-            counts = self.report.severity_counts()
+            counts = (report or self.report).severity_counts()
             state = (f"{counts['error']} error(s), {counts['warning']} warning(s), "
                      f"after {self.data_change_count()} data change(s)")
             self.changes.append(Change("export", "register", 0, None, None, None, user=user,

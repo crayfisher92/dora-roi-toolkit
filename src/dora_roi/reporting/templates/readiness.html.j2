@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ t("rd.report.title") }}{% if client %} · {{ client }}{% endif %}</title>
+<style>
+{% include "_style.css.j2" %}
+{% include "_report.css.j2" %}
+.overall { display: flex; gap: 16px; align-items: center; }
+.overall .light { width: 48px; height: 48px; border-radius: 50%; flex: none; border: 3px solid var(--border); }
+.light.red { background: var(--status-critical); } .light.amber { background: var(--status-warning); }
+.light.green { background: var(--status-good); } .light.grey { background: var(--series-muted); }
+.rag .card p { margin: 4px 0; font-size: 13.5px; }
+ol.actions-list li { margin-bottom: 8px; }
+.overall h2, .overall p { margin: 0; }
+.rag-section { margin-top: 16px; }
+.prio { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA · Regulation (EU) 2022/2554 · {{ t("rd.report.title") }}</p>
+  <h1>{{ client or t("rd.report.title") }}</h1>
+  <p class="meta">{{ t("g.prepared", date=fmt(v.generated)) }}{% if prepared_by %} {{ t("g.prepared_by", name=prepared_by) }}{% endif %}{% if v.reference_date %} · RoI {{ fmt(v.reference_date) }}{% endif %}</p>
+  <p class="section-lead">{{ t("rd.report.lead") }}</p>
+</header>
+
+<section class="card overall" aria-labelledby="h-overall">
+  <span class="light {{ v.overall.value }}" aria-hidden="true"></span>
+  <div><h2 id="h-overall">{{ t("rd.overall") }}: {{ t("rag." ~ v.overall.value) }}</h2>
+    <p>{{ t("rd.overall." ~ v.overall.value) }}</p></div>
+</section>
+
+<section class="rag rag-section" aria-label="{{ t('rd.name') }}">
+  {% for p in v.pillars %}
+  <div class="card {{ p.rag.value }}">
+    <h3>{{ t("rd.pillar." ~ p.key) }}</h3>
+    <p><span class="pill {{ p.rag.value }}">{{ t("rag." ~ p.rag.value) }}</span> <span class="small muted">{{ p.article }}</span></p>
+    <p><span class="metric">{{ p.metric }}</span> <span class="small muted">{{ p.metric_label }}</span></p>
+    {% for line in p.lines %}<p>{{ line }}</p>{% endfor %}
+  </div>
+  {% endfor %}
+</section>
+
+<h2>{{ t("rd.actions") }}</h2>
+{% if v.actions %}
+<ol class="actions-list">{% for a in v.actions %}<li><span class="pill {{ a.priority }} prio">{{ t("prio." ~ a.priority) }}</span> {{ a.text }} <span class="small muted">({{ t("rd.pillar." ~ a.pillar) }})</span></li>{% endfor %}</ol>
+{% else %}<p class="muted">{{ t("rd.no_actions") }}</p>{% endif %}
+
+<section class="page-break" aria-labelledby="h-s1">
+<h2 id="h-s1">{{ t("rd.section.register") }}</h2>
+{% set p = v.pillar("register") %}
+{% for line in p.lines %}<p>{{ line }}</p>{% endfor %}
+{% set bt = v.report.by_template() %}
+{% set worst = bt.items() | selectattr("1.error") | sort(attribute="1.error", reverse=True) | list %}
+{% if worst %}
+<h3>{{ t("rd.templates_with_errors") }}</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="{{ t('rd.report.title') }}"><table><thead><tr><th scope="col">{{ t("rd.col.template") }}</th><th scope="col" class="num">{{ t("rd.col.errors") }}</th><th scope="col" class="num">{{ t("rd.col.warnings") }}</th></tr></thead>
+<tbody>{% for code, c in worst[:5] %}<tr><td class="mono">{{ code }}</td><td class="num">{{ c.error }}</td><td class="num">{{ c.get("warning", 0) }}</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+</section>
+
+<section aria-labelledby="h-s2">
+<h2 id="h-s2">{{ t("rd.section.contracts") }}</h2>
+{% for line in v.pillar("contracts").lines %}<p>{{ line }}</p>{% endfor %}
+{% if by_provision %}
+<div class="table-wrap" tabindex="0" role="region" aria-label="{{ t('rd.report.title') }}"><table><caption class="visually-hidden">{{ t("c30.by_provision") }}</caption>
+<thead><tr><th scope="col">{{ t("c30.provision") }}</th><th scope="col" class="num">{{ t("st.missing") }}</th><th scope="col" class="num">{{ t("st.partial") }}</th></tr></thead>
+<tbody>{% for pr, m, pa in by_provision %}<tr><td><span class="mono small">{{ pr.article }}</span> {{ pr.title(lang) }}</td><td class="num">{{ m }}</td><td class="num">{{ pa }}</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+{% set high = v.plan.items | selectattr("priority.value", "equalto", "high") | list %}
+{% if high %}
+<h3>{{ t("prio.high") }} – {{ t("c30.actions") }}</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="{{ t('rd.report.title') }}"><table>
+<thead><tr><th scope="col">{{ t("g.provider") }}</th><th scope="col">{{ t("g.contract") }}</th><th scope="col">{{ t("c30.provision") }}</th><th scope="col">{{ t("g.target") }}</th></tr></thead>
+<tbody>{% for i in high[:12] %}<tr><td>{{ i.providers }}</td><td class="mono">{{ i.contract_ref }}</td><td>{{ i.provision.title(lang) }} <span class="small muted">({{ t("st." ~ i.status.value) }})</span></td><td class="num">{{ fmt(i.target_date) }}</td></tr>{% endfor %}</tbody></table></div>
+{% if high | length > 12 %}<p class="small muted">+ {{ high | length - 12 }}</p>{% endif %}
+{% endif %}
+</section>
+
+<section aria-labelledby="h-s3">
+<h2 id="h-s3">{{ t("rd.section.incidents") }}</h2>
+{% for line in v.pillar("incidents").lines %}<p>{{ line }}</p>{% endfor %}
+{% set majors = v.incidents.views | selectattr("classification.major") | list %}
+{% if majors %}
+<div class="table-wrap" tabindex="0" role="region" aria-label="{{ t('rd.report.title') }}"><table>
+<thead><tr><th scope="col">ID</th><th scope="col">{{ t("inc.title") }}</th><th scope="col">{{ t("inc.report.initial") }}</th><th scope="col">{{ t("inc.report.intermediate") }}</th><th scope="col">{{ t("inc.report.final") }}</th></tr></thead>
+<tbody>{% for m in majors %}<tr><td class="mono">{{ m.incident.id }}</td><td>{{ m.incident.title }}</td>
+  {% for d in m.deadlines %}<td class="small">{{ t("inc.dl." ~ d.state(v.incidents.now).value) }}<br>{{ d.due.strftime("%Y-%m-%d %H:%M") }} UTC</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+{% endif %}
+</section>
+
+<section class="page-break" aria-labelledby="h-s4">
+<h2 id="h-s4">{{ t("rd.section.concentration") }}</h2>
+{% for line in v.pillar("concentration").lines %}<p>{{ line }}</p>{% endfor %}
+<h3>{{ t("rd.key_messages") }}</h3>
+<ul>{% for k in v.analysis.key_findings %}<li><span class="pill {{ k.level.value }}">{{ t("prio." ~ k.level.value) }}</span> <strong>{{ k.title }}</strong> <span class="muted">{{ k.detail }}</span></li>{% endfor %}</ul>
+<div class="grid two">
+  <div class="card">{{ charts.groups }}</div>
+  <div class="card">{{ charts.cif }}</div>
+</div>
+</section>
+
+{% if v.finma %}
+<section aria-labelledby="h-s5">
+<h2 id="h-s5">{{ t("rd.section.finma") }}</h2>
+{% for line in v.pillar("finma").lines %}<p>{{ line }}</p>{% endfor %}
+<ul>{% for s in v.finma.statuses if s.effective.value == "none" %}<li><span class="mono small">{{ s.requirement.id }}</span> {{ s.requirement.title(lang) }} – {{ s.requirement.gap(lang) }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<h2>{{ t("rd.section.method") }}</h2>
+<p class="section-lead">{{ t("rd.method") }}</p>
+<p class="section-lead">{{ t("c30.method") }}</p>
+<p class="section-lead">{{ t("inc.method") }}</p>
+<footer>{{ t("g.disclaimer") }} · dora-roi-toolkit {{ version }}</footer>
+</main>
+</body>
+</html>

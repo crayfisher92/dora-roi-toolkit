@@ -33,6 +33,21 @@
   {% else %}<tr><td colspan="6" class="muted">—</td></tr>{% endfor %}</tbody></table></div>
 </section>
 </div>
+{% if art30 %}
+<section aria-labelledby="h-a30"><h3 id="h-a30">{{ t("c30.ui.provider_section") }}</h3>
+  <div class="table-wrap"><table><thead><tr><th scope="col">{{ t("g.contract") }}</th><th scope="col">{{ t("c30.ui.scope") }}</th><th scope="col">{{ t("g.status") }}</th>
+    <th scope="col" class="num">{{ t("st.missing") }}</th><th scope="col" class="num">{{ t("st.partial") }}</th></tr></thead>
+  <tbody>{% for c in art30.contracts %}<tr><td><a class="mono" href="{{ contract_url(ws.id, c.ref) }}">{{ c.ref }}</a></td>
+    <td>{% if c.context.critical %}◆ {{ t("c30.scope.critical") }}{% else %}{{ t("c30.scope.all") }}{% endif %}</td>
+    <td><span class="pill {{ c.status.value }}">{{ t("cs." ~ c.status.value) }}</span></td><td class="num">{{ c.missing }}</td><td class="num">{{ c.partial }}</td></tr>{% endfor %}</tbody></table></div>
+</section>
+{% endif %}
+{% if incidents %}
+<section aria-labelledby="h-pinc"><h3 id="h-pinc">{{ t("inc.ui.provider_section") }}</h3>
+  <ul class="plain">{% for i, c in incidents %}<li><a class="mono" href="/w/{{ ws.id }}/incidents/{{ i.id }}">{{ i.id }}</a> {{ i.title }}
+    <span class="pill {{ c.outcome.value }}">{{ t("inc.out." ~ c.outcome.value) }}</span> <span class="small muted">{{ t("inc.st." ~ i.status.value) }}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}
 <section aria-labelledby="h-chain"><h3 id="h-chain">{{ t("prov.chain") }}</h3>
   {% if graph_svg %}<div class="graph-scroll card">{{ graph_svg }}</div>{% endif %}
   {% if chains %}<div class="table-wrap"><table><thead><tr><th scope="col">{{ t("an.arrangement") }}</th><th scope="col">{{ t("an.chain") }}</th></tr></thead>

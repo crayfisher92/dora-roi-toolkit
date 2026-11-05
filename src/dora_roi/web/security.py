@@ -23,7 +23,8 @@ APP_CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inli
 #: Self-contained HTML reports (inline script/style by design, no network access at all).
 REPORT_CSP = ("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; "
               "img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'")
-REPORT_PATHS = re.compile(r"^/w/[0-9a-f]+/download/(executive|validation)\.html$")
+REPORT_PATHS = re.compile(r"^/w/[0-9a-f]+/(download/(executive|validation)\.html|"
+                          r"contracts/plan\.html|incidents/summary\.html|readiness\.html)$")
 UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
 BASE_HEADERS = {
