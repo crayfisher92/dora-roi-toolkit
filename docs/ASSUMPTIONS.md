@@ -42,3 +42,25 @@ to it.
 | A-REF-01 | Countries are ISO 3166-1 alpha-2 (249 officially assigned codes; `XK` and EU-specific `EL`/`UK` are rejected with a hint). |
 | A-REF-02 | Currencies are active ISO 4217 codes excluding funds, precious metals and testing codes. `HRK` (replaced by EUR in 2023) is rejected; `BGN` is still accepted although Bulgaria adopted the euro on 1 January 2026 — a warning-level check may be added. |
 | A-REF-03 | LEI validation implements ISO 17442 syntax and the ISO 7064 MOD 97-10 checksum. It does **not** check that the LEI is registered/active in GLEIF. |
+
+## Validation rules
+
+| ID | Assumption |
+|----|------------|
+| A-VAL-01 | The toolkit's rules are **not** the EBA validation rules (the published `v****_m` DPM checks). They are an independent set derived from the ITS structure and DORA obligations and overlap substantially with, but do not replicate, the official checks. Run the official validation (e.g. your authority's portal or an EBA-taxonomy-aware XBRL processor) before submission. |
+| A-VAL-02 | Severities are the authors' judgement: *error* = would make the register incomplete or inconsistent; *warning* = likely data-quality or supervisory-expectation issue; *info* = for awareness. They can be overridden per rule (`ValidationConfig.severity_overrides`). |
+| A-VAL-03 | "Critical function has an exit plan" (BUS-019) is checked per ICT service supporting a critical or important function, using B_07.01 c0080 (DORA Art. 28(8)). |
+| A-VAL-04 | The 12-month criticality reassessment (BUS-017) and 3-year audit (BUS-022) thresholds are configurable heuristics, not regulatory limits. DORA requires risk-based frequencies. |
+| A-VAL-05 | Amounts are expected in the reporting currency of the entity maintaining the register (BUS-008, warning). |
+| A-REG-01 | DORA references are to articles of Regulation (EU) 2022/2554. ITS references are given at annex/template level; article numbers of the ITS were deliberately not cited because they could not be verified. |
+
+## xBRL-CSV export
+
+| ID | Assumption |
+|----|------------|
+| A-XBRL-01 | The report package is a zip whose single top-level folder contains `META-INF/reportPackage.json` and `reports/` with `report.json`, `parameters.csv`, `FilingIndicators.csv` and one `b_XX.YY.csv` file per reported template whose header row is the column codes. |
+| A-XBRL-02 | `report.json` extends the entry point `http://www.eba.europa.eu/eu/fr/xbrl/crr/fws/dora/4.0/mod/dora.json` (configurable: `XbrlCsvOptions.entry_point`). The framework/taxonomy version in force must be checked. |
+| A-XBRL-03 | `parameters.csv` contains `entityID` (`rs:<LEI>.<CON|IND>`), `refPeriod`, `baseCurrency` (`iso4217:XXX`), `decimalsInteger` and `decimalsMonetary`; the scheme prefix, level suffix and decimals are configurable. |
+| A-XBRL-04 | Package name follows `<LEI>.<level>_<country>_<module code>_<module>_<reference date>_<timestamp>` (configurable / overridable). |
+| A-XBRL-05 | Countries are exported as `eba_GA:<ISO code>` and currencies as `eba_CU:<ISO code>`. Other enumerations are exported with **toolkit-internal codes** unless a code map (`--code-map map.json`) supplies the taxonomy member for each value; the exporter warns when this happens. |
+| A-XBRL-06 | Templates without rows are not written and have filing indicator `false`. |
