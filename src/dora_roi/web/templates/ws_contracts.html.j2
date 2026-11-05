@@ -25,7 +25,7 @@
     <h3 id="h-plan">{{ t("c30.plan.title") }}</h3>
     <p class="muted small">{{ t("c30.ui.plan_text") }}</p>
     {% if plan.items %}{% set pr = plan.progress_counts() %}{% set od = plan.overdue() %}
-    <p class="small">{{ t("c30.rem.summary", open=pr.open, planned=pr.planned, negotiating=pr.negotiating, agreed=pr.agreed) }}{% if od %} <strong>{{ t("c30.rem.overdue_n", n=od | length) }}</strong>{% endif %}</p>{% endif %}
+    <p class="small">{{ t("c30.rem.summary", open=pr.open, planned=pr.planned, negotiating=pr.negotiating, agreed=pr.agreed) }}{% if od %} <strong>{{ t("c30.rem.overdue_n", n=od | length) }}</strong>{% endif %}{% set lt = plan.late() %}{% if lt %} {{ t("c30.rem.late_n", n=lt | length) }}{% endif %}</p>{% endif %}
     <div class="row"><a class="btn primary" href="/w/{{ ws.id }}/contracts/plan.html" target="_blank" rel="noopener">HTML</a>
       <a class="btn" href="/w/{{ ws.id }}/contracts/plan.xlsx">Excel</a>
       {% if pdf %}<a class="btn" href="/w/{{ ws.id }}/contracts/plan.pdf">PDF</a>{% endif %}</div>

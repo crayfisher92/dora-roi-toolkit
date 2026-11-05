@@ -254,7 +254,10 @@ def test_contexts_and_status_levels(valid_register: RegisterOfInformation) -> No
     plan = remediation_plan(pf, date(2026, 1, 1))
     assert [(i.provision.id, i.priority) for i in plan.items] == [
         ("30.3.d", Priority.HIGH), ("30.3.e.i", Priority.MEDIUM)]
-    assert plan.items[0].target_date == date(2026, 4, 1) and plan.counts()["high"] == 1
+    # proposed target dates run from the assessment date (2025-11-01 + 90 days), P-22
+    assert plan.items[0].target_date == date(2026, 1, 30) and plan.counts()["high"] == 1
+    assert plan.items[0].late(date(2026, 2, 1)) and not plan.items[0].late(date(2026, 1, 30))
+    assert remediation_plan(pf, date(2025, 10, 1)).items[0].target_date == date(2025, 12, 30)
     assert plan.items[0].contract_end is None
     assert [p.id for p, _, _ in gaps_by_provision(pf)] == ["30.3.d", "30.3.e.i"]
 

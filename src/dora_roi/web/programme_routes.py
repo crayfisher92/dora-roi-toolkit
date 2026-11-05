@@ -12,6 +12,7 @@ from dora_roi.contracts.analysis import remediation_plan
 from dora_roi.finma import OPRISK, OUTSOURCING, evaluate_finma
 from dora_roi.incidents.report import overview
 from dora_roi.model.refdata import country_name
+from dora_roi.quality import quality_score
 from dora_roi.readiness import ReadinessView, build_readiness, render_readiness_html
 from dora_roi.reporting.pdf import html_to_pdf, pdf_available
 from dora_roi.scope import restrict_to_scope
@@ -29,11 +30,14 @@ def workspace_readiness(ws: Workspace, lang: str, now: datetime | None = None
     portfolio = ws.portfolio
     ref = ws.register.reference_date
     plan = remediation_plan(portfolio, max(ref, date.today()) if ref else date.today())
+    report = ws.dora_report()  # the submission: entities outside the DORA scope excluded
     return build_readiness(
-        report=ws.report, quality=ws.quality, analysis=ws.analysis, portfolio=portfolio,
+        report=report, quality=ws.quality if report is ws.report else quality_score(report),
+        analysis=ws.analysis, portfolio=portfolio,
         plan=plan, incidents=overview(ws.incidents, ws.register, moment),
         finma=evaluate_finma(ws.register, portfolio, ws.incidents, moment), lang=lang,
-        now=moment, register=ws.register)
+        now=moment, register=ws.register,
+        out_of_scope=len(ws.out_of_scope) if report is not ws.report else 0)
 
 
 def pdf_response(html: str, filename: str) -> Response:

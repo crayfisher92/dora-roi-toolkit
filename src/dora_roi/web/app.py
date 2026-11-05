@@ -668,8 +668,10 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     @app.get("/w/{wid}/export", response_class=HTMLResponse)
     def export_page(request: Request, wid: str) -> HTMLResponse:
-        return ws_page(request, ws_or_404(wid), "ws_export.html.j2", "export",
-                       pdf=pdf_available())
+        ws = ws_or_404(wid)
+        package_errors = len(ws.dora_report().errors) if ws.out_of_scope else None
+        return ws_page(request, ws, "ws_export.html.j2", "export", pdf=pdf_available(),
+                       package_errors=package_errors)
 
     @app.get("/w/{wid}/download/{kind}")
     def download(wid: str, kind: str) -> Response:

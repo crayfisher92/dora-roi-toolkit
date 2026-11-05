@@ -94,6 +94,9 @@ class Acceptance:
 class _Derived:
     register: RegisterOfInformation
     report: ValidationReport
+    parse_findings: list[Finding] = field(default_factory=list)
+    #: Validation of the register restricted to the DORA scope (P-20), computed on demand.
+    dora_report: ValidationReport | None = None
 
 
 ParseKey = tuple[str, int | None, tuple[tuple[str, Any], ...]]
@@ -177,7 +180,7 @@ class Workspace:
                 report = validate(register, parse_findings=parse_findings, config=self.config,
                                   source=self.source)
                 self._apply_acceptances(report)
-                self._derived = _Derived(register, report)
+                self._derived = _Derived(register, report, list(parse_findings))
             return self._derived
 
     def _apply_acceptances(self, report: ValidationReport) -> None:
@@ -245,6 +248,8 @@ class Workspace:
                 self.incidents = incidents
             if out_of_scope is not None:
                 self.out_of_scope = set(out_of_scope)
+                if self._derived is not None:
+                    self._derived.dora_report = None
             self._portfolio = None
 
     def dora_register(self) -> RegisterOfInformation:
@@ -257,6 +262,43 @@ class Workspace:
         register = self.register
         maintainer = register.maintainer.lei if register.maintainer else None
         return restrict_to_scope(register, self.out_of_scope - {maintainer or ""})[0]
+
+    def dora_report(self) -> ValidationReport:
+        """Validation of the xBRL-CSV package's content: the register restricted to the DORA
+        scope, with the import findings of the rows that remain (P-20). Without entities
+        outside the scope this is :attr:`report`."""
+        from dora_roi.scope import findings_in, restrict_to_scope
+
+        with self.lock:
+            derived = self._derive()
+            register = derived.register
+            maintainer = register.maintainer.lei if register.maintainer else None
+            excluded = self.out_of_scope - {maintainer or ""}
+            if not excluded:
+                return derived.report
+            if derived.dora_report is None:
+                dora, _ = restrict_to_scope(register, excluded)
+                report = validate(
+                    dora, parse_findings=findings_in(derived.parse_findings, dora),
+                    config=self.config, source=self.source)
+                # accepted findings count as accepted here too (read-only: no pruning); rows
+                # differ in the restricted register, so they are matched without the row
+                def locate(key: str) -> tuple[str, ...]:
+                    rule, template, _row, column, record = (key.split("|", 4) + [""] * 5)[:5]
+                    return rule, template, column, record
+
+                accepted = {locate(k): a for k, a in self.acceptances.items()}
+                open_: list[Finding] = []
+                for f in report.findings:
+                    acc = accepted.get(locate(finding_key(f)))
+                    if acc is not None and f.severity is not Severity.ERROR:
+                        report.accepted.append(
+                            f.model_copy(update={"accepted_reason": acc.reason}))
+                    else:
+                        open_.append(f)
+                report.findings = open_
+                derived.dora_report = report
+            return derived.dora_report
 
     def programme_changed(self, kind: str, subject: str, summary: str,
                           user: str = DEFAULT_USER) -> None:
@@ -271,6 +313,8 @@ class Workspace:
             self.changes.append(Change(kind, area, 0, subject[:200] or None, None, None,
                                        user=user, note=summary[:500]))
             self._portfolio = None
+            if self._derived is not None:  # the DORA scope may have changed
+                self._derived.dora_report = None
             self._changed()
 
     # ------------------------------------------------------------------ access

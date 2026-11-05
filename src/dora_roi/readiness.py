@@ -95,13 +95,15 @@ class ReadinessView:
 
 
 def _register_pillar(t: Any, q: QualityScore, report: ValidationReport,
-                     actions: list[Action]) -> Pillar:
+                     actions: list[Action], out_of_scope: int = 0) -> Pillar:
     counts = report.severity_counts()
     rag = {Readiness.READY: Rag.GREEN, Readiness.ALMOST: Rag.AMBER,
            Readiness.NOT_READY: Rag.RED, Readiness.EMPTY: Rag.GREY}[q.readiness]
     lines = [t("rd.reg.status", status=t(f"rd.ready.{q.readiness.value}")),
              t("rd.reg.findings", errors=counts["error"], warnings=counts["warning"],
                records=q.records)]
+    if out_of_scope:
+        lines.append(t("rd.reg.scope", n=out_of_scope))
     if counts["error"]:
         actions.append(Action("high", "register", t("rd.act.fix", n=counts["error"]), "/fix"))
     elif counts["warning"]:
@@ -137,6 +139,9 @@ def _contracts_pillar(t: Any, lang: str, pf: Portfolio, plan: RemediationPlan,
     if overdue:
         actions.append(Action("high", "contracts", t("rd.act.c30_overdue", n=len(overdue)),
                               "/contracts/plan.html"))
+    late_high = [i for i in plan.late() if i.priority is Priority.HIGH]
+    if late_high:
+        lines.append(t("rd.c30.late", n=len(late_high)))
     if plan.exceptions:
         lines.append(t("rd.c30.exceptions", n=len(plan.exceptions)))
     top = gaps_by_provision(pf)
@@ -287,13 +292,16 @@ def build_readiness(*, report: ValidationReport, quality: QualityScore,
                     finma: FinmaView | None = None, lang: str = "en",
                     now: datetime | None = None,
                     register: RegisterOfInformation | None = None,
-                    config: AnalyticsConfig | None = None) -> ReadinessView:
+                    config: AnalyticsConfig | None = None,
+                    out_of_scope: int = 0) -> ReadinessView:
+    """``report``/``quality`` describe the supervisory submission: with entities outside the
+    DORA scope (``out_of_scope`` of them) pass the validation of the restricted register."""
     t = translator(lang)
     moment = now or datetime.now(UTC)
     cfg = config or AnalyticsConfig()
     notices = notice_schedule(register, register.reference_date) if register is not None else []
     actions: list[Action] = []
-    pillars = [_register_pillar(t, quality, report, actions),
+    pillars = [_register_pillar(t, quality, report, actions, out_of_scope),
                _contracts_pillar(t, lang, portfolio, plan, notices, analysis, moment.date(),
                                  actions),
                _incidents_pillar(t, incidents, lang, actions),

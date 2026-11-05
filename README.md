@@ -186,7 +186,7 @@ story is in [`docs/DEMO.md`](docs/DEMO.md). Screenshots are regenerated with
 | `roi incidents criteria` | Classification criteria, thresholds and reporting time limits | `--lang` |
 | `roi incidents summary LOG` | Classify an incident log; deadlines; recurring series | `--register INPUT`, `-o .html\|.json\|.md`, `--now`, `--fail-on-overdue`, `--lang` |
 | `roi finma INPUT` | RoI coverage of FINMA Circ. 2018/3 and 2023/1 | `--assessments`, `--incidents`, `-f text\|md\|json`, `--lang` |
-| `roi readiness INPUT -o FILE` | DORA readiness report (HTML, print/PDF) | `--assessments`, `--incidents`, `--client`, `--prepared-by`, `--json FILE`, `--no-finma`, `--now`, `--lang` |
+| `roi readiness INPUT -o FILE` | DORA readiness report (`.html` or `.pdf`) | `--assessments`, `--incidents`, `--client`, `--prepared-by`, `--json FILE`, `--no-finma`, `--exclude-entity LEI`, `--now`, `--lang` |
 | `roi serve` | Start the web UI | `--host`, `--port`, `--projects DIR` (autosave project files), `--access-log` |
 
 `INPUT` may be a `.roiproj` project file, an `.xlsx` workbook, a folder or `.zip` of CSV files (`b_02.02.csv` …), or an

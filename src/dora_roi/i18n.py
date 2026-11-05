@@ -101,6 +101,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.rem.overdue_n": "{n} past the agreed target date.",
         "c30.rem.overdue": "overdue",
         "c30.rem.proposed": "proposed",
+        "c30.rem.late": "proposed date passed",
+        "c30.rem.late_n": "{n} past the proposed target date (no date agreed).",
         "c30.ui.ex.title": "Approve a time-bound exception",
         "c30.ui.ex.help": "DORA's contract provisions are mandatory: an exception does not make "
                           "the clause present. It documents a decision to accept the gap until a "
@@ -140,9 +142,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
                       "listed – once, in the overarching arrangement. Priority: missing clause "
                       "on an arrangement supporting a critical function = high; partial clause "
                       "on such an arrangement or missing clause elsewhere = medium; partial "
-                      "clause elsewhere = low. Target dates: high 90 days, medium 180 days, low "
-                      "365 days from the plan date – align them with renewal dates where "
-                      "earlier.",
+                      "clause elsewhere = low. Proposed target dates: high 90 days, medium 180 "
+                      "days, low 365 days from the assessment that found the gap (the plan "
+                      "date if undated) – align them with renewal dates where earlier; a "
+                      "target date agreed for a gap replaces the proposal.",
         "c30.orphans": "Assessments of arrangements that are not in the register",
         # ---------------------------------------------------------------- Art. 30 screens
         "nav.programme": "DORA programme",
@@ -457,6 +460,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.report.print": "Print or save as PDF from the browser (A4).",
         "rd.reg.metric": "Data-quality score",
         "rd.reg.status": "Status: {status}.",
+        "rd.reg.scope": "Submission view: {n} entit(y/ies) outside the DORA scope are not "
+                        "counted.",
         "rd.reg.findings": "{errors} error(s) and {warnings} warning(s) in {records} records.",
         "rd.ready.ready": "ready for submission",
         "rd.ready.almost": "almost ready",
@@ -482,6 +487,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
                          "covered by this dataset.",
         "rd.act.fix": "Fix {n} blocking validation error(s) in the register.",
         "rd.c30.exceptions": "{n} gap(s) under an approved, time-bound exception.",
+        "rd.c30.late": "{n} high-priority gap(s) are past the proposed target date and have "
+                       "no agreed date.",
         "rd.c30.progress": "Of the {n} high-priority gaps, {negotiating} are in negotiation, "
                            "{agreed} agreed and {open} not yet in negotiation.",
         "rd.c30.notice": "{n} notice deadline(s) of critical arrangements within 90 days or "
@@ -560,6 +567,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "scope.export_note": "{n} entit(y/ies) outside the DORA scope are left out of the "
                              "xBRL-CSV package.",
         "scope.manage": "Manage the scope",
+        "scope.package_errors": "Validation of the package itself: {n} error(s).",
         "fin.name": "Switzerland (FINMA)",
         "fin.title": "One dataset for DORA and FINMA",
         "fin.lead": "Which data of the Register of Information – together with the Art. 30 "
@@ -697,6 +705,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.rem.overdue_n": "{n} nach dem vereinbarten Zieltermin.",
         "c30.rem.overdue": "überfällig",
         "c30.rem.proposed": "Vorschlag",
+        "c30.rem.late": "Vorschlagstermin überschritten",
+        "c30.rem.late_n": "{n} nach dem vorgeschlagenen Zieltermin (kein Termin vereinbart).",
         "c30.ui.ex.title": "Befristete Ausnahme genehmigen",
         "c30.ui.ex.help": "Die Vertragsbestimmungen nach DORA sind verpflichtend: Eine Ausnahme "
                           "macht die Klausel nicht vorhanden. Sie dokumentiert die Entscheidung, "
@@ -737,8 +747,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
                       "Rahmenvereinbarung – behoben und dort aufgeführt. Priorität: fehlende "
                       "Klausel bei Vereinbarung für kritische Funktion = hoch; teilweise Klausel "
                       "dort oder fehlende Klausel sonst = mittel; teilweise Klausel sonst = "
-                      "niedrig. Zieldaten: hoch 90, mittel 180, niedrig 365 Tage ab Planerstellung "
-                      "– bei früherer Vertragsverlängerung daran ausrichten.",
+                      "niedrig. Vorgeschlagene Zieldaten: hoch 90, mittel 180, niedrig 365 Tage "
+                      "ab der Bewertung, die die Lücke festgestellt hat (ohne Datum ab "
+                      "Planerstellung) – bei früherer Vertragsverlängerung daran ausrichten; ein "
+                      "für die Lücke vereinbarter Zieltermin ersetzt den Vorschlag.",
         "c30.orphans": "Bewertungen von Vereinbarungen, die nicht im Register stehen",
         "nav.programme": "DORA-Programm",
         "audit.kind.art30": "Vertragsbewertung nach Art. 30",
@@ -1071,6 +1083,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.report.print": "Im Browser drucken oder als PDF speichern (A4).",
         "rd.reg.metric": "Datenqualität",
         "rd.reg.status": "Status: {status}.",
+        "rd.reg.scope": "Sicht der Meldung: {n} Gesellschaft(en) außerhalb des "
+                        "DORA-Umfangs werden nicht gezählt.",
         "rd.reg.findings": "{errors} Fehler und {warnings} Warnung(en) in {records} "
                            "Datensätzen.",
         "rd.ready.ready": "einreichungsbereit",
@@ -1100,6 +1114,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
                          "nicht durch diesen Datenbestand abgedeckt.",
         "rd.act.fix": "{n} blockierende Validierungsfehler im Register beheben.",
         "rd.c30.exceptions": "{n} Lücke(n) mit genehmigter, befristeter Ausnahme.",
+        "rd.c30.late": "{n} Lücke(n) hoher Priorität liegen nach dem vorgeschlagenen "
+                       "Zieltermin und haben keinen vereinbarten Termin.",
         "rd.c30.progress": "Von {n} Lücken hoher Priorität sind {negotiating} in Verhandlung, "
                            "{agreed} vereinbart und {open} noch nicht in Verhandlung.",
         "rd.c30.notice": "{n} Kündigungsfrist(en) kritischer Vereinbarungen innerhalb von 90 "
@@ -1176,6 +1192,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "scope.export_note": "{n} Gesellschaft(en) außerhalb des DORA-Umfangs werden nicht in "
                              "das xBRL-CSV-Paket übernommen.",
         "scope.manage": "Umfang verwalten",
+        "scope.package_errors": "Validierung des Pakets selbst: {n} Fehler.",
         "fin.name": "Schweiz (FINMA)",
         "fin.title": "Ein Datenbestand für DORA und FINMA",
         "fin.lead": "Welche Daten des Informationsregisters – zusammen mit den "

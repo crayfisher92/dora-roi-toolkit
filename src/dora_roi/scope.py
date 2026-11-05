@@ -21,7 +21,8 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 
-from dora_roi.model import RegisterOfInformation
+from dora_roi.model import TEMPLATES_BY_CODE, RegisterOfInformation
+from dora_roi.validation import Finding
 
 
 class ScopeError(ValueError):
@@ -83,3 +84,10 @@ def restrict_to_scope(register: RegisterOfInformation, excluded: Iterable[str]
     before, after = register.counts(), reg.counts()
     summary.removed = {k: before[k] - after[k] for k in before if before[k] != after[k]}
     return reg, summary
+
+
+def findings_in(findings: Iterable[Finding], register: RegisterOfInformation) -> list[Finding]:
+    """The import findings that concern records still in ``register`` (or no record), used
+    to validate the restricted register as the package it becomes (P-20)."""
+    kept = {(t, r.key_str()) for t in TEMPLATES_BY_CODE for r in register.records(t)}
+    return [f for f in findings if f.record_key is None or (f.template, f.record_key) in kept]

@@ -181,6 +181,8 @@ class EffectiveItem:
     remediation: RemediationProgress | None = None
     remediation_owner: str = ""
     remediation_due: date | None = None
+    #: Date of the assessment the item comes from (anchors proposed target dates, P-22).
+    assessed_on: date | None = None
 
     @property
     def is_gap(self) -> bool:
@@ -258,13 +260,13 @@ def _status_of(items: list[EffectiveItem]) -> ComplianceStatus:
     return ComplianceStatus.COMPLIANT
 
 
-def _effective(p: Provision, a: ProvisionAssessment, on: date, inherited: str | None = None
-               ) -> EffectiveItem:
+def _effective(p: Provision, a: ProvisionAssessment, on: date, inherited: str | None = None,
+               assessed_on: date | None = None) -> EffectiveItem:
     return EffectiveItem(p, a.status, a.clause_ref, a.evidence, inherited,
                          a.suggested_status if inherited is None else None,
                          a.exception_reason, a.exception_approver, a.exception_until,
                          a.exception_valid(on), a.remediation, a.remediation_owner,
-                         a.remediation_due)
+                         a.remediation_due, assessed_on)
 
 
 def evaluate_contract(ctx: ContractContext, book: AssessmentBook,
@@ -278,12 +280,13 @@ def evaluate_contract(ctx: ContractContext, book: AssessmentBook,
     for p in applicable(ctx.critical):
         mine = own.items.get(p.id) if own else None
         if mine is not None and mine.status is not ProvisionStatus.NOT_ASSESSED:
-            items.append(_effective(p, mine, on))
+            items.append(_effective(p, mine, on, assessed_on=own.assessed_on if own else None))
             continue
         theirs = parent.items.get(p.id) if parent else None
         if theirs is not None and theirs.status is not ProvisionStatus.NOT_ASSESSED:
             inherited_any = True
-            items.append(_effective(p, theirs, on, parent_ref))
+            items.append(_effective(p, theirs, on, parent_ref,
+                                    parent.assessed_on if parent else None))
             continue
         items.append(EffectiveItem(p, ProvisionStatus.NOT_ASSESSED,
                                    mine.clause_ref if mine else "",
@@ -425,6 +428,11 @@ class RemediationItem:
         return (self.due is not None and self.due < on
                 and self.progress is not RemediationProgress.AGREED)
 
+    def late(self, on: date) -> bool:
+        """The proposed target date (no agreed one) has passed and the clause is not agreed."""
+        return (self.due is None and self.target_date < on
+                and self.progress is not RemediationProgress.AGREED)
+
 
 @dataclass(frozen=True)
 class ExceptionItem:
@@ -465,6 +473,15 @@ class RemediationPlan:
     def overdue(self) -> list[RemediationItem]:
         return [i for i in self.items if i.overdue(self.plan_date)]
 
+    def late(self) -> list[RemediationItem]:
+        return [i for i in self.items if i.late(self.plan_date)]
+
+
+def _anchor(it: EffectiveItem, today: date) -> date:
+    """Proposed target dates run from the assessment that found the gap, not from the plan
+    date, so they do not move every day (P-22); undated assessments use the plan date."""
+    return min(it.assessed_on, today) if it.assessed_on else today
+
 
 def _item(c: ContractCompliance, it: EffectiveItem, today: date, critical: bool,
           applies_to: tuple[str, ...] = ()) -> RemediationItem:
@@ -475,7 +492,7 @@ def _item(c: ContractCompliance, it: EffectiveItem, today: date, critical: bool,
         ", ".join(sorted(ctx.entities.values())) or "—",
         "; ".join(f"{f.function_id} {f.name}" for f in ctx.critical_functions),
         critical, it.provision, it.status, it.clause_ref, it.evidence, it.inherited_from,
-        it.remediation_due or today + timedelta(days=TARGET_DAYS[prio]),
+        it.remediation_due or _anchor(it, today) + timedelta(days=TARGET_DAYS[prio]),
         None if ctx.open_ended else ctx.end_date, applies_to, it.remediation,
         it.remediation_owner, it.remediation_due)
 

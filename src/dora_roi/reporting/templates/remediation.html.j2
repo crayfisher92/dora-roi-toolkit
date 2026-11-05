@@ -31,7 +31,7 @@
     <div class="sub"><span class="pill high">{{ pc.high }} {{ t("prio.high") | lower }}</span> <span class="pill medium">{{ pc.medium }} {{ t("prio.medium") | lower }}</span> <span class="pill low">{{ pc.low }} {{ t("prio.low") | lower }}</span></div></div>
 </section>
 {% set pr = plan.progress_counts() %}
-<p class="section-lead">{{ t("c30.rem.summary", open=pr.open, planned=pr.planned, negotiating=pr.negotiating, agreed=pr.agreed) }}{% if plan.overdue() %} <strong>{{ t("c30.rem.overdue_n", n=plan.overdue() | length) }}</strong>{% endif %}</p>
+<p class="section-lead">{{ t("c30.rem.summary", open=pr.open, planned=pr.planned, negotiating=pr.negotiating, agreed=pr.agreed) }}{% if plan.overdue() %} <strong>{{ t("c30.rem.overdue_n", n=plan.overdue() | length) }}</strong>{% endif %}{% if plan.late() %} {{ t("c30.rem.late_n", n=plan.late() | length) }}{% endif %}</p>
 
 <h2 id="actions">{{ t("c30.actions") }}</h2>
 {% if plan.items %}
@@ -54,7 +54,7 @@
       {% if i.evidence %}<div class="evidence">{{ i.evidence }}</div>{% endif %}</td>
     <td>{{ i.action(lang) }}</td>
     <td><span class="pill {{ 'present' if i.progress_key == 'agreed' else ('partial' if i.progress else 'not_assessed') }}">{{ t("c30.rem." ~ i.progress_key) }}</span>{% if i.owner %}<br><span class="small">{{ i.owner }}</span>{% endif %}</td>
-    <td class="num">{{ fmt(i.target_date) }}{% if i.overdue(plan.plan_date) %}<br><strong class="small">{{ t("c30.rem.overdue") }}</strong>{% elif not i.due %}<br><span class="small muted">{{ t("c30.rem.proposed") }}</span>{% endif %}</td>
+    <td class="num">{{ fmt(i.target_date) }}{% if i.overdue(plan.plan_date) %}<br><strong class="small">{{ t("c30.rem.overdue") }}</strong>{% elif i.late(plan.plan_date) %}<br><strong class="small">{{ t("c30.rem.late") }}</strong>{% elif not i.due %}<br><span class="small muted">{{ t("c30.rem.proposed") }}</span>{% endif %}</td>
     <td class="num">{{ fmt(i.contract_end) if i.contract_end else t("g.open_ended") }}</td>
   </tr>
   {% endfor %}

@@ -94,3 +94,26 @@ merging the hardening work of the base branch. IDs `P-xx`.
 | P-17 | Low | TPR | The incident page does not show the contractual leverage with the affected provider (incident assistance Art. 30(2)(f), reporting obligations Art. 30(3)(b)). | Inspection. | ✅ *Contractual support (Art. 30)* panel on the incident page: 30(2)(f) and 30(3)(b) for the linked arrangements (D-075) |
 | P-18 | Low | SE | The assessment form (22 fieldsets, ~150 controls) has no in-page navigation; keyboard and screen-reader users must tab through everything to reach one provision. | Keyboard walk-through. | ✅ provision index (links with status) at the top of the assessment form; each fieldset is a link target |
 | P-19 | Low | TPR | Incidents affecting several entities are classified once on combined answers; per-entity classification and aggregated group reporting are not modelled. | Inspection. | ➖ documented (A-INC-08, D-076) and stated on the incident form; conservative by construction |
+
+## Programme cycle 3
+
+Probes: an error only in the rows of an entity outside the DORA scope (CLI `--strict`,
+export page, readiness light); acceptances after restricting the register; the plan of the
+same register on two dates; closing a gap that had remediation progress; DE wording.
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| P-20 | Medium | SE | **The supervisory package is not validated as such.** With entities outside the DORA scope, `roi export --strict` refuses (and the export page warns about) errors that are only in the excluded rows, and would accept a package whose own content was never validated. | XRF-004 in an `AR-LU-0016` row: `--strict --exclude-entity` → refused although the package does not contain the row. | ✅ the restricted register is validated with the import findings of its remaining rows (`scope.findings_in`); used by `roi export --strict` and shown on the export page; cached on the workspace (D-078) |
+| P-21 | Medium | TPR | **Readiness register light mixes the Swiss part into the DORA submission status.** | Same register: register light amber "1 error" although the submission is clean. | ✅ register light, score and actions from the submission view, with a line saying how many entities are not counted; also `roi readiness --exclude-entity` (D-078) |
+| P-22 | Medium | TPR | **Proposed target dates slide with the plan date** – every day the plan is produced, the 90-day target moves one day; an unmanaged gap never looks late, which an internal auditor would flag immediately. | Plan of the sample on 2026-11-05 and 2027-01-01: same gap, target 2027-02-03 vs 2027-04-01. | ✅ anchored to the date of the assessment that found the gap; *proposed date passed* in the plan, count of late high-priority gaps in the readiness report (D-077) |
+| P-23 | Low | SE | Accepted warnings were not applied to the package validation (and acceptance keys contain row numbers, which differ in the restricted register). | Accepted BUS-016 counted as open in the package report. | ✅ acceptances applied read-only, matched without the row |
+| P-24 | Low | SE | Closing a gap that had remediation progress wrote "remediation not started" into the history. | Save present after negotiating. | ✅ remediation changes are only described for gaps |
+| P-25 | Low | SE | German texts mixed Swiss and German spelling (*ausserhalb* / *außerhalb*). | i18n grep. | ✅ standard German spelling throughout, as in the rest of the interface |
+| P-26 | Low | TPR | `roi readiness` had no way to show the submission view. | CLI help. | ✅ `--exclude-entity` |
+| P-27 | Low | TPR | The plan workbook's *By provider* sheet shows gaps but not remediation progress per provider. | Workbook. | ⏳ open (the plan sheet carries progress per action; pivot in Excel) |
+| P-28 | Low | SE | An entity marked out of scope that later becomes the maintaining entity made the xBRL download fail (`ScopeError`). | Edit of B_01.01 after marking. | ✅ the maintainer is always in scope (`Workspace.dora_register`) |
+
+Re-review after the fixes (both perspectives, the probes of cycles 1–3 plus a German
+walk-through of the scope, remediation and incident screens, axe-core light/dark and 360 px
+reflow) found **no remaining High or Medium items**. Open Low items: P-27; from the base
+review B-16, B-17, B-26.

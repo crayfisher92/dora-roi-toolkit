@@ -550,7 +550,14 @@ def test_p16_remediation_progress() -> None:
     assert item.target_date == date(2026, 12, 31) and item.owner
     assert not item.overdue(date(2027, 6, 1))  # agreed items are never overdue
     proposed = next(i for i in plan.items if i.progress is None)
-    assert proposed.due is None and proposed.target_date > plan.plan_date
+    assessed = ws.contracts.get(proposed.contract_ref).assessed_on  # type: ignore[union-attr]
+    assert proposed.due is None and proposed.target_date == assessed + timedelta(days=90)
+    # P-22: the proposed date does not move with the plan date, and passing it is visible
+    later = remediation_plan(ws.portfolio, date(2027, 1, 1))
+    same = next(i for i in later.items if (i.contract_ref, i.provision.id)
+                == (proposed.contract_ref, proposed.provision.id))
+    assert same.target_date == proposed.target_date and same.late(later.plan_date)
+    assert proposed not in plan.overdue() and len(plan.late()) > 0
 
 
 def test_p16_remediation_form_workbook_plan_and_readiness(tmp_path: Path) -> None:
@@ -642,3 +649,108 @@ def test_p15_maintainer_marked_before_becoming_maintainer_is_kept() -> None:
     url = client.post("/sample", data={"variant": "clean"},
                       follow_redirects=False).headers["location"]
     assert client.get(url + "/finma").status_code == 200
+
+
+# =========================================================================== cycle 3
+
+
+def _register_with_error_outside_scope() -> object:
+    reg = generate_sample(inject_errors=False).source_register
+    row = next(s for s in reg.b_02_02 if s.contract_ref == "AR-LU-0016")
+    row.function_id = "F-UNKNOWN"  # XRF-004, only in the out-of-scope entity's rows
+    return reg
+
+
+def test_p20_package_is_validated_as_restricted(tmp_path: Path) -> None:
+    reg = _register_with_error_outside_scope()
+    src = tmp_path / "reg.xlsx"
+    write_workbook(reg, src)  # type: ignore[arg-type]
+    out = tmp_path / "pkg.zip"
+    res = CliRunner().invoke(main, ["export", str(src), "-o", str(out), "--format",
+                                    "xbrl-csv", "--strict"])
+    assert res.exit_code != 0 and "refused" in res.output
+    res = CliRunner().invoke(main, ["export", str(src), "-o", str(out), "--format",
+                                    "xbrl-csv", "--strict", "--exclude-entity", SWISS_LIKE])
+    assert res.exit_code == 0, res.output
+    # workspace: full report keeps the error, the package report does not
+    ws = Workspace("s", register_to_raw(reg))  # type: ignore[arg-type]
+    assert [f.rule_id for f in ws.report.errors] == ["XRF-004"]
+    assert ws.dora_report() is ws.report
+    with ws.lock:
+        ws.out_of_scope = {SWISS_LIKE}
+        ws.programme_changed("scope", "B_01.02", "x")
+    assert ws.dora_report().errors == [] and ws.dora_report() is ws.dora_report()
+    ws.replace_programme(out_of_scope=set())
+    assert ws.dora_report() is ws.report
+
+
+def test_p20_import_findings_follow_the_scope() -> None:
+    from dora_roi.scope import findings_in, restrict_to_scope
+
+    ws = Workspace("s", register_to_raw(generate_sample().source_register))
+    parse = ws._derive().parse_findings
+    lu = [f for f in parse if f.record_key and SWISS_LIKE in f.record_key]
+    assert lu, "the sample has an import finding in a Luxembourg row"
+    restricted, _ = restrict_to_scope(ws.register, {SWISS_LIKE})
+    kept = findings_in(parse, restricted)
+    assert not set(map(id, lu)) & set(map(id, kept)) and len(kept) < len(parse)
+
+
+def test_p20_export_page_shows_package_errors() -> None:
+    client = TestClient(create_app())
+    url = client.post("/sample", data={"variant": "errors"},
+                      follow_redirects=False).headers["location"]
+    client.post(url + "/scope", data={"out": [SWISS_LIKE]})
+    page = client.get(url + "/export").text
+    assert "Validation of the package itself:" in page
+
+
+def test_p21_readiness_register_light_is_the_submission() -> None:
+    from dora_roi.readiness import Rag
+    from dora_roi.web.programme_routes import workspace_readiness
+
+    ws = Workspace("s", register_to_raw(_register_with_error_outside_scope()))  # type: ignore
+    pillar = next(p for p in workspace_readiness(ws, "en").pillars if p.key == "register")
+    assert pillar.rag is Rag.AMBER and "1 error(s)" in pillar.lines[1]
+    with ws.lock:
+        ws.out_of_scope = {SWISS_LIKE}
+        ws.programme_changed("scope", "B_01.02", "x")
+    pillar = next(p for p in workspace_readiness(ws, "en").pillars if p.key == "register")
+    assert pillar.rag is Rag.GREEN and "0 error(s)" in pillar.lines[1]
+    assert any("Submission view" in line for line in pillar.lines)
+    de = next(p for p in workspace_readiness(ws, "de").pillars if p.key == "register")
+    assert any("Sicht der Meldung" in line for line in de.lines)
+
+
+def test_p20_acceptances_apply_to_the_package() -> None:
+    from dora_roi.validation import Severity
+
+    ws = Workspace("s", register_to_raw(generate_sample().source_register))
+    warning = next(f for f in ws.report.findings if f.severity is Severity.WARNING
+                   and f.rule_id == "BUS-016")  # an Austrian function: stays in scope
+    ws.accept(warning, "known, documented")
+    with ws.lock:
+        ws.out_of_scope = {SWISS_LIKE}
+        ws.programme_changed("scope", "B_01.02", "x")
+    package = ws.dora_report()
+    assert package is not ws.report
+    assert any(f.rule_id == warning.rule_id and f.accepted_reason for f in package.accepted)
+    assert all(f.message != warning.message or f.record_key != warning.record_key
+               for f in package.findings)
+
+
+def test_p26_readiness_cli_scope(tmp_path: Path) -> None:
+    import json
+
+    src = tmp_path / "reg.xlsx"
+    write_workbook(_register_with_error_outside_scope(), src)  # type: ignore[arg-type]
+    out, js = tmp_path / "r.html", tmp_path / "r.json"
+    res = CliRunner().invoke(main, ["readiness", str(src), "-o", str(out), "--json", str(js),
+                                    "--exclude-entity", SWISS_LIKE])
+    assert res.exit_code == 0, res.output
+    register = next(p for p in json.loads(js.read_text())["pillars"] if p["key"] == "register")
+    assert register["status"] == "green"
+    assert any("Submission view" in line for line in register["details"])
+    res = CliRunner().invoke(main, ["readiness", str(src), "-o", str(out), "--exclude-entity",
+                                    "3912RO6DCAXX71K9W972"])
+    assert res.exit_code != 0 and "maintaining" in res.output

@@ -15,6 +15,7 @@ from dora_roi.api import validate_loaded
 from dora_roi.io.loader import LoadResult, UnsupportedInputError, load
 from dora_roi.io.xbrl_csv import CodeMap, XbrlCsvOptions, export_xbrl_csv, load_code_map
 from dora_roi.validation import Severity, ValidationConfig, ValidationReport, rules_catalogue
+from dora_roi.validation import validate as validate_register
 
 EXIT_FINDINGS = 1
 EXIT_USAGE = 2
@@ -201,27 +202,11 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
 
     cmap = _code_map(code_map)
     loaded = _load(input_path, cmap)
-    vreport = validate_loaded(loaded)
-    click.echo(_summary_line(vreport), err=True)
-    if not vreport.passed:
-        if strict:
-            click.echo("Export refused (--strict): fix the validation errors first.", err=True)
-            sys.exit(EXIT_FINDINGS)
-        click.echo("Warning: exporting a register that does not pass validation.", err=True)
+    register = loaded.register
     if exclude and fmt != "xbrl-csv":
         click.echo("Note: --exclude-entity only applies to the xbrl-csv package.", err=True)
-    if fmt == "excel":
-        click.echo(f"Wrote {write_workbook(loaded.register, output)}", err=True)
-        return
-    if fmt == "csv":
-        click.echo(f"Wrote {write_csv_folder(loaded.register, output)}", err=True)
-        return
-    options = XbrlCsvOptions(reporting_level=level, code_map=cmap or {})
-    if entry_point:
-        options.entry_point = entry_point
-    register = loaded.register
-    if exclude:
-        from dora_roi.scope import ScopeError, restrict_to_scope
+    if exclude and fmt == "xbrl-csv":
+        from dora_roi.scope import ScopeError, findings_in, restrict_to_scope
 
         try:
             register, summary = restrict_to_scope(register, {e.upper() for e in exclude})
@@ -229,6 +214,27 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
             raise click.BadParameter(str(exc), param_hint="--exclude-entity") from exc
         click.echo(f"Outside the DORA scope: {', '.join(summary.excluded_entities)} "
                    f"({summary.total_removed} record(s) left out)", err=True)
+        # the package is validated as what it is: the register restricted to the scope
+        vreport = validate_register(
+            register, parse_findings=findings_in(loaded.findings, register),
+            source=loaded.source)
+    else:
+        vreport = validate_loaded(loaded)
+    click.echo(_summary_line(vreport), err=True)
+    if not vreport.passed:
+        if strict:
+            click.echo("Export refused (--strict): fix the validation errors first.", err=True)
+            sys.exit(EXIT_FINDINGS)
+        click.echo("Warning: exporting a register that does not pass validation.", err=True)
+    if fmt == "excel":
+        click.echo(f"Wrote {write_workbook(register, output)}", err=True)
+        return
+    if fmt == "csv":
+        click.echo(f"Wrote {write_csv_folder(register, output)}", err=True)
+        return
+    options = XbrlCsvOptions(reporting_level=level, code_map=cmap or {})
+    if entry_point:
+        options.entry_point = entry_point
     result = export_xbrl_csv(register, output, options, unzipped=unzipped)
     for w in result.warnings:
         click.echo(f"! {w}", err=True)
@@ -513,6 +519,7 @@ def contracts_assess(input_path: Path, assessments_path: Path, output: Path | No
                          "target_date": i.target_date.isoformat(),
                          "target_agreed": i.due is not None, "progress": i.progress_key,
                          "owner": i.owner, "overdue": i.overdue(plan.plan_date),
+                         "proposed_date_passed": i.late(plan.plan_date),
                          "applies_to": list(i.applies_to)} for i in plan.items],
             "exceptions": [{"contract_ref": e.contract_ref, "provision": e.provision.id,
                             "status": e.status.value, "reason": e.reason,
@@ -767,13 +774,16 @@ def finma(input_path: Path, assessments_path: Path | None, incidents_path: Path 
 @click.option("--no-finma", is_flag=True, help="Leave out the Swiss (FINMA) section.")
 @click.option("--json", "json_path", type=click.Path(dir_okay=False, path_type=Path),
               help="Also write the traffic lights and actions as JSON.")
+@click.option("--exclude-entity", "exclude", multiple=True, metavar="LEI",
+              help="Entity outside the DORA scope: the register light shows the submission "
+              "without it (as `roi export --exclude-entity`). Repeatable.")
 @now_opt
 @lang_opt
 @code_map_opt
 def readiness(input_path: Path, output: Path, assessments_path: Path | None,
               incidents_path: Path | None, client_name: str | None, prepared_by: str | None,
-              no_finma: bool, json_path: Path | None, now_value: object, lang: str,
-              code_map: Path | None) -> None:
+              no_finma: bool, json_path: Path | None, exclude: tuple[str, ...],
+              now_value: object, lang: str, code_map: Path | None) -> None:
     """DORA readiness report for a CRO: register, Art. 30 contracts, incidents, concentration."""
     from dora_roi.analytics import analyse
     from dora_roi.contracts.analysis import evaluate, remediation_plan
@@ -786,6 +796,15 @@ def readiness(input_path: Path, output: Path, assessments_path: Path | None,
 
     loaded = _load(input_path, _code_map(code_map))
     report = validate_loaded(loaded)
+    if exclude:
+        from dora_roi.scope import ScopeError, findings_in, restrict_to_scope
+
+        try:
+            dora, _ = restrict_to_scope(loaded.register, {e.upper() for e in exclude})
+        except ScopeError as exc:
+            raise click.BadParameter(str(exc), param_hint="--exclude-entity") from exc
+        report = validate_register(dora, parse_findings=findings_in(loaded.findings, dora),
+                                   source=loaded.source)
     book = AssessmentBook()
     if assessments_path is not None:
         found, _ = _assessments(assessments_path)
@@ -801,7 +820,7 @@ def readiness(input_path: Path, output: Path, assessments_path: Path | None,
         portfolio=portfolio, plan=remediation_plan(portfolio, now.date()),
         incidents=overview(log, reg, now),
         finma=None if no_finma else evaluate_finma(reg, portfolio, log, now),
-        lang=lang, now=now, register=reg)
+        lang=lang, now=now, register=reg, out_of_scope=len(set(exclude)))
     _write_report(render_readiness_html(view, lang=lang, client=client_name,
                                         prepared_by=prepared_by), output)
     if json_path is not None:
