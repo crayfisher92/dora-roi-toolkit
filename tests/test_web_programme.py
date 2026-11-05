@@ -175,3 +175,108 @@ def test_web_context_helpers() -> None:
     assert r.headers["content-disposition"] == 'attachment; filename="plan___.._x.xlsx"'
     assert form_text({"a": "  hi  ", "b": object()}, "a") == "hi"
     assert form_text({"b": object()}, "b") == "" and form_text({}, "c") == ""
+
+
+# =========================================================================== incidents
+
+
+def test_incident_log_page_and_exports(client: TestClient) -> None:
+    url = _sample(client)
+    page = client.get(url + "/incidents")
+    assert page.status_code == 200 and "Major ICT-related incident classification" in page.text
+    assert "kronos-certificate-rotation" in page.text and "time class=\"countdown" in page.text
+    assert "Nimbus EMEA region outage" in page.text
+    html = client.get(url + "/incidents/summary.html")
+    assert html.status_code == 200 and "ICT-related incident summary" in html.text
+    data = client.get(url + "/incidents/summary.json").json()
+    assert data["counts"]["major"] == 1 and data["counts"]["recurring_major"] == 1
+    log = client.get(url + "/incidents/log.json")
+    assert "incident-log.json" in log.headers["content-disposition"]
+    de = client.get(url + "/incidents?lang=de")
+    assert "Vorfallverzeichnis" in de.text and "Wiederkehrende Vorfälle" in de.text
+    client.cookies.clear()
+    r = client.post(url + "/incidents/settings", data={"timezone": "Europe/Zurich"},
+                    follow_redirects=False)
+    assert r.status_code == 303 and "Times in Europe/Zurich" in client.get(
+        url + "/incidents").text
+    client.post(url + "/incidents/settings", data={"timezone": "Mars/Base"})
+    assert "Times in Europe/Zurich" in client.get(url + "/incidents").text
+    prov = client.get(url + "/provider/5299XGE5RGK9SNVGG353")
+    assert "Incidents involving this provider" in prov.text
+
+
+def test_incident_create_classify_and_report(client: TestClient, tmp_path: Path) -> None:
+    url = _upload(client, tmp_path)
+    form = client.get(url + "/incidents/new")
+    assert form.status_code == 200 and "Classification questionnaire" in form.text
+    assert 'name="a-critical_services"' in form.text and "SaaS Vendor GmbH" in form.text
+    data = {"title": "Payment SaaS down", "detected_at": "2025-12-01T09:00",
+            "occurred_at": "2025-12-01T08:45", "a-critical_services": "yes",
+            "a-malicious_access": "no", "a-downtime_hours": "3,5", "ms": ["DE", "AT", "XX"],
+            "provider": "", "contract": "C-001", "entity": [], "status": "open",
+            "root_cause": "third_party_failure", "a-economic_eur": "150'000",
+            "a-clients_affected": "1,200"}
+    r = client.post(url + "/incidents/new", data=data, follow_redirects=False)
+    assert r.status_code == 303
+    loc = r.headers["location"].split("?")[0]
+    iid = loc.rsplit("/", 1)[1]
+    page = client.get(loc)
+    assert "Major" in page.text and "Initial notification" in page.text
+    assert "costs and losses" in page.text and "Payments" in page.text
+    assert "The linked arrangements support critical or important functions" in page.text
+    assert "— → major" in page.text
+    js = client.get(url + "/incidents/summary.json").json()
+    inc = js["incidents"][0]
+    assert inc["classification"]["outcome"] == "major" and inc["classified_at"]
+    # record the initial notification, resolve, close, reopen
+    r = client.post(loc, data={"action": "report", "kind": "initial",
+                               "submitted_at": "2025-12-01T11:00"}, follow_redirects=False)
+    assert r.status_code == 303
+    assert "Initial notification submitted" in client.get(loc).text
+    assert client.post(loc, data={"action": "report", "kind": "bogus"}).status_code == 400
+    assert client.post(loc, data={"action": "report", "kind": "final",
+                                  "submitted_at": "yesterday"}).status_code == 400
+    for action, text in (("resolve", "Resolved"), ("close", "Closed"), ("reopen", "Reopened")):
+        client.post(loc, data={"action": action})
+        assert text in client.get(loc).text
+    # edit: answers change the classification and are recorded
+    data.update({"a-critical_services": "no"})
+    client.post(loc, data=data)
+    page = client.get(loc)
+    assert "major → not_major" in page.text and "Not major" in page.text
+    bad = dict(data, **{"a-downtime_hours": "-1"})
+    r = client.post(loc, data=bad)
+    assert r.status_code == 400 and "Please check" in r.text
+    assert client.post(loc, data={"action": "delete"}, follow_redirects=False).status_code == 303
+    assert client.get(loc).status_code == 404
+    assert client.post(loc, data={"action": "save"}).status_code == 404
+    assert iid.startswith("INC-")
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("title", ""), ("detected_at", ""), ("detected_at", "01.12.2025"),
+    ("a-clients_total", "many"), ("status", "bogus"),
+])
+def test_incident_form_validation(client: TestClient, tmp_path: Path, field: str,
+                                  value: str) -> None:
+    url = _upload(client, tmp_path)
+    data = {"title": "X", "detected_at": "2025-12-01T09:00", field: value}
+    r = client.post(url + "/incidents/new", data=data)
+    assert r.status_code == 400 and "Please check" in r.text
+
+
+def test_incident_import(client: TestClient, tmp_path: Path) -> None:
+    url = _upload(client, tmp_path)
+    from dora_roi.incidents import Incident, IncidentLog
+
+    log = IncidentLog()
+    log.save(Incident(id="INC-2025-001", title="Imported", detected_at="2025-11-01T10:00:00Z"),
+             "created")
+    r = client.post(url + "/incidents/import", files={"file": ("l.json", log.to_json().encode())},
+                    follow_redirects=False)
+    assert r.status_code == 303 and "imported=1" in r.headers["location"]
+    assert "1 incident(s) imported" in client.get(r.headers["location"]).text
+    r = client.post(url + "/incidents/import", files={"file": ("l.json", b"{}")})
+    assert r.status_code == 400
+    r = client.post(url + "/incidents/import", files={"file": ("l.txt", b"{}")})
+    assert r.status_code == 400 and "Unsupported" in r.text

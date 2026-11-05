@@ -80,3 +80,17 @@ The default (non-clean) dataset contains the following deliberate defects; a tes
 | `AR-DE-0064` | PeopleLedger SE | 30(2) | gaps | 30.2.b.2 missing; 30.2.i missing |
 | `AR-DE-0061` | CustomerSphere Inc. | 30(2) | gaps | 30.2.b.1 partial; 30.2.d partial; 30.2.g missing |
 | `CO-AT-0012` | Cirrus Platforms Ireland Ltd | 30(2) | gaps | inherited from MSA-DE-0010 |
+
+## Sample incidents
+
+5 incidents (`roi sample … --incidents i.json`, loaded automatically by the workbench samples). The open major incident is created a few hours before *now* so that the reporting countdown runs in a demo; below it is shown as of 2026-01-15 12:00 UTC.
+
+| Incident | Title | Classification | Criteria met |
+|---|---|---|---|
+| `INC-2026-014` | Nimbus EMEA region outage – core banking and payments unavailable | major | clients, reputation, duration, geography, economic |
+| `INC-2025-012` | SEPA instant payments rejected – Kronos gateway certificate expired | not_major | — |
+| `INC-2025-011` | Regulatory reporting batch delayed (RegFlow) | not_major | — |
+| `INC-2025-009` | Phishing campaign against staff mailboxes – contained | not_major | — |
+| `INC-2025-006` | SEPA instant payments rejected – Kronos gateway certificate expired | not_major | — |
+
+Recurring series `kronos-certificate-rotation` (INC-2025-006, INC-2025-012): individually not major, combined **major** (clients, duration).

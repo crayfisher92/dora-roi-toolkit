@@ -1,0 +1,75 @@
+{% extends "ws_base.html.j2" %}
+{% from "_incident_macros.html.j2" import countdown, outcome_pill, deadline_state with context %}
+{% block page_title %}{{ t("inc.name") }}{% endblock %}
+{% block content %}
+<h2>{{ t("inc.page_title") }}</h2>
+<p class="lead">{{ t("inc.ui.lead") }}</p>
+{% if imported >= 0 %}<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("inc.ui.imported", n=imported) }}</div></div>{% endif %}
+{% set c = ov.counts() %}
+{% set nxt = ov.next_deadline() %}
+<section class="grid tiles" aria-label="{{ t('inc.name') }}">
+  <div class="card tile"><div class="label">{{ t("inc.ui.open") }}</div><div class="value">{{ c.open }}</div><div class="sub">{{ c.total }} {{ t("inc.ui.in_log") }}</div></div>
+  <div class="card tile"><div class="label">{{ t("inc.out.major") }}</div><div class="value">{{ c.major }}</div><div class="sub">{{ c.undetermined }} {{ t("inc.out.undetermined") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("inc.ui.overdue_reports") }}</div><div class="value">{{ c.overdue }}</div><div class="sub">{{ c.recurring_major }} {{ t("inc.ui.recurring_major") }}</div></div>
+  <div class="card tile"><div class="label">{{ t("inc.next_deadline") }}</div>
+    {% if nxt %}<div class="value small-value">{{ countdown(nxt[1], now, t, humanise) }}</div>
+    <div class="sub"><a href="/w/{{ ws.id }}/incidents/{{ nxt[0].incident.id }}">{{ nxt[0].incident.id }}</a> · {{ t("inc.report." ~ nxt[1].kind.value) }} · {{ local(nxt[1].due) }}</div>
+    {% else %}<div class="value small-value">—</div>{% endif %}</div>
+</section>
+
+<p class="row"><a class="btn primary" href="/w/{{ ws.id }}/incidents/new">+ {{ t("inc.ui.new") }}</a>
+  <a class="btn" href="/w/{{ ws.id }}/incidents/summary.html" target="_blank" rel="noopener">{{ t("inc.ui.summary") }} (HTML)</a>
+  <a class="btn" href="/w/{{ ws.id }}/incidents/summary.json">{{ t("inc.ui.summary") }} (JSON)</a>
+  <a class="btn" href="/w/{{ ws.id }}/incidents/log.json">{{ t("inc.ui.log") }} (JSON)</a></p>
+
+{% for g in ov.recurring if g.major %}
+<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>
+  <strong>{{ t("inc.recurring") }}: {{ g.key }}</strong> – {{ g.incidents | map(attribute="id") | join(", ") }}. {{ t("inc.recurring.major") }}
+  <span class="small">({% for r in g.classification.met %}{{ criteria[r.criterion].title(lang) }}{% if not loop.last %}, {% endif %}{% endfor %})</span></div></div>
+{% endfor %}
+
+<section aria-labelledby="h-log">
+<h3 id="h-log">{{ t("inc.ui.log") }}</h3>
+<div class="table-wrap"><table class="incident-table">
+  <caption class="visually-hidden">{{ t("inc.ui.log") }}</caption>
+  <thead><tr><th scope="col">ID</th><th scope="col">{{ t("inc.title") }}</th><th scope="col">{{ t("g.status") }}</th>
+    <th scope="col">{{ t("inc.classification") }}</th><th scope="col">{{ t("inc.next_deadline") }}</th>
+    <th scope="col">{{ t("g.providers") }}</th><th scope="col">{{ t("inc.ui.detected") }}</th></tr></thead>
+  <tbody>{% for v in ov.views %}{% set n = v.next %}
+  <tr><th scope="row"><a class="mono" href="/w/{{ ws.id }}/incidents/{{ v.incident.id }}">{{ v.incident.id }}</a></th>
+    <td>{{ v.incident.title }}</td><td>{{ t("inc.st." ~ v.incident.status.value) }}</td>
+    <td>{{ outcome_pill(v.classification.outcome, t) }}</td>
+    <td>{% if n %}{{ deadline_state(n, now, t) }} {{ t("inc.report." ~ n.kind.value) }}<br>{{ countdown(n, now, t, humanise) }}{% elif v.deadlines %}<span class="pill done">{{ t("inc.dl.done") }}</span>{% else %}—{% endif %}</td>
+    <td class="small">{% for p in v.providers %}{% if p.in_register %}<a href="/w/{{ ws.id }}/provider/{{ p.code }}">{{ p.name }}</a>{% else %}{{ p.name }}{% endif %}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</td>
+    <td class="small">{{ local(v.incident.detected_at) }}</td></tr>
+  {% else %}<tr><td colspan="7" class="muted">{{ t("inc.ui.none") }}</td></tr>{% endfor %}</tbody></table></div>
+<p class="small muted">{{ t("inc.ui.tz_note", tz=tzname) }}</p>
+</section>
+
+{% if ov.recurring %}
+<section aria-labelledby="h-rec"><h3 id="h-rec">{{ t("inc.recurring") }}</h3>
+  <p class="small muted">{{ t("inc.recurring.lead") }}</p>
+  <ul class="plain">{% for g in ov.recurring %}<li class="card">
+    <strong>{{ g.key }}</strong> · {% for i in g.incidents %}<a class="mono" href="/w/{{ ws.id }}/incidents/{{ i.id }}">{{ i.id }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+    · {{ outcome_pill(g.classification.outcome, t) }}
+    <div class="small">{{ t("inc.recurring.window", start=local(g.window_start), end=local(g.window_end)) }} · {{ t("inc.recurring.major") if g.major else t("inc.recurring.not_major") }}</div>
+    {% if g.classification.met %}<div class="small">{% for r in g.classification.met %}{{ criteria[r.criterion].title(lang) }}: {% for tr in r.triggers %}{{ t("inc.tr." ~ tr.key) }} {{ tr.value }}{% if not loop.last %}; {% endif %}{% endfor %}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+  </li>{% endfor %}</ul>
+</section>
+{% endif %}
+
+<div class="grid two">
+<section class="card" aria-labelledby="h-import"><h3 id="h-import">{{ t("inc.ui.import") }}</h3>
+  <form method="post" action="/w/{{ ws.id }}/incidents/import" enctype="multipart/form-data" class="row upload-row">
+    <label for="log-file">{{ t("inc.ui.log") }} <span class="muted small">(.json)</span></label>
+    <input id="log-file" name="file" type="file" accept=".json" required>
+    <button class="btn" type="submit">{{ t("c30.ui.import_button") }}</button>
+  </form></section>
+<section class="card" aria-labelledby="h-tz"><h3 id="h-tz">{{ t("inc.ui.timezone") }}</h3>
+  <form method="post" action="/w/{{ ws.id }}/incidents/settings" class="row">
+    <label for="tz">{{ t("inc.ui.timezone") }}</label>
+    <select id="tz" name="timezone">{% for z in timezones %}<option value="{{ z }}" {% if z == tzname %}selected{% endif %}>{{ z }}</option>{% endfor %}</select>
+    <button class="btn" type="submit">{{ t("inc.ui.apply") }}</button>
+  </form></section>
+</div>
+{% endblock %}

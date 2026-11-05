@@ -19,8 +19,9 @@ def open_sample(page: Any, label: str = "Sample with 25 deliberate errors") -> s
 
 
 PROGRAMME_PAGES = ["/contracts", "/contracts/checklist", "/contract/AR-DE-0057",
-                   "/contract/CO-LU-0002"]
-STANDALONE_REPORTS = ["/contracts/plan.html"]
+                   "/contract/CO-LU-0002", "/incidents", "/incidents/new",
+                   "/incidents/INC-2025-006"]
+STANDALONE_REPORTS = ["/contracts/plan.html", "/incidents/summary.html"]
 
 
 def test_contract_assessment_with_document_suggestions(page: Any) -> None:
@@ -61,6 +62,49 @@ def test_contracts_filter_and_checklist(page: Any) -> None:
     assert page.get_by_role("heading", name="Art. 30 checklist").is_visible()
 
 
+def test_incident_classification_and_countdown(page: Any) -> None:
+    url = open_sample(page)
+    page.get_by_role("link", name="Incidents", exact=True).click()
+    page.wait_for_url(url + "/incidents")
+    assert page.get_by_text("kronos-certificate-rotation").first.is_visible()
+    major = page.locator(".incident-table tbody tr").first
+    assert major.get_by_text("Major").is_visible()
+    clock = major.locator("time.countdown")
+    assert clock.inner_text().startswith("in ")
+    page.get_by_role("link", name="+ New incident").click()
+    page.wait_for_url(re.compile(r"/incidents/new$"))
+    page.fill("#title", "Card authorisation outage")
+    page.fill("#detected_at", "2025-12-01T09:00")
+    page.locator("#q-critical_services").get_by_label("Yes", exact=True).check()
+    page.locator("#q-malicious_access").get_by_label("No", exact=True).check()
+    page.fill("#a-downtime_hours", "3")
+    page.get_by_label("DE Germany").check()
+    page.get_by_label("LU Luxembourg").check()
+    page.get_by_role("button", name="Save and classify").click()
+    page.wait_for_url(re.compile(r"/incidents/INC-\d{4}-\d{3}\?saved=1"))
+    result = page.locator(".result-card")
+    assert result.get_by_text("Major", exact=True).is_visible()
+    assert page.get_by_role("heading", name="Reporting to the competent authority").is_visible()
+    assert page.locator(".deadline").count() == 3
+    page.get_by_role("button", name="Record Initial notification as submitted").click()
+    page.wait_for_url(re.compile(r"saved=1"))
+    assert page.get_by_text("Submitted on time").first.is_visible() or \
+        page.get_by_text("Submitted late").first.is_visible()
+
+
+def test_countdown_updates_without_reload(page: Any) -> None:
+    url = open_sample(page)
+    page.goto(url + "/incidents")
+    page.evaluate("""() => {
+      const el = document.querySelector('time.countdown');
+      el.setAttribute('datetime', new Date(Date.now() - 2 * 3600e3).toISOString());
+    }""")
+    page.evaluate("window.dispatchEvent(new Event('focus'))")
+    page.wait_for_function(
+        "document.querySelector('time.countdown').textContent.startsWith('overdue by')",
+        timeout=5000)
+
+
 @pytest.mark.parametrize("scheme", ["light", "dark"])
 def test_programme_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: Any,
                                            scheme: str) -> None:
@@ -74,6 +118,13 @@ def test_programme_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: An
         found = a11y(pg)
         if found:
             problems.append(f"{suffix}:\n{found}")
+    pg.goto(url + "/incidents?lang=en")
+    major = pg.locator("a", has_text=re.compile(r"INC-20\d\d-014")).first
+    major_url = url + "/incidents/" + major.inner_text().strip()
+    pg.goto(major_url)
+    found = a11y(pg)
+    if found:
+        problems.append(f"major incident:\n{found}")
     pg.goto(url + "/contract/AR-DE-0057?lang=en")
     pg.get_by_role("button", name="Use the sample contract").click()
     pg.wait_for_selector("#draft-banner")

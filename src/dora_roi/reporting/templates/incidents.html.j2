@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ t("inc.summary.title") }}{% if client %} · {{ client }}{% endif %}</title>
+<style>
+{% include "_style.css.j2" %}
+{% include "_report.css.j2" %}
+</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA · Art. 17–19 · {{ t("inc.page_title") }}</p>
+  <h1>{{ t("inc.summary.title") }}{% if client %} – {{ client }}{% endif %}</h1>
+  <p class="meta">{{ local(ov.now) }} ({{ tzname }}) · {{ t("inc.summary.counts", **ov.counts()) }}</p>
+</header>
+
+<h2 id="h-log">{{ t("inc.name") }}</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-log"><table>
+  <thead><tr><th scope="col">ID</th><th scope="col">{{ t("inc.title") }}</th><th scope="col">{{ t("g.status") }}</th>
+    <th scope="col">{{ t("inc.classification") }}</th><th scope="col">{{ t("inc.next_deadline") }}</th><th scope="col">{{ t("g.providers") }}</th></tr></thead>
+  <tbody>{% for v in ov.views %}{% set nxt = v.next %}
+  <tr><td class="mono">{{ v.incident.id }}</td><td>{{ v.incident.title }}<div class="small muted">{{ local(v.incident.detected_at) }}</div></td>
+    <td>{{ t("inc.st." ~ v.incident.status.value) }}</td>
+    <td><span class="pill {{ v.classification.outcome.value }}">{{ t("inc.out." ~ v.classification.outcome.value) }}</span></td>
+    <td>{% if nxt %}{% set st = nxt.state(ov.now).value %}<span class="pill {{ 'overdue' if st == 'overdue' else 'due' }}">{{ t("inc.dl." ~ st) }}</span>
+      {{ t("inc.report." ~ nxt.kind.value) }} · {{ local(nxt.due) }}{% elif v.deadlines %}<span class="pill done">{{ t("inc.dl.done") }}</span>{% else %}—{% endif %}</td>
+    <td class="small">{% for p in v.providers %}{{ p.name }}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</td></tr>
+  {% endfor %}</tbody></table></div>
+
+{% for v in ov.views if v.classification.major %}
+<section class="card incident-detail" aria-labelledby="h-{{ v.incident.id }}">
+  <h2 id="h-{{ v.incident.id }}"><span class="mono">{{ v.incident.id }}</span> {{ v.incident.title }}</h2>
+  <p>{{ t("inc.basis." ~ v.classification.basis, n=v.classification.met_count) }}</p>
+  <div class="table-wrap" tabindex="0" role="region" aria-label="{{ v.incident.id }} – {{ t('inc.classification') }}"><table>
+    <thead><tr><th scope="col">{{ t("inc.criterion") }}</th><th scope="col">{{ t("g.status") }}</th><th scope="col">{{ t("inc.observed") }}</th></tr></thead>
+    <tbody>{% for key, r in v.classification.results.items() %}<tr><td>{{ criteria[key].title(lang) }} <span class="small muted">{{ criteria[key].rts }}</span></td>
+      <td>{% if r.met %}<span class="pill major">{{ t("inc.met") }}</span>{% elif r.met is none %}<span class="pill provisional">{{ t("inc.unknown") }}</span>{% else %}{{ t("inc.not_met") }}{% endif %}</td>
+      <td class="small">{% for tr in r.triggers %}{{ t("inc.tr." ~ tr.key) }}: {{ tr.value }} ({{ tr.limit }}){% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>{% endfor %}</tbody></table></div>
+  <h3>{{ t("inc.next_deadline") }}</h3>
+  <ul>{% for d in v.deadlines %}<li><strong>{{ t("inc.report." ~ d.kind.value) }}</strong> – {{ local(d.due) }} ({{ t("inc.dl.basis." ~ d.basis) }}) · {{ t("inc.dl." ~ d.state(ov.now).value) }}{% if d.submitted_at %} · {{ local(d.submitted_at) }}{% endif %}</li>{% endfor %}</ul>
+</section>
+{% endfor %}
+
+{% if ov.recurring %}
+<h2 id="h-rec">{{ t("inc.recurring") }}</h2>
+<p class="section-lead">{{ t("inc.recurring.lead") }}</p>
+<ul>{% for g in ov.recurring %}<li><strong>{{ g.key }}</strong>: {{ g.incidents | map(attribute="id") | join(", ") }} –
+  <span class="pill {{ g.classification.outcome.value }}">{{ t("inc.out." ~ g.classification.outcome.value) }}</span>
+  {{ t("inc.recurring.major") if g.major else t("inc.recurring.not_major") }}</li>{% endfor %}</ul>
+{% endif %}
+
+<h2>{{ t("g.method") }}</h2>
+<p class="section-lead">{{ t("inc.method") }}</p>
+<footer>{{ t("g.disclaimer") }} · dora-roi-toolkit {{ version }}</footer>
+</main>
+</body>
+</html>

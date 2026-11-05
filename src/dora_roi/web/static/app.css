@@ -239,3 +239,25 @@ textarea { font: inherit; font-size: 14px; color: var(--text-primary); backgroun
   .provision-fields { grid-template-columns: 1fr; }
 }
 .provider-name .mono { font-size: inherit; }
+.result-card { margin: 12px 0; }
+.result-card h3 { margin-top: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.result-major { box-shadow: inset 6px 0 0 var(--status-critical); }
+.result-undetermined { box-shadow: inset 6px 0 0 var(--status-warning); }
+.result-not_major { box-shadow: inset 6px 0 0 var(--status-good); }
+.deadlines { gap: 0; }
+.deadline { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--grid); align-items: center; }
+.deadline .report-form { grid-column: 1 / -1; margin: 4px 0 0; }
+.countdown { font-weight: 700; font-variant-numeric: tabular-nums; }
+.countdown.overdue { color: var(--danger); }
+dl.links { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; }
+dl.links dt { font-weight: 600; color: var(--text-secondary); }
+dl.links dd { margin: 0; }
+fieldset.tri, fieldset.checks { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+fieldset.tri legend, fieldset.checks legend { float: none; width: 100%; font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+fieldset.states { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.hint { color: var(--accent-ink); }
+.criteria-table th[scope="row"] { position: static; background: transparent; color: var(--text-primary); }
+select[multiple] { min-height: 160px; width: 100%; }
+@media (max-width: 640px) { .deadline { grid-template-columns: 1fr; } }
+.field input[type="checkbox"], .field input[type="radio"] { width: 20px; flex: none; }
+.card > h3:first-child, .card > h2:first-child { margin-top: 0; }

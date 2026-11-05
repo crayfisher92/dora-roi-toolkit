@@ -18,7 +18,7 @@ import uuid
 import zipfile
 from collections import OrderedDict
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from threading import Lock
 from typing import Annotated, Any, Generic, TypeVar
@@ -34,6 +34,7 @@ from dora_roi.diff import diff_registers
 from dora_roi.explain import explain, rule_title
 from dora_roi.fixes import bulk_groups, findings_by_template, suggest
 from dora_roi.graph import build_graph, chains_table, render_svg
+from dora_roi.incidents.classify import classify
 from dora_roi.inventory import (
     FIELDS,
     FIELDS_BY_KEY,
@@ -58,7 +59,7 @@ from dora_roi.reporting.executive import build_charts, money, pct, render_execut
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
 from dora_roi.sample.programme import load_sample_programme
 from dora_roi.validation import RULES, Finding
-from dora_roi.web import contracts_routes
+from dora_roi.web import contracts_routes, incidents_routes
 from dora_roi.web.context import Ui
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
 from dora_roi.web.views import display, provider_profile, stepper
@@ -517,9 +518,12 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         svg = render_svg(graph, link_prefix=f"/w/{wid}/provider/",
                          labels=_graph_labels(t)) if graph.edges else None
         art30 = next((pc for pc in ws.portfolio.providers if pc.code == code), None)
+        now = datetime.now(UTC)
+        incidents = [(i, classify(i, now)) for i in ws.incidents.ordered()
+                     if code in i.provider_codes]
         return ws_page(request, ws, "ws_provider.html.j2", "analyse", p=profile, graph_svg=svg,
                        chains=chains_table(ws.register, code), art30=art30,
-                       contract_url=contracts_routes.contract_url)
+                       contract_url=contracts_routes.contract_url, incidents=incidents)
 
     @app.get("/w/{wid}/analyse", response_class=HTMLResponse)
     def analyse_page(request: Request, wid: str, color: str = "criticality",
@@ -638,6 +642,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
     ui = Ui(render=render, ws_page=ws_page, ws_or_404=ws_or_404, lang_of=lang_of,
             read_upload=read_upload, workspaces=workspaces.values)
     contracts_routes.register(app, ui)
+    incidents_routes.register(app, ui)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> Response:

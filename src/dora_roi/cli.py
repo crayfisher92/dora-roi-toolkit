@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import click
@@ -241,8 +241,12 @@ def rules(fmt: str) -> None:
               help="Also write the sample Art. 30 contract assessments (.json or .xlsx).")
 @click.option("--contract-document", type=click.Path(dir_okay=False, path_type=Path),
               help="Also write the sample contract document (.docx, .pdf or .txt).")
+@click.option("--incidents", "incidents_out", type=click.Path(dir_okay=False, path_type=Path),
+              help="Also write the sample incident log (.json); the open major incident is "
+              "placed relative to now.")
 def sample(output: Path, fmt: str, clean: bool, previous_year: bool, inventory: bool,
-           seed: int, assessments_out: Path | None, contract_document: Path | None) -> None:
+           seed: int, assessments_out: Path | None, contract_document: Path | None,
+           incidents_out: Path | None) -> None:
     """Generate the synthetic sample register (fictional Swiss/EU banking group)."""
     from dora_roi.io.csv_folder import write_csv_folder
     from dora_roi.io.excel import write_workbook
@@ -274,6 +278,10 @@ def sample(output: Path, fmt: str, clean: bool, previous_year: bool, inventory: 
         from dora_roi.sample.contract_docs import write_sample_contract
 
         click.echo(f"Wrote {write_sample_contract(contract_document)}", err=True)
+    if incidents_out is not None:
+        from dora_roi.sample.incidents import sample_incidents
+
+        _write(sample_incidents(result.register).to_json(), incidents_out)
 
 
 @main.command()
@@ -490,6 +498,106 @@ def contracts_suggest(document: Path, contract_ref: str | None, not_critical: bo
         book = AssessmentBook()
         book.save(draft, summary="Draft from keyword suggestions (not reviewed)")
         _write(book.to_json(), output)
+
+
+# =========================================================================== incidents
+
+
+def _now_opt(value: object) -> datetime:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    return datetime.now(UTC)
+
+
+now_opt = click.option("--now", "now_value", type=click.DateTime(
+    ["%Y-%m-%dT%H:%M", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"]), default=None,
+    help="Evaluate as of this UTC time (default: now), e.g. 2025-11-20T10:00.")
+
+
+def _incident_log(path: Path) -> object:
+    from dora_roi.incidents.model import IncidentLog
+
+    try:
+        return IncidentLog.from_json(path.read_bytes())
+    except (OSError, ValueError) as exc:
+        raise click.BadParameter(str(exc), param_hint="LOG") from exc
+
+
+@main.group()
+def incidents() -> None:
+    """Major ICT-related incident classification and reporting deadlines (DORA Art. 18/19)."""
+
+
+@incidents.command("criteria")
+@lang_opt
+def incidents_criteria(lang: str) -> None:
+    """Print the classification criteria, thresholds and reporting time limits."""
+    from dora_roi.incidents.criteria import DEFAULT_THRESHOLDS as TH
+    from dora_roi.incidents.criteria import criteria
+
+    for c in criteria():
+        click.echo(f"{c.title(lang)} [{c.dora}; {c.rts}]\n    {c.threshold(lang)}")
+    click.echo("Major: critical services affected AND (malicious unauthorised access OR "
+               "thresholds of >= 2 other criteria met).")
+    click.echo(f"Reporting: initial {TH.initial_after_classification_hours} h after "
+               f"classification (max. {TH.initial_after_awareness_hours} h after awareness); "
+               f"intermediate {TH.intermediate_after_initial_hours} h after the initial "
+               f"notification; final {TH.final_after_intermediate_months} month after the "
+               "intermediate report.")
+
+
+@incidents.command("summary")
+@click.argument("log_path", metavar="LOG", type=click.Path(exists=True, dir_okay=False,
+                                                           path_type=Path))
+@click.option("--register", "register_path", type=click.Path(path_type=Path),
+              help="Register to resolve providers, arrangements and functions.")
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path),
+              help="Write the summary (.html, .json or .md); default: text to stdout.")
+@click.option("--client", "client_name", help="Client name shown in the HTML summary.")
+@click.option("--fail-on-overdue", is_flag=True,
+              help="Exit with status 1 if a reporting deadline is overdue.")
+@now_opt
+@lang_opt
+def incidents_summary(log_path: Path, register_path: Path | None, output: Path | None,
+                      client_name: str | None, fail_on_overdue: bool, now_value: object,
+                      lang: str) -> None:
+    """Classify every incident of a log and show reporting deadlines and recurring series."""
+    from dora_roi.incidents.model import IncidentLog
+    from dora_roi.incidents.report import (
+        overview,
+        render_summary_html,
+        summary_dict,
+        summary_markdown,
+    )
+
+    log = _incident_log(log_path)
+    assert isinstance(log, IncidentLog)
+    register = _load(register_path, None).register if register_path else None
+    now = _now_opt(now_value)
+    ov = overview(log, register, now)
+    if output is None:
+        for v in ov.views:
+            nxt = v.next
+            due = f"{nxt.kind.value} due {nxt.due:%Y-%m-%d %H:%M} UTC ({nxt.state(now).value})" \
+                if nxt else "-"
+            click.echo(f"{v.incident.id:14} {v.classification.outcome.value:12} "
+                       f"{v.incident.status.value:9} {due:48} {v.incident.title}")
+        for g in ov.recurring:
+            click.echo(f"recurring {g.key}: {', '.join(i.id for i in g.incidents)} -> "
+                       f"{g.classification.outcome.value}")
+    elif output.suffix.lower() == ".json":
+        _write(json.dumps(summary_dict(ov, log.timezone), indent=2, ensure_ascii=False), output)
+    elif output.suffix.lower() == ".md":
+        _write(summary_markdown(ov, lang), output)
+    else:
+        _write(render_summary_html(ov, lang=lang, client=client_name, timezone=log.timezone),
+               output)
+    counts = ov.counts()
+    click.echo(f"{counts['total']} incident(s): {counts['major']} major, "
+               f"{counts['undetermined']} undetermined, {counts['overdue']} overdue report(s), "
+               f"{counts['recurring_major']} recurring series meeting the criteria", err=True)
+    if fail_on_overdue and counts["overdue"]:
+        sys.exit(EXIT_FINDINGS)
 
 
 @main.command()

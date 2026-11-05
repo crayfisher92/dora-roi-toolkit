@@ -119,3 +119,17 @@ the authors' knowledge of Regulation (EU) 2022/2554 and **all items below are op
 | A-A30-04 | Inheritance of an overarching arrangement's assessment by its subsequent arrangements (D-036) is a practical convention, not a regulatory rule; competent authorities may expect each arrangement to be documented. |
 | A-A30-05 | Priorities and target dates (D-037) are a methodology choice; DORA sets no remediation deadlines for contracts that pre-date its application. |
 | A-A30-06 | Standard contractual clauses under Art. 30(4) are not assessed. |
+
+## Major ICT-related incident classification
+
+Written without access to the official texts (`reference/eu/` absent). **All open.**
+
+| ID | Assumption |
+|----|------------|
+| A-INC-01 | The classification RTS is Commission Delegated Regulation (EU) 2024/1772; criteria are in its Art. 1–7 and the materiality thresholds in Art. 9 (cited as "RTS Art. 9(1)…(6)"). The reporting RTS with time limits is Commission Delegated Regulation (EU) 2025/301. Article numbers are cited for orientation and must be verified. |
+| A-INC-02 | An incident is major if it affects *critical services* and either (a) involves a successful, malicious, unauthorised access to network and information systems that may result in data losses, or (b) meets the thresholds of two or more of the other six criteria. |
+| A-INC-03 | Thresholds: clients > 10 % of the service's clients or > 100 000 clients; financial counterparts > 30 %; transactions > 10 % of the daily average number or value; any relevant client/counterpart affected; reputational impact if any of media coverage, repeated complaints, regulatory requirements not met, likely client loss; duration > 24 h or downtime of services supporting critical or important functions > 2 h; impact in ≥ 2 Member States; any adverse impact on availability, authenticity, integrity or confidentiality of data; costs and losses > EUR 100 000. Comparisons are "higher than". No absolute transaction-amount threshold is applied. |
+| A-INC-04 | Reporting: initial notification within 4 h of classification and at the latest 24 h after awareness; intermediate report within 72 h of the initial notification; final report within one month of the latest intermediate report. Any relief for weekends/bank holidays, and entity-type exemptions from it, are **not** modelled (deadlines are conservative). Reporting templates and their content are out of scope. |
+| A-INC-05 | Recurring incidents: individually non-major incidents with the same apparent root cause occurring at least twice within 6 months are assessed together; the toolkit aggregates them by adding counts, durations, downtime and costs, taking the largest denominator, OR-ing yes/no answers and uniting Member States. The RTS may prescribe a different aggregation; the monthly assessment cycle is not enforced. |
+| A-INC-06 | "Critical services affected" is answered by the user; the register only provides a hint (linked arrangements supporting critical or important functions). Financial services requiring authorisation are not derived from the register. |
+| A-INC-07 | Root-cause categories paraphrase those of the reporting templates and are used for information only. Significant cyber threats (voluntary notification) are out of scope. |

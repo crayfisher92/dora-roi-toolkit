@@ -7,13 +7,17 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import UTC, datetime
 from pathlib import Path
 
 from dora_roi.contracts.analysis import evaluate
 from dora_roi.contracts.provisions import checklist_markdown
+from dora_roi.incidents.criteria import criteria_markdown
+from dora_roi.incidents.report import overview
 from dora_roi.io.tables import KIND_HINTS
 from dora_roi.model import ALL_CODELISTS, TEMPLATE_MODELS, RegisterOfInformation
 from dora_roi.sample.assessments import sample_assessments
+from dora_roi.sample.incidents import sample_incidents
 from dora_roi.validation import Category, rules_catalogue
 from dora_roi.validation.references import DORA, ITS, REFERENCES
 
@@ -165,7 +169,35 @@ def sample_data_markdown() -> str:
                      f"{_cell(e.description)} |")
     lines.append("")
     lines += _sample_assessments_section(clean.register)
+    lines += _sample_incidents_section(clean.register)
     return "\n".join(lines)
+
+
+def _sample_incidents_section(register: RegisterOfInformation) -> list[str]:
+    now = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
+    log = sample_incidents(register, now)
+    ov = overview(log, register, now)
+    lines = [
+        "## Sample incidents",
+        "",
+        f"{len(log)} incidents (`roi sample … --incidents i.json`, loaded automatically by the "
+        "workbench samples). The open major incident is created a few hours before *now* so "
+        "that the reporting countdown runs in a demo; below it is shown as of "
+        f"{now:%Y-%m-%d %H:%M} UTC.",
+        "",
+        "| Incident | Title | Classification | Criteria met |",
+        "|---|---|---|---|",
+    ]
+    for v in ov.views:
+        met = ", ".join(r.criterion.value for r in v.classification.met) or "—"
+        lines.append(f"| `{v.incident.id}` | {_cell(v.incident.title)} | "
+                     f"{v.classification.outcome.value} | {met} |")
+    for g in ov.recurring:
+        lines += ["", f"Recurring series `{g.key}` ({', '.join(i.id for i in g.incidents)}): "
+                  f"individually not major, combined **{g.classification.outcome.value}** "
+                  f"({', '.join(r.criterion.value for r in g.classification.met)})."]
+    lines.append("")
+    return lines
 
 
 def _sample_assessments_section(register: RegisterOfInformation) -> list[str]:
@@ -204,6 +236,7 @@ def write_docs(folder: str | Path = "docs") -> list[Path]:
         out / "DATA_DICTIONARY.md": data_dictionary_markdown(),
         out / "SAMPLE_DATA.md": sample_data_markdown(),
         out / "ART30_CHECKLIST.md": checklist_markdown(),
+        out / "INCIDENT_CLASSIFICATION.md": criteria_markdown(),
     }
     for path, text in targets.items():
         path.write_text(text, encoding="utf-8")

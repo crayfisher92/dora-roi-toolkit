@@ -35,6 +35,12 @@
     <td><span class="pill {{ c.status.value }}">{{ t("cs." ~ c.status.value) }}</span></td><td class="num">{{ c.missing }}</td><td class="num">{{ c.partial }}</td></tr>{% endfor %}</tbody></table></div>
 </section>
 {% endif %}
+{% if incidents %}
+<section aria-labelledby="h-pinc"><h3 id="h-pinc">{{ t("inc.ui.provider_section") }}</h3>
+  <ul class="plain">{% for i, c in incidents %}<li><a class="mono" href="/w/{{ ws.id }}/incidents/{{ i.id }}">{{ i.id }}</a> {{ i.title }}
+    <span class="pill {{ c.outcome.value }}">{{ t("inc.out." ~ c.outcome.value) }}</span> <span class="small muted">{{ t("inc.st." ~ i.status.value) }}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}
 <section aria-labelledby="h-chain"><h3 id="h-chain">{{ t("prov.chain") }}</h3>
   {% if graph_svg %}<div class="graph-scroll card">{{ graph_svg }}</div>{% endif %}
   {% if chains %}<div class="table-wrap"><table><thead><tr><th scope="col">{{ t("an.arrangement") }}</th><th scope="col">{{ t("an.chain") }}</th></tr></thead>

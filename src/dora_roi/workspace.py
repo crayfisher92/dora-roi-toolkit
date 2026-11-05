@@ -17,6 +17,7 @@ from functools import cached_property
 from dora_roi.analytics import ConcentrationAnalysis, analyse
 from dora_roi.contracts.analysis import Portfolio, evaluate
 from dora_roi.contracts.model import AssessmentBook
+from dora_roi.incidents.model import IncidentLog
 from dora_roi.io.parse import parse_raw
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RegisterOfInformation, RoIRecord
@@ -82,6 +83,8 @@ class Workspace:
         self.import_notes: list[str] | None = None
         #: DORA Art. 30 contract assessments, keyed by B_02.01 arrangement reference.
         self.contracts = AssessmentBook()
+        #: ICT-related incidents with their classification answers and reporting history.
+        self.incidents = IncidentLog()
         self._derived: _Derived | None = None
         self.snapshot("Imported")
 

@@ -85,3 +85,32 @@
     });
   });
 })();
+
+/* ---------- reporting countdowns (incidents): refreshed every 30 s and when the tab regains
+   focus; deliberately not a live region (no announcements every tick) */
+(function () {
+  "use strict";
+  var clocks = document.querySelectorAll("time.countdown[datetime]");
+  if (!clocks.length) return;
+  function fmt(ms, day) {
+    var s = Math.floor(Math.abs(ms) / 1000), d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+    if (d) return d + " " + day + " " + h + " h";
+    if (h) return h + " h " + m + " min";
+    return m + " min";
+  }
+  function tick() {
+    var now = Date.now();
+    clocks.forEach(function (el) {
+      var due = Date.parse(el.getAttribute("datetime"));
+      if (isNaN(due)) return;
+      var left = due - now, over = left < 0;
+      var tpl = over ? el.dataset.overdue : el.dataset.in;
+      if (tpl) el.textContent = tpl.replace("{t}", fmt(left, el.dataset.day || "d"));
+      el.classList.toggle("overdue", over);
+    });
+  }
+  tick();
+  setInterval(tick, 30000);
+  window.addEventListener("focus", tick);
+  document.addEventListener("visibilitychange", tick);
+})();
