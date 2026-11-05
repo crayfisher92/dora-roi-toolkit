@@ -261,3 +261,6 @@ select[multiple] { min-height: 160px; width: 100%; }
 @media (max-width: 640px) { .deadline { grid-template-columns: 1fr; } }
 .field input[type="checkbox"], .field input[type="radio"] { width: 20px; flex: none; }
 .card > h3:first-child, .card > h2:first-child { margin-top: 0; }
+.tiles + .card, .tiles + section.card { margin-top: 16px; }
+dl.links dd { overflow-wrap: anywhere; }
+@media (max-width: 640px) { dl.links { grid-template-columns: 1fr; } dl.links dd { margin-bottom: 6px; } }

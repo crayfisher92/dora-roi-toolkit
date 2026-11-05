@@ -280,3 +280,19 @@ def test_incident_import(client: TestClient, tmp_path: Path) -> None:
     assert r.status_code == 400
     r = client.post(url + "/incidents/import", files={"file": ("l.txt", b"{}")})
     assert r.status_code == 400 and "Unsupported" in r.text
+
+
+# =========================================================================== FINMA
+
+
+def test_finma_page(client: TestClient, tmp_path: Path) -> None:
+    url = _sample(client)
+    page = client.get(url + "/finma")
+    assert page.status_code == 200 and "One dataset for DORA and FINMA" in page.text
+    assert "FIN-OS-11" in page.text and "Helix Core Banking AG" in page.text
+    assert "No Swiss entity in B_01.02" in page.text and "56%" in page.text
+    de = client.get(url + "/finma?lang=de")
+    assert "Ein Datenbestand für DORA und FINMA" in de.text
+    client.cookies.clear()
+    bare = _upload(client, tmp_path)
+    assert "not assessed yet" in client.get(bare + "/finma").text

@@ -59,7 +59,7 @@ from dora_roi.reporting.executive import build_charts, money, pct, render_execut
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
 from dora_roi.sample.programme import load_sample_programme
 from dora_roi.validation import RULES, Finding
-from dora_roi.web import contracts_routes, incidents_routes
+from dora_roi.web import contracts_routes, incidents_routes, programme_routes
 from dora_roi.web.context import Ui
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
 from dora_roi.web.views import display, provider_profile, stepper
@@ -643,6 +643,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
             read_upload=read_upload, workspaces=workspaces.values)
     contracts_routes.register(app, ui)
     incidents_routes.register(app, ui)
+    programme_routes.register(app, ui)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> Response:

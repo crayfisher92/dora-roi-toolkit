@@ -366,6 +366,49 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.resolved": "Resolved",
         "inc.ev.closed": "Closed",
         "inc.ev.reopened": "Reopened",
+        "fin.name": "Switzerland (FINMA)",
+        "fin.title": "One dataset for DORA and FINMA",
+        "fin.lead": "Which data of the Register of Information – together with the Art. 30 "
+                    "contract assessments and the incident log – evidences the outsourcing "
+                    "inventory of FINMA Circular 2018/3 and the critical-function and ICT "
+                    "resilience documentation of FINMA Circular 2023/1, and what a Swiss group "
+                    "with EU subsidiaries has to maintain in addition.",
+        "fin.cov.full": "Covered",
+        "fin.cov.partial": "Partly covered",
+        "fin.cov.none": "Not covered",
+        "fin.score": "Coverage score",
+        "fin.score.help": "Covered = 1, partly = ½, not covered = 0, averaged over {n} "
+                          "requirements.",
+        "fin.requirement": "FINMA requirement",
+        "fin.roi_fields": "RoI data",
+        "fin.other_sources": "Toolkit evidence",
+        "fin.coverage": "Coverage",
+        "fin.design": "by design",
+        "fin.in_register": "in this register",
+        "fin.missing": "What to maintain in addition",
+        "fin.filled": "{pct} filled",
+        "fin.no_records": "no applicable records",
+        "fin.art30_share": "{pct} of critical arrangements assessed present",
+        "fin.art30_none": "not assessed yet",
+        "fin.incidents_share": "{pct} of incidents classified",
+        "fin.incident_log": "Incident log",
+        "fin.context": "Swiss context of this register",
+        "fin.ctx.entities": "Entities in scope by country",
+        "fin.ctx.no_swiss": "No Swiss entity in B_01.02: the FINMA view covers the EU "
+                            "subsidiaries' arrangements from the group's perspective. Add the "
+                            "Swiss bank to maintain one dataset (see FIN-OS-04).",
+        "fin.ctx.swiss_entities": "{n} Swiss entit(y/ies) in B_01.02.",
+        "fin.ctx.providers": "Providers headquartered in Switzerland",
+        "fin.ctx.spend": "{pct} of annual spend",
+        "fin.ctx.law": "Arrangements under Swiss law",
+        "fin.ctx.data": "Arrangements storing or processing data in Switzerland",
+        "fin.ctx.third": "Providers in third countries (outside EEA and CH)",
+        "fin.method": "Coverage by design: covered = the RoI holds the information FINMA "
+                      "expects; partly = it holds related information or the toolkit's Art. 30 "
+                      "checklist / incident log evidences it; not covered = maintain it "
+                      "separately. In this register: covered requirements need ≥ 95 % of the "
+                      "applicable records filled. The requirements paraphrase the circulars; "
+                      "margin numbers are not cited (A-FINMA-*).",
         "inc.method": "Classification per DORA Art. 18 and the RTS on classification "
                       "(Delegated Regulation (EU) 2024/1772): major when critical services are "
                       "affected and either a successful malicious unauthorised access occurred "
@@ -739,6 +782,51 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.resolved": "Behoben",
         "inc.ev.closed": "Abgeschlossen",
         "inc.ev.reopened": "Wieder geöffnet",
+        "fin.name": "Schweiz (FINMA)",
+        "fin.title": "Ein Datenbestand für DORA und FINMA",
+        "fin.lead": "Welche Daten des Informationsregisters – zusammen mit den "
+                    "Vertragsbewertungen nach Art. 30 und dem Vorfallverzeichnis – das "
+                    "Auslagerungsinventar nach FINMA-RS 2018/3 und die Dokumentation kritischer "
+                    "Funktionen und der IKT-Resilienz nach FINMA-RS 2023/1 belegen, und was eine "
+                    "Schweizer Gruppe mit EU-Töchtern zusätzlich pflegen muss.",
+        "fin.cov.full": "Abgedeckt",
+        "fin.cov.partial": "Teilweise abgedeckt",
+        "fin.cov.none": "Nicht abgedeckt",
+        "fin.score": "Abdeckungsgrad",
+        "fin.score.help": "Abgedeckt = 1, teilweise = ½, nicht abgedeckt = 0, gemittelt über {n} "
+                          "Anforderungen.",
+        "fin.requirement": "FINMA-Anforderung",
+        "fin.roi_fields": "RoI-Daten",
+        "fin.other_sources": "Nachweise im Toolkit",
+        "fin.coverage": "Abdeckung",
+        "fin.design": "konzeptionell",
+        "fin.in_register": "in diesem Register",
+        "fin.missing": "Zusätzlich zu pflegen",
+        "fin.filled": "{pct} befüllt",
+        "fin.no_records": "keine anwendbaren Datensätze",
+        "fin.art30_share": "{pct} der kritischen Vereinbarungen als vorhanden bewertet",
+        "fin.art30_none": "noch nicht bewertet",
+        "fin.incidents_share": "{pct} der Vorfälle klassifiziert",
+        "fin.incident_log": "Vorfallverzeichnis",
+        "fin.context": "Schweiz-Bezug dieses Registers",
+        "fin.ctx.entities": "Unternehmen im Umfang nach Land",
+        "fin.ctx.no_swiss": "Kein Schweizer Unternehmen in B_01.02: Die FINMA-Sicht deckt die "
+                            "Vereinbarungen der EU-Töchter aus Gruppensicht ab. Nehmen Sie die "
+                            "Schweizer Bank auf, um einen Datenbestand zu führen (siehe "
+                            "FIN-OS-04).",
+        "fin.ctx.swiss_entities": "{n} Schweizer Unternehmen in B_01.02.",
+        "fin.ctx.providers": "Dienstleister mit Sitz in der Schweiz",
+        "fin.ctx.spend": "{pct} der jährlichen Kosten",
+        "fin.ctx.law": "Vereinbarungen unter Schweizer Recht",
+        "fin.ctx.data": "Vereinbarungen mit Datenspeicherung oder -verarbeitung in der Schweiz",
+        "fin.ctx.third": "Dienstleister in Drittstaaten (ausserhalb EWR und CH)",
+        "fin.method": "Konzeptionelle Abdeckung: abgedeckt = das RoI enthält die von der FINMA "
+                      "erwarteten Angaben; teilweise = es enthält verwandte Angaben oder die "
+                      "Art.-30-Checkliste bzw. das Vorfallverzeichnis belegen sie; nicht "
+                      "abgedeckt = separat pflegen. In diesem Register: abgedeckte Anforderungen "
+                      "brauchen ≥ 95 % befüllte anwendbare Datensätze. Die Anforderungen geben "
+                      "die Rundschreiben sinngemäß wieder; Randziffern werden nicht zitiert "
+                      "(A-FINMA-*).",
         "inc.method": "Klassifizierung nach DORA Art. 18 und dem RTS zur Klassifizierung "
                       "(Delegierte Verordnung (EU) 2024/1772): schwerwiegend, wenn kritische "
                       "Dienste betroffen sind und entweder ein erfolgreicher böswilliger "

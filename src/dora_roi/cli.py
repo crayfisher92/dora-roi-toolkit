@@ -600,6 +600,69 @@ def incidents_summary(log_path: Path, register_path: Path | None, output: Path |
         sys.exit(EXIT_FINDINGS)
 
 
+# =========================================================================== FINMA
+
+
+@main.command()
+@input_arg
+@click.option("--assessments", "assessments_path",
+              type=click.Path(exists=True, dir_okay=False, path_type=Path),
+              help="Art. 30 assessments (.json/.xlsx) as evidence for contract requirements.")
+@click.option("--incidents", "incidents_path",
+              type=click.Path(exists=True, dir_okay=False, path_type=Path),
+              help="Incident log (.json) as evidence for incident management.")
+@click.option("-f", "--format", "fmt", type=click.Choice(["text", "md", "json"]),
+              default="text", show_default=True)
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path))
+@lang_opt
+@code_map_opt
+def finma(input_path: Path, assessments_path: Path | None, incidents_path: Path | None,
+          fmt: str, output: Path | None, lang: str, code_map: Path | None) -> None:
+    """Swiss angle: which RoI data covers FINMA Circ. 2018/3 and 2023/1, and what is missing."""
+    from dora_roi.contracts.analysis import evaluate
+    from dora_roi.contracts.model import AssessmentBook
+    from dora_roi.finma import evaluate_finma, mapping_markdown
+    from dora_roi.incidents.model import IncidentLog
+
+    loaded = _load(input_path, _code_map(code_map))
+    portfolio = None
+    if assessments_path is not None:
+        book, _ = _assessments(assessments_path)
+        assert isinstance(book, AssessmentBook)
+        portfolio = evaluate(loaded.register, book)
+    log = _incident_log(incidents_path) if incidents_path is not None else None
+    assert log is None or isinstance(log, IncidentLog)
+    view = evaluate_finma(loaded.register, portfolio, log)
+    if fmt == "json":
+        _write(json.dumps({
+            "schema": "dora-roi-toolkit/finma-mapping/v1",
+            "coverage_score": round(view.coverage_score, 4), "counts": view.counts(),
+            "requirements": [{
+                "id": s.requirement.id, "circular": s.requirement.circular,
+                "title": s.requirement.title(lang), "coverage_by_design":
+                s.requirement.coverage.value, "coverage_in_register": s.effective.value,
+                "roi_fields": {str(f): s.field_fill.get(str(f)) for f in s.requirement.fields},
+                "art30": list(s.requirement.art30), "art30_share": s.art30_share,
+                "incidents_classified": s.incidents_classified,
+                "missing": s.requirement.gap(lang)} for s in view.statuses],
+            "swiss_context": {
+                "entity_countries": view.context.entity_countries,
+                "swiss_providers": [n for _, n in view.context.swiss_providers],
+                "swiss_spend_share": round(view.context.swiss_spend_share, 4)},
+        }, indent=2, ensure_ascii=False), output)
+        return
+    if fmt == "md":
+        _write(mapping_markdown(lang), output)
+        return
+    lines = [f"{s.requirement.id:10} {s.effective.value:8} "
+             f"(design {s.requirement.coverage.value:7}) {s.requirement.title(lang)}"
+             for s in view.statuses]
+    c = view.counts()
+    lines.append(f"Coverage score {view.coverage_score:.0%}: {c['full']} covered, "
+                 f"{c['partial']} partly, {c['none']} not covered.")
+    _write("\n".join(lines), output)
+
+
 @main.command()
 @click.option("--host", default="127.0.0.1", show_default=True)
 @click.option("--port", default=8000, show_default=True, type=int)

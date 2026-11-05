@@ -12,6 +12,7 @@ from pathlib import Path
 
 from dora_roi.contracts.analysis import evaluate
 from dora_roi.contracts.provisions import checklist_markdown
+from dora_roi.finma import mapping_markdown
 from dora_roi.incidents.criteria import criteria_markdown
 from dora_roi.incidents.report import overview
 from dora_roi.io.tables import KIND_HINTS
@@ -237,6 +238,7 @@ def write_docs(folder: str | Path = "docs") -> list[Path]:
         out / "SAMPLE_DATA.md": sample_data_markdown(),
         out / "ART30_CHECKLIST.md": checklist_markdown(),
         out / "INCIDENT_CLASSIFICATION.md": criteria_markdown(),
+        out / "FINMA_MAPPING.md": mapping_markdown(),
     }
     for path, text in targets.items():
         path.write_text(text, encoding="utf-8")

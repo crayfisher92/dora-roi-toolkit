@@ -20,7 +20,7 @@ def open_sample(page: Any, label: str = "Sample with 25 deliberate errors") -> s
 
 PROGRAMME_PAGES = ["/contracts", "/contracts/checklist", "/contract/AR-DE-0057",
                    "/contract/CO-LU-0002", "/incidents", "/incidents/new",
-                   "/incidents/INC-2025-006"]
+                   "/incidents/INC-2025-006", "/finma"]
 STANDALONE_REPORTS = ["/contracts/plan.html", "/incidents/summary.html"]
 
 

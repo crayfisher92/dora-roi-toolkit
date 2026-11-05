@@ -133,3 +133,15 @@ Written without access to the official texts (`reference/eu/` absent). **All ope
 | A-INC-05 | Recurring incidents: individually non-major incidents with the same apparent root cause occurring at least twice within 6 months are assessed together; the toolkit aggregates them by adding counts, durations, downtime and costs, taking the largest denominator, OR-ing yes/no answers and uniting Member States. The RTS may prescribe a different aggregation; the monthly assessment cycle is not enforced. |
 | A-INC-06 | "Critical services affected" is answered by the user; the register only provides a hint (linked arrangements supporting critical or important functions). Financial services requiring authorisation are not derived from the register. |
 | A-INC-07 | Root-cause categories paraphrase those of the reporting templates and are used for information only. Significant cyber threats (voluntary notification) are out of scope. |
+
+## Swiss angle (FINMA)
+
+The circulars were not available offline. **All open.**
+
+| ID | Assumption |
+|----|------------|
+| A-FINMA-01 | FINMA Circular 2018/3 "Outsourcing – banks and insurers" requires an up-to-date inventory of outsourced functions (description of the function, provider and sub-providers, service recipient, responsible unit, significance), careful selection, instruction and monitoring of the provider, security and continuity, audit and information rights for the company, its audit firm and FINMA, specific safeguards for outsourcing abroad (enforceable audit rights, restructuring/resolution, access to information from Switzerland) and a written contract. Topics are paraphrased; margin numbers are deliberately not cited. Whether a revision of the circular is in force must be checked. |
+| A-FINMA-02 | FINMA Circular 2023/1 "Operational risks and resilience – banks" requires, among others, ICT and cyber risk management (incl. an ICT inventory and third-party dependencies), management of critical data, business continuity management (BIA, recovery objectives, tested plans) and operational resilience (identification of critical functions, tolerances for disruption, mapping to resources incl. third parties, scenario testing). |
+| A-FINMA-03 | DORA "critical or important functions" and FINMA "significant functions" / "critical functions" overlap but are not identical; RTO (B_06.01 c0080) approximates but is not a tolerance for disruption. The mapping marks these as *partly covered*. |
+| A-FINMA-04 | FINMA expects the reporting of cyber attacks under its own guidance (believed to be FINMA Guidance 05/2020, with different time limits from DORA); the toolkit does not compute FINMA deadlines. |
+| A-FINMA-05 | FINMA Circ. 2018/3 is assumed to apply at group level through consolidated supervision for a Swiss group with EU subsidiaries; the toolkit's group view rests on this assumption. |

@@ -1,0 +1,52 @@
+{% extends "ws_base.html.j2" %}
+{% from "_macros.html.j2" import pill %}
+{% block page_title %}{{ t("fin.name") }}{% endblock %}
+{% block content %}
+{% macro coverage_pill(c) -%}{{ pill({"full": "present", "partial": "partial", "none": "missing"}[c.value], t("fin.cov." ~ c.value)) }}{%- endmacro %}
+<h2>{{ t("fin.title") }}</h2>
+<p class="lead">{{ t("fin.lead") }}</p>
+{% set counts = view.counts() %}
+<section class="grid tiles" aria-label="{{ t('fin.coverage') }}">
+  <div class="card tile"><div class="label">{{ t("fin.score") }}</div><div class="value">{{ "%.0f" | format(view.coverage_score * 100) }}%</div>
+    <div class="sub">{{ t("fin.score.help", n=view.statuses | length) }}</div></div>
+  <div class="card tile"><div class="label">{{ t("fin.cov.full") }}</div><div class="value">{{ counts.full }}</div></div>
+  <div class="card tile"><div class="label">{{ t("fin.cov.partial") }}</div><div class="value">{{ counts.partial }}</div></div>
+  <div class="card tile"><div class="label">{{ t("fin.cov.none") }}</div><div class="value">{{ counts.none }}</div></div>
+</section>
+
+<section class="card" aria-labelledby="h-ctx">
+  <h3 id="h-ctx">{{ t("fin.context") }}</h3>
+  {% set ctx = view.context %}
+  <dl class="links">
+    <dt>{{ t("fin.ctx.entities") }}</dt><dd>{% for c, n in ctx.entity_countries.items() %}{{ country_name(c) }} ({{ n }}){% if not loop.last %} · {% endif %}{% else %}—{% endfor %}
+      <div class="small muted">{% if ctx.swiss_entities %}{{ t("fin.ctx.swiss_entities", n=ctx.swiss_entities) }}{% else %}{{ t("fin.ctx.no_swiss") }}{% endif %}</div></dd>
+    <dt>{{ t("fin.ctx.providers") }}</dt><dd>{% for code, name in ctx.swiss_providers %}<a href="/w/{{ ws.id }}/provider/{{ code }}">{{ name }}</a>{% if not loop.last %}, {% endif %}{% else %}—{% endfor %}
+      <div class="small muted">{{ t("fin.ctx.spend", pct="%.0f %%" | format(ctx.swiss_spend_share * 100)) }}</div></dd>
+    <dt>{{ t("fin.ctx.law") }}</dt><dd>{{ ctx.swiss_law_arrangements }}</dd>
+    <dt>{{ t("fin.ctx.data") }}</dt><dd>{{ ctx.swiss_data_arrangements }}</dd>
+    <dt>{{ t("fin.ctx.third") }}</dt><dd>{{ ctx.providers_outside_eea_ch }}</dd>
+  </dl>
+</section>
+
+{% for circ, heading in circulars %}
+<section aria-labelledby="h-{{ loop.index }}">
+<h3 id="h-{{ loop.index }}">{{ heading }}</h3>
+<div class="table-wrap"><table class="finma-table">
+  <caption class="visually-hidden">{{ heading }}</caption>
+  <thead><tr><th scope="col">{{ t("fin.requirement") }}</th><th scope="col">{{ t("fin.roi_fields") }}</th><th scope="col">{{ t("fin.other_sources") }}</th>
+    <th scope="col">{{ t("fin.coverage") }}</th><th scope="col">{{ t("fin.missing") }}</th></tr></thead>
+  <tbody>{% for s in view.by_circular(circ) %}{% set r = s.requirement %}
+  <tr><th scope="row"><span class="mono small">{{ r.id }}</span> {{ r.title(lang) }}<div class="small muted">{{ r.topic(lang) }}</div></th>
+    <td class="small">{% for f in r.fields %}<a class="mono" href="/w/{{ ws.id }}/register/{{ f.template }}"><abbr title="{{ f.label }}">{{ f.template }} {{ f.column }}</abbr></a>
+        {% if s.field_fill.get(f | string) is not none %}<span class="muted">{{ t("fin.filled", pct="%.0f %%" | format(s.field_fill[f | string] * 100)) }}</span>{% else %}<span class="muted">{{ t("fin.no_records") }}</span>{% endif %}<br>{% else %}—{% endfor %}</td>
+    <td class="small">{% if r.art30 %}<a href="/w/{{ ws.id }}/contracts/checklist">Art. 30</a>: <span class="mono">{{ r.art30 | join(", ") }}</span><br>
+        <span class="muted">{% if s.art30_share is not none %}{{ t("fin.art30_share", pct="%.0f %%" | format(s.art30_share * 100)) }}{% else %}{{ t("fin.art30_none") }}{% endif %}</span>{% endif %}
+      {% if r.incidents %}<a href="/w/{{ ws.id }}/incidents">{{ t("fin.incident_log") }}</a>{% if s.incidents_classified is not none %}<br><span class="muted">{{ t("fin.incidents_share", pct="%.0f %%" | format(s.incidents_classified * 100)) }}</span>{% endif %}{% endif %}
+      {% if not r.art30 and not r.incidents %}—{% endif %}</td>
+    <td>{{ coverage_pill(s.effective) }}<div class="small muted">{{ t("fin.design") }}: {{ t("fin.cov." ~ r.coverage.value) }}</div></td>
+    <td class="small">{{ r.gap(lang) }}</td></tr>
+  {% endfor %}</tbody></table></div>
+</section>
+{% endfor %}
+<p class="small muted">{{ t("fin.method") }}</p>
+{% endblock %}
