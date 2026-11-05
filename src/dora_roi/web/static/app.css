@@ -333,3 +333,8 @@ ol.actions-list li { margin-bottom: 8px; }
 .teaser-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 20px; }
 .teaser-list a { text-decoration: none; color: var(--text-primary); display: inline-flex; gap: 6px; align-items: center; min-height: 32px; }
 .teaser-list a:hover strong { text-decoration: underline; }
+.exception-box { margin-top: 8px; }
+.exception-box summary { font-size: 13.5px; }
+.exception-fields { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); }
+.exception-fields .full { grid-column: 1 / -1; }
+.exception-note { margin: 6px 0 0; }

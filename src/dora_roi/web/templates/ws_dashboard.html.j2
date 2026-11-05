@@ -7,7 +7,7 @@
   <h3 id="h-overall">{{ t("rd.overall") }}: <span class="pill {{ rd.overall.value }}">{{ t("rag." ~ rd.overall.value) }}</span></h3>
   <p>{{ t("rd.overall." ~ rd.overall.value) }}</p>
   <p class="row"><a class="btn primary" href="/w/{{ ws.id }}/readiness.html" target="_blank" rel="noopener">{{ t("rd.report.open") }}</a>
-    <span class="small muted">{{ t("rd.report.print") }}</span></p>
+    {% if pdf %}<a class="btn" href="/w/{{ ws.id }}/readiness.pdf">PDF</a>{% else %}<span class="small muted">{{ t("rd.report.print") }}</span>{% endif %}</p>
 </section>
 <section class="rag dashboard-rag" aria-label="{{ t('rd.name') }}">
   {% for p in rd.pillars %}

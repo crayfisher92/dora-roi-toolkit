@@ -122,11 +122,13 @@ def _clause_at(headings: list[tuple[int, str]], pos: int) -> str:
     return ref
 
 
-def _snippet(text: str, start: int, end: int) -> str:
-    a = max(0, start - SNIPPET // 2)
-    b = min(len(text), end + SNIPPET // 2)
+def _snippet(text: str, start: int, end: int, lo: int = 0, hi: int | None = None) -> str:
+    """Passage around ``text[start:end]``, clipped to the clause ``text[lo:hi]``."""
+    hi = len(text) if hi is None else hi
+    a = max(lo, start - SNIPPET // 2)
+    b = min(hi, end + SNIPPET // 2)
     cut = re.sub(r"\s+", " ", text[a:b]).strip()
-    return ("… " if a > 0 else "") + cut + (" …" if b < len(text) else "")
+    return ("… " if a > lo else "") + cut + (" …" if b < hi else "")
 
 
 def _find(concept: Concept, text: str, offset: int = 0) -> Match | None:
@@ -163,15 +165,15 @@ def suggest_provision(provision: Provision, text: str,
                       headings: list[tuple[int, str]] | None = None) -> ProvisionSuggestion:
     heads = headings if headings is not None else _headings(text)
     names = [c.name for c in provision.concepts]
-    best: tuple[int, int, list[Match], str] | None = None
-    for start, end, ref in _segments(text, heads):
+    best: tuple[int, int, list[Match], int, int] | None = None
+    for start, end, _ref in _segments(text, heads):
         chunk = text[start:end]
         found = [m for c in provision.concepts if (m := _find(c, chunk, start)) is not None]
         if not found:
             continue
         score = (sum(1 for m in found if not m.negated), len(found))
         if best is None or score > best[:2]:
-            best = (*score, found, ref)
+            best = (*score, found, start, end)
     if best is None:
         return ProvisionSuggestion(provision, Suggestion.NOT_FOUND, [], names)
     matches = best[2]
@@ -183,7 +185,7 @@ def suggest_provision(provision: Provision, text: str,
     anchor = min(matches, key=lambda m: (m.negated, m.start))
     return ProvisionSuggestion(
         provision, suggestion, found_names, missing,
-        _snippet(text, anchor.start, anchor.start + len(anchor.text)),
+        _snippet(text, anchor.start, anchor.start + len(anchor.text), best[3], best[4]),
         _clause_at(heads, anchor.start), negated)
 
 

@@ -138,6 +138,7 @@ class Workspace:
         self.lock = threading.RLock()
         self._derived: _Derived | None = None
         self._analysis: ConcentrationAnalysis | None = None
+        self._portfolio: Portfolio | None = None
         self._parse_cache: dict[ParseKey, tuple[RoIRecord, list[Finding]]] = {}
         self._row_index: dict[str, dict[int, RawRow]] = {}
         self.snapshot("Imported", user=user)
@@ -199,6 +200,7 @@ class Workspace:
     def _invalidate(self) -> None:
         self._derived = None
         self._analysis = None
+        self._portfolio = None
         self._row_index = {}
 
     @property
@@ -222,8 +224,37 @@ class Workspace:
 
     @property
     def portfolio(self) -> Portfolio:
-        """Art. 30 compliance of every arrangement (recomputed: assessments change often)."""
-        return evaluate(self.register, self.contracts)
+        """Art. 30 compliance of every arrangement (cached until the register or the
+        assessments change – :meth:`programme_changed`)."""
+        with self.lock:
+            if self._portfolio is None:
+                self._portfolio = evaluate(self.register, self.contracts)
+            return self._portfolio
+
+    def replace_programme(self, contracts: AssessmentBook | None = None,
+                          incidents: IncidentLog | None = None) -> None:
+        """Replace the programme data wholesale (sample loading, opening a project)."""
+        with self.lock:
+            if contracts is not None:
+                self.contracts = contracts
+            if incidents is not None:
+                self.incidents = incidents
+            self._portfolio = None
+
+    def programme_changed(self, kind: str, subject: str, summary: str,
+                          user: str = DEFAULT_USER) -> None:
+        """Record a change of the DORA programme data in the audit trail and autosave.
+
+        ``kind`` is ``"art30"`` (contract assessments) or ``"incident"`` (incident log);
+        ``subject`` the arrangement reference or incident id. Callers hold :attr:`lock`
+        while mutating :attr:`contracts` / :attr:`incidents`.
+        """
+        area = {"art30": "Art. 30", "incident": "Incidents"}.get(kind, kind)
+        with self.lock:
+            self.changes.append(Change(kind, area, 0, subject[:200] or None, None, None,
+                                       user=user, note=summary[:500]))
+            self._portfolio = None
+            self._changed()
 
     # ------------------------------------------------------------------ access
 

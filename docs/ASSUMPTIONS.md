@@ -119,6 +119,7 @@ the authors' knowledge of Regulation (EU) 2022/2554 and **all items below are op
 | A-A30-04 | Inheritance of an overarching arrangement's assessment by its subsequent arrangements (D-049) is a practical convention, not a regulatory rule; competent authorities may expect each arrangement to be documented. |
 | A-A30-05 | Priorities and target dates (D-050) are a methodology choice; DORA sets no remediation deadlines for contracts that pre-date its application. |
 | A-A30-06 | Standard contractual clauses under Art. 30(4) are not assessed. |
+| A-A30-07 | Time-bound exceptions (D-071) are an internal governance instrument; DORA provides no exemption from Art. 30. Alternative assurance (pooled audits, certifications) is a contractual option of Art. 30(3)(e)(ii), not an exception. |
 
 ## Major ICT-related incident classification
 

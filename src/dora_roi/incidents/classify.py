@@ -355,3 +355,39 @@ def recurring_groups(log: IncidentLog, now: datetime,
             classify_answers(combined, th)))
     groups.sort(key=lambda g: (not g.major, g.window_start))
     return groups
+
+
+@dataclass(frozen=True)
+class RecurrenceCandidate:
+    """Non-major incidents that *may* share a root cause but have no common recurrence key."""
+
+    provider_code: str
+    root_cause: str
+    incidents: tuple[str, ...]
+
+
+def possible_recurrences(log: IncidentLog, now: datetime,
+                         th: Thresholds = DEFAULT_THRESHOLDS) -> list[RecurrenceCandidate]:
+    """Same provider and root-cause category within the recurrence window, not yet grouped
+    under one recurrence key – a prompt to check, not a classification (P-12)."""
+    pool = [i for i in log.incidents.values()
+            if i.root_cause is not None and not classify(i, now, th).major]
+    seen: set[tuple[str, ...]] = set()
+    out: list[RecurrenceCandidate] = []
+    by_key: dict[tuple[str, str], list[Incident]] = {}
+    for inc in pool:
+        for code in inc.provider_codes:
+            by_key.setdefault((code, inc.root_cause.value if inc.root_cause else ""),
+                              []).append(inc)
+    for (code, cause), items in sorted(by_key.items()):
+        items.sort(key=lambda i: i.start)
+        for idx, first in enumerate(items):
+            end = add_months(first.start, th.recurrence_months)
+            window = [i for i in items[idx:] if i.start <= end]
+            keys = {i.recurrence_key.strip().casefold() for i in window}
+            ids = tuple(i.id for i in window)
+            if len(window) >= 2 and (len(keys) > 1 or keys == {""}) and ids not in seen:
+                seen.add(ids)
+                out.append(RecurrenceCandidate(code, cause, ids))
+                break
+    return out

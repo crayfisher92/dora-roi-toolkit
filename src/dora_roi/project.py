@@ -28,7 +28,11 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
+
 from dora_roi import __version__
+from dora_roi.contracts.model import AssessmentBook
+from dora_roi.incidents.model import IncidentLog
 from dora_roi.io.limits import max_uncompressed_bytes
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
 from dora_roi.validation import Finding
@@ -53,6 +57,7 @@ CREATE TABLE versions (number INTEGER PRIMARY KEY, label TEXT NOT NULL,
                        warnings INTEGER NOT NULL, created TEXT NOT NULL, user TEXT NOT NULL);
 CREATE TABLE acceptances (key TEXT PRIMARY KEY, rule_id TEXT NOT NULL, reason TEXT NOT NULL,
                           user TEXT NOT NULL, at TEXT NOT NULL);
+CREATE TABLE programme (key TEXT PRIMARY KEY, data TEXT NOT NULL);
 """
 _TABLES = {"meta", "tables_", "rows_", "import_findings", "changes", "versions",
            "acceptances"}
@@ -153,6 +158,10 @@ def _write(con: sqlite3.Connection, ws: Workspace) -> None:
     con.executemany("INSERT INTO acceptances VALUES (?, ?, ?, ?, ?)", (
         (a.key, a.rule_id, a.reason, a.user, a.at.isoformat())
         for a in ws.acceptances.values()))
+    # DORA programme data (Art. 30 assessments, incident log) as their own JSON formats;
+    # an optional table, so files stay readable by toolkit versions without it (D-068)
+    con.executemany("INSERT INTO programme VALUES (?, ?)", (
+        ("contracts", ws.contracts.to_json()), ("incidents", ws.incidents.to_json())))
 
 
 # --------------------------------------------------------------------------- load
@@ -232,8 +241,21 @@ def _read(con: sqlite3.Connection, meta: dict[str, str]) -> Workspace:
         key: Acceptance(key, rule_id, reason, user, datetime.fromisoformat(at))
         for key, rule_id, reason, user, at in
         con.execute("SELECT key, rule_id, reason, user, at FROM acceptances")}
+    if "programme" in _tables(con):
+        docs = dict(con.execute("SELECT key, data FROM programme").fetchall())
+        try:
+            ws.replace_programme(
+                AssessmentBook.from_json(docs["contracts"]) if "contracts" in docs else None,
+                IncidentLog.from_json(docs["incidents"]) if "incidents" in docs else None)
+        except (ValueError, ValidationError) as exc:
+            raise ProjectError(f"invalid programme data: {str(exc)[:200]}") from exc
     ws._invalidate()  # acceptances changed after the initial derivation
     return ws
+
+
+def _tables(con: sqlite3.Connection) -> set[str]:
+    return {name for (name,) in con.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")}
 
 
 # --------------------------------------------------------------------------- directory

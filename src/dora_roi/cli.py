@@ -375,6 +375,22 @@ def check_package(reference: Path, ours: Path | None, output: Path | None) -> No
     sys.exit(EXIT_FINDINGS if result.failures else 0)
 
 
+def _write_report(html: str, output: Path) -> None:
+    """Write an HTML report, or a PDF when ``output`` ends in ``.pdf`` (WeasyPrint)."""
+    if output.suffix.lower() != ".pdf":
+        _write(html, output)
+        return
+    from dora_roi.reporting.pdf import PdfUnavailableError, html_to_pdf
+
+    try:
+        data = html_to_pdf(html)
+    except PdfUnavailableError as exc:
+        raise click.ClickException(str(exc)) from exc
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_bytes(data)
+    click.echo(f"Wrote {output}", err=True)
+
+
 # =========================================================================== contracts
 
 lang_opt = click.option("--lang", type=click.Choice(["en", "de"]), default="en",
@@ -425,7 +441,7 @@ def _assessments(path: Path) -> tuple[object, list[str]]:
               type=click.Path(exists=True, dir_okay=False, path_type=Path),
               help="Assessments (.json or .xlsx assessment workbook).")
 @click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path),
-              help="Write the remediation plan (.html, .xlsx or .json).")
+              help="Write the remediation plan (.html, .pdf, .xlsx or .json).")
 @click.option("--client", "client_name", help="Client name shown in the plan.")
 @click.option("--prepared-by", help="Author shown in the plan.")
 @click.option("--plan-date", type=click.DateTime(["%Y-%m-%d"]), default=None,
@@ -456,8 +472,8 @@ def contracts_assess(input_path: Path, assessments_path: Path, output: Path | No
                f"compliant: {counts['compliant']} · with gaps: {counts['gaps']} · "
                f"incomplete: {counts['incomplete']}", err=True)
     click.echo(f"Remediation actions: {len(plan.items)} (high {pc['high']}, medium "
-               f"{pc['medium']}, low {pc['low']}); orphan assessments: {len(pf.orphans)}",
-               err=True)
+               f"{pc['medium']}, low {pc['low']}); {len(plan.exceptions)} approved "
+               f"exception(s); orphan assessments: {len(pf.orphans)}", err=True)
     if output is None:
         for i in plan.items[:20]:
             click.echo(f"{i.priority.value:6} {i.contract_ref:14} {i.provision.id:11} "
@@ -481,10 +497,15 @@ def contracts_assess(input_path: Path, assessments_path: Path, output: Path | No
                          "clause_ref": i.clause_ref, "evidence": i.evidence,
                          "target_date": i.target_date.isoformat(),
                          "applies_to": list(i.applies_to)} for i in plan.items],
+            "exceptions": [{"contract_ref": e.contract_ref, "provision": e.provision.id,
+                            "status": e.status.value, "reason": e.reason,
+                            "approver": e.approver,
+                            "until": e.until.isoformat() if e.until else None}
+                           for e in plan.exceptions],
         }, indent=2, ensure_ascii=False), output)
     else:
-        _write(render_plan_html(plan, lang=lang, client=client_name, prepared_by=prepared_by),
-               output)
+        _write_report(render_plan_html(plan, lang=lang, client=client_name,
+                                       prepared_by=prepared_by), output)
     if fail_on_gaps and pc["high"]:
         sys.exit(EXIT_FINDINGS)
 
@@ -600,7 +621,7 @@ def incidents_criteria(lang: str) -> None:
 @click.option("--register", "register_path", type=click.Path(path_type=Path),
               help="Register to resolve providers, arrangements and functions.")
 @click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path),
-              help="Write the summary (.html, .json or .md); default: text to stdout.")
+              help="Write the summary (.html, .pdf, .json or .md); default: text to stdout.")
 @click.option("--client", "client_name", help="Client name shown in the HTML summary.")
 @click.option("--fail-on-overdue", is_flag=True,
               help="Exit with status 1 if a reporting deadline is overdue.")
@@ -638,8 +659,8 @@ def incidents_summary(log_path: Path, register_path: Path | None, output: Path |
     elif output.suffix.lower() == ".md":
         _write(summary_markdown(ov, lang), output)
     else:
-        _write(render_summary_html(ov, lang=lang, client=client_name, timezone=log.timezone),
-               output)
+        _write_report(render_summary_html(ov, lang=lang, client=client_name,
+                                          timezone=log.timezone), output)
     counts = ov.counts()
     click.echo(f"{counts['total']} incident(s): {counts['major']} major, "
                f"{counts['undetermined']} undetermined, {counts['overdue']} overdue report(s), "
@@ -717,7 +738,7 @@ def finma(input_path: Path, assessments_path: Path | None, incidents_path: Path 
 @main.command()
 @input_arg
 @click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path), required=True,
-              help="Output HTML file (print-friendly; save as PDF from the browser).")
+              help="Output file: .html (print-friendly) or .pdf (needs the 'pdf' extra).")
 @click.option("--assessments", "assessments_path",
               type=click.Path(exists=True, dir_okay=False, path_type=Path),
               help="Art. 30 assessments (.json or .xlsx).")
@@ -763,9 +784,9 @@ def readiness(input_path: Path, output: Path, assessments_path: Path | None,
         portfolio=portfolio, plan=remediation_plan(portfolio, now.date()),
         incidents=overview(log, reg, now),
         finma=None if no_finma else evaluate_finma(reg, portfolio, log, now),
-        lang=lang, now=now)
-    _write(render_readiness_html(view, lang=lang, client=client_name, prepared_by=prepared_by),
-           output)
+        lang=lang, now=now, register=reg)
+    _write_report(render_readiness_html(view, lang=lang, client=client_name,
+                                        prepared_by=prepared_by), output)
     if json_path is not None:
         _write(json.dumps({
             "schema": "dora-roi-toolkit/readiness/v1", "generated_at": now.isoformat(),

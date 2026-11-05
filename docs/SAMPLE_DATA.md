@@ -73,7 +73,7 @@ The default (non-clean) dataset contains the following deliberate defects; a tes
 | `AR-LU-0016` | Alpenrand Services AG | 30(2)+(3) | gaps | 30.2.h partial |
 | `CO-AT-0003` | Nimbus Cloud Services EMEA Ltd | 30(2)+(3) | gaps | inherited from MSA-DE-0001 |
 | `CO-LU-0002` | Nimbus Cloud Services EMEA Ltd | 30(2)+(3) | gaps | inherited from MSA-DE-0001 |
-| `MSA-DE-0001` | Nimbus Cloud Services EMEA Ltd | 30(2)+(3) | gaps | 30.3.d partial; 30.3.e.i partial; 30.3.f.i partial |
+| `MSA-DE-0001` | Nimbus Cloud Services EMEA Ltd | 30(2)+(3) | gaps | 30.3.d partial; 30.3.f.i partial |
 | `AR-AT-0048` | Fundcalc Administration Services S.A. | 30(2)+(3) | incomplete | — |
 | `AR-DE-0030` | CardStream Processing S.A. | 30(2)+(3) | compliant | — |
 | `AR-DE-0039` | TreasuryOne SaaS GmbH | 30(2)+(3) | compliant | — |

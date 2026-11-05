@@ -19,6 +19,7 @@
 
 <p class="row"><a class="btn primary" href="/w/{{ ws.id }}/incidents/new">+ {{ t("inc.ui.new") }}</a>
   <a class="btn" href="/w/{{ ws.id }}/incidents/summary.html" target="_blank" rel="noopener">{{ t("inc.ui.summary") }} (HTML)</a>
+  {% if pdf %}<a class="btn" href="/w/{{ ws.id }}/incidents/summary.pdf">{{ t("inc.ui.summary") }} (PDF)</a>{% endif %}
   <a class="btn" href="/w/{{ ws.id }}/incidents/summary.json">{{ t("inc.ui.summary") }} (JSON)</a>
   <a class="btn" href="/w/{{ ws.id }}/incidents/log.json">{{ t("inc.ui.log") }} (JSON)</a></p>
 
@@ -58,6 +59,13 @@
 </section>
 {% endif %}
 
+{% if ov.candidates %}
+<section class="card" aria-labelledby="h-cand"><h3 id="h-cand">{{ t("inc.ui.candidates") }}</h3>
+  <p class="small muted">{{ t("inc.ui.candidates_lead") }}</p>
+  <ul class="plain small">{% for c in ov.candidates %}<li>{% for i in c.incidents %}<a class="mono" href="/w/{{ ws.id }}/incidents/{{ i }}">{{ i }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+    – {{ provider_names.get(c.provider_code, c.provider_code) }} · {{ t("inc.rc." ~ c.root_cause) }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
 <div class="grid two">
 <section class="card" aria-labelledby="h-import"><h3 id="h-import">{{ t("inc.ui.import") }}</h3>
   <form method="post" action="/w/{{ ws.id }}/incidents/import" enctype="multipart/form-data" class="row upload-row">

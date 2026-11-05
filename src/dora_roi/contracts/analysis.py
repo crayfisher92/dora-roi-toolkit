@@ -30,7 +30,12 @@ from datetime import date, timedelta
 from decimal import Decimal
 from enum import StrEnum
 
-from dora_roi.contracts.model import AssessmentBook, ContractAssessment, ProvisionStatus
+from dora_roi.contracts.model import (
+    AssessmentBook,
+    ContractAssessment,
+    ProvisionAssessment,
+    ProvisionStatus,
+)
 from dora_roi.contracts.provisions import PROVISIONS, Provision, applicable
 from dora_roi.model import ContractType, RegisterOfInformation
 from dora_roi.model.types import INDEFINITE_END_DATE
@@ -39,13 +44,16 @@ from dora_roi.model.types import INDEFINITE_END_DATE
 class ComplianceStatus(StrEnum):
     COMPLIANT = "compliant"
     GAPS = "gaps"
+    #: Every gap is covered by an approved, unexpired exception (D-071) – not compliant.
+    EXCEPTION = "exception"
     INCOMPLETE = "incomplete"
     NOT_ASSESSED = "not_assessed"
 
     @property
     def rank(self) -> int:
         """Lower is worse (for sorting)."""
-        return {"gaps": 0, "incomplete": 1, "not_assessed": 2, "compliant": 3}[self.value]
+        return {"gaps": 0, "incomplete": 1, "not_assessed": 2, "exception": 3,
+                "compliant": 4}[self.value]
 
 
 class Priority(StrEnum):
@@ -163,10 +171,23 @@ class EffectiveItem:
     #: Arrangement reference the item was inherited from (overarching arrangement), if any.
     inherited_from: str | None = None
     suggested_status: ProvisionStatus | None = None
+    exception_reason: str = ""
+    exception_approver: str = ""
+    exception_until: date | None = None
+    #: True when the gap is covered by an exception that has not expired on the as-of date.
+    excepted: bool = False
 
     @property
     def is_gap(self) -> bool:
         return self.status in (ProvisionStatus.MISSING, ProvisionStatus.PARTIAL)
+
+    @property
+    def is_open_gap(self) -> bool:
+        return self.is_gap and not self.excepted
+
+    @property
+    def exception_expired(self) -> bool:
+        return self.is_gap and bool(self.exception_reason) and not self.excepted
 
 
 @dataclass
@@ -202,7 +223,12 @@ class ContractCompliance:
 
     @property
     def gaps(self) -> list[EffectiveItem]:
-        return [i for i in self.items if i.is_gap]
+        """Open gaps (missing/partial without a valid exception)."""
+        return [i for i in self.items if i.is_open_gap]
+
+    @property
+    def exceptions(self) -> list[EffectiveItem]:
+        return [i for i in self.items if i.excepted]
 
     @property
     def assessed(self) -> bool:
@@ -218,14 +244,26 @@ def _status_of(items: list[EffectiveItem]) -> ComplianceStatus:
     statuses = {i.status for i in items}
     if statuses <= {ProvisionStatus.NOT_ASSESSED}:
         return ComplianceStatus.NOT_ASSESSED
-    if statuses & {ProvisionStatus.MISSING, ProvisionStatus.PARTIAL}:
+    if any(i.is_open_gap for i in items):
         return ComplianceStatus.GAPS
     if ProvisionStatus.NOT_ASSESSED in statuses:
         return ComplianceStatus.INCOMPLETE
+    if any(i.excepted for i in items):
+        return ComplianceStatus.EXCEPTION
     return ComplianceStatus.COMPLIANT
 
 
-def evaluate_contract(ctx: ContractContext, book: AssessmentBook) -> ContractCompliance:
+def _effective(p: Provision, a: ProvisionAssessment, on: date, inherited: str | None = None
+               ) -> EffectiveItem:
+    return EffectiveItem(p, a.status, a.clause_ref, a.evidence, inherited,
+                         a.suggested_status if inherited is None else None,
+                         a.exception_reason, a.exception_approver, a.exception_until,
+                         a.exception_valid(on))
+
+
+def evaluate_contract(ctx: ContractContext, book: AssessmentBook,
+                      as_of: date | None = None) -> ContractCompliance:
+    on = as_of or date.today()
     own = book.get(ctx.contract_ref)
     parent_ref = ctx.overarching_ref if ctx.contract_type is ContractType.SUBSEQUENT else None
     parent = book.get(parent_ref) if parent_ref and (own is None or own.inherit) else None
@@ -234,14 +272,12 @@ def evaluate_contract(ctx: ContractContext, book: AssessmentBook) -> ContractCom
     for p in applicable(ctx.critical):
         mine = own.items.get(p.id) if own else None
         if mine is not None and mine.status is not ProvisionStatus.NOT_ASSESSED:
-            items.append(EffectiveItem(p, mine.status, mine.clause_ref, mine.evidence,
-                                       suggested_status=mine.suggested_status))
+            items.append(_effective(p, mine, on))
             continue
         theirs = parent.items.get(p.id) if parent else None
         if theirs is not None and theirs.status is not ProvisionStatus.NOT_ASSESSED:
             inherited_any = True
-            items.append(EffectiveItem(p, theirs.status, theirs.clause_ref, theirs.evidence,
-                                       inherited_from=parent_ref))
+            items.append(_effective(p, theirs, on, parent_ref))
             continue
         items.append(EffectiveItem(p, ProvisionStatus.NOT_ASSESSED,
                                    mine.clause_ref if mine else "",
@@ -317,10 +353,12 @@ class Portfolio:
         return sum(1 for c in crit if c.assessed) / len(crit) if crit else 1.0
 
 
-def evaluate(register: RegisterOfInformation, book: AssessmentBook) -> Portfolio:
-    """Evaluate every arrangement of the register against its assessment."""
+def evaluate(register: RegisterOfInformation, book: AssessmentBook,
+             as_of: date | None = None) -> Portfolio:
+    """Evaluate every arrangement of the register against its assessment; exceptions are
+    valid if they have not expired on ``as_of`` (default: today)."""
     contexts = contract_contexts(register)
-    contracts = [evaluate_contract(ctx, book) for ctx in contexts.values()]
+    contracts = [evaluate_contract(ctx, book, as_of) for ctx in contexts.values()]
     providers: dict[str, ProviderCompliance] = {}
     for c in contracts:
         for code, name in c.context.providers.items():
@@ -369,12 +407,27 @@ class RemediationItem:
         return self.provision.remediation(lang)
 
 
+@dataclass(frozen=True)
+class ExceptionItem:
+    contract_ref: str
+    providers: str
+    critical: bool
+    provision: Provision
+    status: ProvisionStatus
+    reason: str
+    approver: str
+    until: date | None
+    inherited_from: str | None
+
+
 @dataclass
 class RemediationPlan:
     plan_date: date
     items: list[RemediationItem]
     to_assess: list[ContractCompliance]
     portfolio: Portfolio
+    #: Approved exceptions, earliest expiry first (inherited ones only at the master).
+    exceptions: list[ExceptionItem] = field(default_factory=list)
 
     def counts(self) -> dict[str, int]:
         out = {p.value: 0 for p in Priority}
@@ -437,7 +490,12 @@ def remediation_plan(portfolio: Portfolio, plan_date: date | None = None) -> Rem
     to_assess = [c for c in portfolio.contracts
                  if c.status in (ComplianceStatus.NOT_ASSESSED, ComplianceStatus.INCOMPLETE)]
     to_assess.sort(key=lambda c: (not c.context.critical, c.status.rank, c.ref))
-    return RemediationPlan(today, items, to_assess, portfolio)
+    exceptions = [ExceptionItem(c.ref, c.context.provider_names, c.context.critical,
+                                it.provision, it.status, it.exception_reason,
+                                it.exception_approver, it.exception_until, it.inherited_from)
+                  for c in portfolio.contracts for it in c.exceptions if not it.inherited_from]
+    exceptions.sort(key=lambda e: (e.until or date.max, e.contract_ref))
+    return RemediationPlan(today, items, to_assess, portfolio, exceptions)
 
 
 def gaps_by_provision(portfolio: Portfolio) -> list[tuple[Provision, int, int]]:

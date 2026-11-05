@@ -68,6 +68,13 @@ def write_plan_workbook(plan: RemediationPlan, path: Path, *, lang: str = "en",
                    p.with_gaps, p.missing, p.partial, t(f"cs.{p.status.value}")]
                   for p in plan.portfolio.providers],
                  (36, 14, 12, 12, 12, 10, 10, 22))
+        wb.sheet("Ausnahmen" if de else "Exceptions",
+                 [t("g.provider"), t("g.contract"), t("c30.provision"), "Art.", t("g.status"),
+                  t("c30.ui.ex.reason"), t("c30.ui.ex.approver"), t("c30.ui.ex.until")],
+                 [[e.providers, e.contract_ref, e.provision.title(lang), e.provision.article,
+                   t(f"st.{e.status.value}"), e.reason, e.approver, e.until]
+                  for e in plan.exceptions],
+                 (30, 16, 40, 18, 11, 60, 24, 14))
         wb.sheet("Zu bewerten" if de else "To assess",
                  [t("g.contract"), t("g.provider"), t("g.critical"), t("g.status"),
                   t("c30.critical_functions")],

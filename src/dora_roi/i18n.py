@@ -65,6 +65,37 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "cs.gaps": "Gaps",
         "cs.incomplete": "Assessment incomplete",
         "cs.not_assessed": "Not assessed",
+        "cs.exception": "Gaps under exception",
+        "c30.exceptions": "Approved exceptions",
+        "c30.exceptions.lead": "Gaps for which a time-bound exception was approved (e.g. "
+                               "compensating controls until the next renewal). They are not "
+                               "compliant and are not in the action list until they expire – "
+                               "review them before the end date.",
+        "c30.hint.title": "Register and contract disagree",
+        "c30.hint.notice": "The register reports notice periods ({entity} / {provider} days) "
+                           "but the termination clause is assessed as missing or partial – "
+                           "where do the periods come from?",
+        "c30.hint.locations": "The register reports service and data locations ({countries}) "
+                              "but the contract specifies none – they are not contractually "
+                              "secured.",
+        "c30.hint.subcontractors": "The supply chain (B_05.02) lists {n} subcontractor(s) "
+                                   "({names}), but the contract sets no or incomplete "
+                                   "subcontracting conditions.",
+        "c30.hint.exit_plan": "B_07.01 reports an exit plan, but the contract has no transition "
+                              "period – the plan relies on a provider that is not obliged to "
+                              "support the exit.",
+        "c30.hint.no_audit": "The contract grants audit rights, but no audit is recorded in "
+                             "B_07.01 c0070.",
+        "c30.ui.ex.title": "Approve a time-bound exception",
+        "c30.ui.ex.help": "DORA's contract provisions are mandatory: an exception does not make "
+                          "the clause present. It documents a decision to accept the gap until a "
+                          "date (e.g. compensating controls, renegotiation at renewal). Reason "
+                          "and end date are required.",
+        "c30.ui.ex.reason": "Reason and compensating controls",
+        "c30.ui.ex.approver": "Approved by",
+        "c30.ui.ex.until": "Valid until",
+        "c30.ui.ex.active": "Exception until {until}",
+        "c30.ui.ex.expired": "Exception expired {until}",
         "c30.contracts_total": "Arrangements in the register",
         "c30.assessed": "Assessed",
         "c30.critical_assessed": "of arrangements supporting critical functions assessed",
@@ -100,6 +131,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.orphans": "Assessments of arrangements that are not in the register",
         # ---------------------------------------------------------------- Art. 30 screens
         "nav.programme": "DORA programme",
+        "audit.kind.art30": "Art. 30 contract assessment",
+        "audit.kind.incident": "Incident log",
         "c30.ui.lead": "Assess each contractual arrangement of the register against the key "
                        "contractual provisions of DORA Art. 30. Arrangements supporting critical "
                        "or important functions are listed first; the plan prioritises gaps by "
@@ -339,6 +372,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.f.recurrence_key": "Same apparent root cause as …",
         "inc.ui.f.authority_reference": "Reference of the competent authority",
         "inc.ui.f.form": "the form",
+        "inc.ui.f.submitted_at": "the submission time (not before awareness or the previous "
+                                 "report)",
         "inc.ui.h.occurred_at": "If known; otherwise the duration starts at awareness.",
         "inc.ui.h.detected_at": "Starts the 24-hour limit for the initial notification.",
         "inc.ui.h.classified_at": "Set automatically when the incident is first classified as "
@@ -354,9 +389,15 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.hint_states": "Countries of the affected entities and their branches: {states}.",
         "inc.ui.save_classify": "Save and classify",
         "inc.ui.form_error": "Please check {field}.",
+        "inc.ui.chronology": "Times must follow each other: occurred ≤ aware ≤ classified, "
+                             "start ≤ resolved.",
         "inc.ui.delete": "Delete incident",
         "inc.ui.delete_confirm": "The incident and its history are removed from this workspace.",
         "inc.ui.provider_section": "Incidents involving this provider",
+        "inc.ui.candidates": "Possible recurring incidents",
+        "inc.ui.candidates_lead": "Same provider and root-cause category within six months but "
+                                  "no common 'same apparent root cause' key. Check whether they "
+                                  "share a root cause; if so, give them the same key.",
         "inc.ev.created": "Created",
         "inc.ev.updated": "Updated",
         "inc.ev.classified": "Classification",
@@ -416,6 +457,28 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.fin.counts": "FINMA requirements: {full} covered, {partial} partly, {none} not "
                          "covered by this dataset.",
         "rd.act.fix": "Fix {n} blocking validation error(s) in the register.",
+        "rd.c30.exceptions": "{n} gap(s) under an approved, time-bound exception.",
+        "rd.c30.notice": "{n} notice deadline(s) of critical arrangements within 90 days or "
+                         "passed.",
+        "rd.act.c30_renegotiate": "Renegotiate {n} arrangement(s) with Art. 30 gaps before "
+                                  "their notice deadline ({refs}).",
+        "rd.act.c30_notice": "Decide on {n} critical arrangement(s) whose notice deadline is "
+                             "within 90 days or has passed.",
+        "rd.act.c30_expiring": "Renew {n} expiring arrangement(s) supporting critical functions "
+                               "on DORA-compliant terms.",
+        "rd.act.c30_exc_expiring": "Review {n} contract exception(s) expiring within 90 days.",
+        "rd.conc.multi": "{n} provider group(s) support {k} or more critical functions "
+                         "(incl. subcontracting).",
+        "rd.conc.third": "{share} of spend with groups headquartered outside the EEA and "
+                         "Switzerland.",
+        "rd.act.conc_multi": "Assess substitution and exit for the {n} provider group(s) "
+                             "supporting {k}+ critical functions ({names}).",
+        "rd.act.conc_top": "{group} accounts for {share} of ICT spend – assess the "
+                           "concentration (Art. 29).",
+        "rd.act.conc_single": "Document alternatives for {n} critical function(s) relying on a "
+                              "single, hard-to-substitute provider.",
+        "rd.act.conc_exit": "Document exit plans for {n} ICT service(s) supporting critical "
+                            "functions (Art. 28(8)).",
         "rd.act.review": "Review {n} validation warning(s).",
         "rd.act.c30_high": "Close {n} high-priority contract gap(s) – {providers}.",
         "rd.act.c30_assess": "Assess {n} arrangement(s) supporting critical functions against "
@@ -433,10 +496,14 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.section.method": "Method, sources and caveats",
         "rd.method": "Traffic lights – register: red with more than 10 validation errors, amber "
                      "with 1–10; contracts: red with high-priority gaps or fewer than half of "
-                     "the critical arrangements assessed, amber with any gap or assessment "
-                     "outstanding; incidents: red with an overdue report or a recurring series "
-                     "meeting the major criteria, amber with pending reports or undetermined "
-                     "classifications; concentration: red/amber with high/medium key messages. "
+                     "the critical arrangements assessed, amber with any gap, exception or "
+                     "assessment outstanding; incidents: red with an overdue report or a "
+                     "recurring series meeting the major criteria, amber with pending reports "
+                     "or undetermined classifications; concentration: red when one group has "
+                     "≥ 25 % of spend, groups support ≥ 5 critical functions, a critical "
+                     "function depends on a single hard-to-substitute provider or exit plans "
+                     "cover < 90 %; amber for moderate HHI, single providers, incomplete exit "
+                     "plans, ≥ 20 % third-country spend or hidden concentration. "
                      "The overall status is the worst of these four; FINMA coverage is "
                      "informational. Sources: the register as reported, the Art. 30 contract "
                      "assessments and the incident log maintained in the toolkit.",
@@ -444,6 +511,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.key_messages": "Key messages",
         "rd.at": "as of {date}",
         "rd.col.template": "Template",
+        "rd.band.unconcentrated": "unconcentrated",
+        "rd.band.moderately_concentrated": "moderately concentrated",
+        "rd.band.highly_concentrated": "highly concentrated",
+        "rd.band.n/a": "n/a",
         "rd.col.errors": "Errors",
         "rd.col.warnings": "Warnings",
         "fin.name": "Switzerland (FINMA)",
@@ -547,6 +618,38 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "cs.gaps": "Lücken",
         "cs.incomplete": "Bewertung unvollständig",
         "cs.not_assessed": "Nicht bewertet",
+        "cs.exception": "Lücken mit Ausnahme",
+        "c30.exceptions": "Genehmigte Ausnahmen",
+        "c30.exceptions.lead": "Lücken, für die eine befristete Ausnahme genehmigt wurde (z. B. "
+                               "kompensierende Kontrollen bis zur nächsten Verlängerung). Sie sind "
+                               "nicht konform und stehen bis zum Ablauf nicht in der "
+                               "Maßnahmenliste – vor dem Enddatum überprüfen.",
+        "c30.hint.title": "Register und Vertrag widersprechen sich",
+        "c30.hint.notice": "Das Register meldet Kündigungsfristen ({entity} / {provider} Tage), "
+                           "die Kündigungsklausel ist aber als fehlend oder teilweise bewertet – "
+                           "woher stammen die Fristen?",
+        "c30.hint.locations": "Das Register meldet Leistungs- und Datenstandorte ({countries}), "
+                              "der Vertrag legt aber keine fest – sie sind vertraglich nicht "
+                              "gesichert.",
+        "c30.hint.subcontractors": "Die Lieferkette (B_05.02) nennt {n} Unterauftragnehmer "
+                                   "({names}), der Vertrag regelt die Unterauftragsvergabe aber "
+                                   "nicht oder unvollständig.",
+        "c30.hint.exit_plan": "B_07.01 meldet einen Exit-Plan, der Vertrag sieht aber keinen "
+                              "Übergangszeitraum vor – der Plan stützt sich auf einen "
+                              "Dienstleister, der zur Unterstützung nicht verpflichtet ist.",
+        "c30.hint.no_audit": "Der Vertrag gewährt Prüfungsrechte, in B_07.01 c0070 ist aber "
+                             "keine Prüfung erfasst.",
+        "c30.ui.ex.title": "Befristete Ausnahme genehmigen",
+        "c30.ui.ex.help": "Die Vertragsbestimmungen nach DORA sind verpflichtend: Eine Ausnahme "
+                          "macht die Klausel nicht vorhanden. Sie dokumentiert die Entscheidung, "
+                          "die Lücke bis zu einem Datum hinzunehmen (z. B. kompensierende "
+                          "Kontrollen, Nachverhandlung bei Verlängerung). Begründung und Enddatum "
+                          "sind erforderlich.",
+        "c30.ui.ex.reason": "Begründung und kompensierende Kontrollen",
+        "c30.ui.ex.approver": "Genehmigt von",
+        "c30.ui.ex.until": "Gültig bis",
+        "c30.ui.ex.active": "Ausnahme bis {until}",
+        "c30.ui.ex.expired": "Ausnahme abgelaufen am {until}",
         "c30.contracts_total": "Vereinbarungen im Register",
         "c30.assessed": "Bewertet",
         "c30.critical_assessed": "der Vereinbarungen für kritische Funktionen bewertet",
@@ -580,6 +683,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
                       "– bei früherer Vertragsverlängerung daran ausrichten.",
         "c30.orphans": "Bewertungen von Vereinbarungen, die nicht im Register stehen",
         "nav.programme": "DORA-Programm",
+        "audit.kind.art30": "Vertragsbewertung nach Art. 30",
+        "audit.kind.incident": "Vorfallverzeichnis",
         "c30.ui.lead": "Bewerten Sie jede vertragliche Vereinbarung des Registers gegen die "
                        "wesentlichen Vertragsbestimmungen nach DORA Art. 30. Vereinbarungen für "
                        "kritische oder wichtige Funktionen stehen zuerst; der Plan priorisiert "
@@ -833,6 +938,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.f.recurrence_key": "Gleiche offensichtliche Ursache wie …",
         "inc.ui.f.authority_reference": "Aktenzeichen der zuständigen Behörde",
         "inc.ui.f.form": "das Formular",
+        "inc.ui.f.submitted_at": "den Übermittlungszeitpunkt (nicht vor der Kenntnisnahme oder "
+                                 "der vorherigen Meldung)",
         "inc.ui.h.occurred_at": "Falls bekannt; sonst beginnt die Dauer mit der Kenntnisnahme.",
         "inc.ui.h.detected_at": "Startet die 24-Stunden-Frist für die Erstmeldung.",
         "inc.ui.h.classified_at": "Wird bei der ersten Einstufung als schwerwiegend "
@@ -850,9 +957,16 @@ CATALOGUE: dict[str, dict[str, str]] = {
                               "{states}.",
         "inc.ui.save_classify": "Speichern und klassifizieren",
         "inc.ui.form_error": "Bitte prüfen Sie {field}.",
+        "inc.ui.chronology": "Zeitpunkte müssen aufeinander folgen: eingetreten ≤ Kenntnis ≤ "
+                             "klassifiziert, Beginn ≤ behoben.",
         "inc.ui.delete": "Vorfall löschen",
         "inc.ui.delete_confirm": "Vorfall und Verlauf werden aus diesem Arbeitsbereich entfernt.",
         "inc.ui.provider_section": "Vorfälle mit diesem Dienstleister",
+        "inc.ui.candidates": "Mögliche wiederkehrende Vorfälle",
+        "inc.ui.candidates_lead": "Gleicher Dienstleister und gleiche Ursachenkategorie innerhalb "
+                                  "von sechs Monaten, aber kein gemeinsamer Schlüssel „gleiche "
+                                  "offensichtliche Ursache“. Prüfen Sie, ob die Ursache dieselbe "
+                                  "ist; falls ja, vergeben Sie denselben Schlüssel.",
         "inc.ev.created": "Angelegt",
         "inc.ev.updated": "Geändert",
         "inc.ev.classified": "Klassifizierung",
@@ -916,6 +1030,27 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.fin.counts": "FINMA-Anforderungen: {full} abgedeckt, {partial} teilweise, {none} "
                          "nicht durch diesen Datenbestand abgedeckt.",
         "rd.act.fix": "{n} blockierende Validierungsfehler im Register beheben.",
+        "rd.c30.exceptions": "{n} Lücke(n) mit genehmigter, befristeter Ausnahme.",
+        "rd.c30.notice": "{n} Kündigungsfrist(en) kritischer Vereinbarungen innerhalb von 90 "
+                         "Tagen oder verstrichen.",
+        "rd.act.c30_renegotiate": "{n} Vereinbarung(en) mit Art.-30-Lücken vor Ablauf der "
+                                  "Kündigungsfrist nachverhandeln ({refs}).",
+        "rd.act.c30_notice": "Über {n} kritische Vereinbarung(en) entscheiden, deren "
+                             "Kündigungsfrist in 90 Tagen abläuft oder verstrichen ist.",
+        "rd.act.c30_expiring": "{n} auslaufende Vereinbarung(en) für kritische Funktionen zu "
+                               "DORA-konformen Bedingungen verlängern.",
+        "rd.act.c30_exc_expiring": "{n} Vertragsausnahme(n) prüfen, die in 90 Tagen ablaufen.",
+        "rd.conc.multi": "{n} Dienstleistergruppe(n) unterstützen {k} oder mehr kritische "
+                         "Funktionen (inkl. Unterauftragsvergabe).",
+        "rd.conc.third": "{share} der Kosten bei Gruppen mit Sitz ausserhalb von EWR und Schweiz.",
+        "rd.act.conc_multi": "Ersetzbarkeit und Ausstieg für die {n} Dienstleistergruppe(n) mit "
+                             "{k}+ kritischen Funktionen bewerten ({names}).",
+        "rd.act.conc_top": "{group} vereint {share} der IKT-Kosten – Konzentration bewerten "
+                           "(Art. 29).",
+        "rd.act.conc_single": "Alternativen für {n} kritische Funktion(en) mit nur einem, schwer "
+                              "ersetzbaren Dienstleister dokumentieren.",
+        "rd.act.conc_exit": "Exit-Pläne für {n} IKT-Dienstleistung(en) kritischer Funktionen "
+                            "dokumentieren (Art. 28 Abs. 8).",
         "rd.act.review": "{n} Validierungswarnung(en) prüfen.",
         "rd.act.c30_high": "{n} Vertragslücke(n) mit hoher Priorität schließen – {providers}.",
         "rd.act.c30_assess": "{n} Vereinbarung(en) für kritische Funktionen nach Art. 30 "
@@ -946,6 +1081,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.key_messages": "Kernaussagen",
         "rd.at": "Stand {date}",
         "rd.col.template": "Vorlage",
+        "rd.band.unconcentrated": "nicht konzentriert",
+        "rd.band.moderately_concentrated": "mäßig konzentriert",
+        "rd.band.highly_concentrated": "stark konzentriert",
+        "rd.band.n/a": "k. A.",
         "rd.col.errors": "Fehler",
         "rd.col.warnings": "Warnungen",
         "fin.name": "Schweiz (FINMA)",

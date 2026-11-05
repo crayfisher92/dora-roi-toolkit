@@ -510,8 +510,9 @@ def test_plan_html_and_workbook(tmp_path: Path) -> None:
     assert 'lang="de"' in de and "Maßnahmenplan" in de and "05.11.2025" in de
     path = write_plan_workbook(plan, tmp_path / "plan.xlsx", lang="de", client="Alpenrand")
     wb = load_workbook(path)
-    assert wb.sheetnames == ["Maßnahmenplan", "Nach Dienstleister", "Zu bewerten", "Checkliste",
-                             "README"]
+    assert wb.sheetnames == ["Maßnahmenplan", "Nach Dienstleister", "Ausnahmen", "Zu bewerten",
+                             "Checkliste", "README"]
+    assert wb["Ausnahmen"].max_row == 2  # the sample's Nimbus audit-rights exception
     assert wb["Maßnahmenplan"].max_row == len(plan.items) + 1
     en = load_workbook(write_plan_workbook(plan, tmp_path / "en.xlsx"))
     assert en.sheetnames[0] == "Remediation plan"
@@ -533,7 +534,8 @@ def test_cli_contracts(tmp_path: Path) -> None:
     assert r.exit_code == 0 and (tmp_path / "a.xlsx").exists()
     r = runner.invoke(main, ["contracts", "assess", str(reg), "--assessments",
                              str(tmp_path / "a.json")])
-    assert r.exit_code == 0 and "Remediation actions: 35" in r.output and "more" in r.output
+    assert r.exit_code == 0 and "Remediation actions: 34" in r.output and "more" in r.output
+    assert "1 approved exception(s)" in r.output
     for name in ("plan.html", "plan.xlsx", "plan.json"):
         r = runner.invoke(main, ["contracts", "assess", str(reg), "--assessments",
                                  str(tmp_path / "a.xlsx"), "-o", str(tmp_path / name),
@@ -541,6 +543,7 @@ def test_cli_contracts(tmp_path: Path) -> None:
         assert r.exit_code == 0, r.output
     data = json.loads((tmp_path / "plan.json").read_text())
     assert data["counts"]["high"] == 18 and data["plan_date"] == "2025-11-05"
+    assert data["exceptions"][0]["provision"] == "30.3.e.i"
     r = runner.invoke(main, ["contracts", "assess", str(reg), "--assessments",
                              str(tmp_path / "a.json"), "--fail-on-gaps"])
     assert r.exit_code == 1

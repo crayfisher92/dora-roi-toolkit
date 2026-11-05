@@ -26,6 +26,12 @@
 </details>
 {% endif %}
 
+{% if hints %}
+<section class="card hints" aria-labelledby="h-hints">
+  <h3 id="h-hints">{{ t("c30.hint.title") }}</h3>
+  <ul class="plain small">{% for h in hints %}<li><span class="mono">{{ h.provision_id }}</span> – {{ t("c30.hint." ~ h.key, **h.params) }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
 <section class="card" aria-labelledby="h-doc">
   <h3 id="h-doc">{{ t("c30.ui.suggest_title") }}</h3>
   <p class="small muted">{{ t("c30.ui.suggest_text") }}{% if not pdf %} {{ t("c30.ui.no_pdf") }}{% endif %}</p>
@@ -81,6 +87,19 @@
       <div class="field"><label for="cl-{{ pid }}">{{ t("c30.clause") }}</label><input id="cl-{{ pid }}" name="cl-{{ p.id }}" value="{{ own.clause_ref }}" maxlength="200" placeholder="{{ t('c30.ui.clause_placeholder') }}"></div>
       <div class="field"><label for="ev-{{ pid }}">{{ t("c30.evidence") }}</label><textarea id="ev-{{ pid }}" name="ev-{{ p.id }}" rows="2" maxlength="4000">{{ own.evidence }}</textarea></div>
     </div>
+    {% if it.excepted %}<p class="small exception-note">{{ pill("exception", t("c30.ui.ex.active", until=it.exception_until)) }} {{ it.exception_reason }}{% if it.exception_approver %} – {{ it.exception_approver }}{% endif %}{% if it.inherited_from %} ({{ t("c30.inherited", ref=it.inherited_from) }}){% endif %}</p>
+    {% elif it.exception_expired %}<p class="small exception-note">{{ pill("missing", t("c30.ui.ex.expired", until=it.exception_until)) }} {{ it.exception_reason }}</p>{% endif %}
+    {% if own.status.value in ("missing", "partial") or own.exception_reason %}
+    <details class="exception-box" {% if own.exception_reason %}open{% endif %}>
+      <summary>{{ t("c30.ui.ex.title") }}</summary>
+      <p class="small muted">{{ t("c30.ui.ex.help") }}</p>
+      <div class="provision-fields exception-fields">
+        <div class="field"><label for="exu-{{ pid }}">{{ t("c30.ui.ex.until") }}</label><input id="exu-{{ pid }}" name="exu-{{ p.id }}" type="date" value="{{ own.exception_until or '' }}"></div>
+        <div class="field"><label for="exa-{{ pid }}">{{ t("c30.ui.ex.approver") }}</label><input id="exa-{{ pid }}" name="exa-{{ p.id }}" value="{{ own.exception_approver }}" maxlength="200"></div>
+        <div class="field full"><label for="exr-{{ pid }}">{{ t("c30.ui.ex.reason") }}</label><textarea id="exr-{{ pid }}" name="exr-{{ p.id }}" rows="2" maxlength="1000">{{ own.exception_reason }}</textarea></div>
+      </div>
+    </details>
+    {% endif %}
   </fieldset>
   {% endfor %}
   {% endif %}

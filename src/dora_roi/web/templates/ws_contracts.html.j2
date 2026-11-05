@@ -25,7 +25,8 @@
     <h3 id="h-plan">{{ t("c30.plan.title") }}</h3>
     <p class="muted small">{{ t("c30.ui.plan_text") }}</p>
     <div class="row"><a class="btn primary" href="/w/{{ ws.id }}/contracts/plan.html" target="_blank" rel="noopener">HTML</a>
-      <a class="btn" href="/w/{{ ws.id }}/contracts/plan.xlsx">Excel</a></div>
+      <a class="btn" href="/w/{{ ws.id }}/contracts/plan.xlsx">Excel</a>
+      {% if pdf %}<a class="btn" href="/w/{{ ws.id }}/contracts/plan.pdf">PDF</a>{% endif %}</div>
   </section>
   <section class="card entry-card" aria-labelledby="h-exp">
     <h3 id="h-exp">{{ t("c30.ui.assessments") }}</h3>

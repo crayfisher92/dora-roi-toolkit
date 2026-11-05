@@ -80,6 +80,18 @@
 </section>
 </div>
 
+{% if plan.exceptions %}
+<h2 id="h-exc">{{ t("c30.exceptions") }}</h2>
+<p class="section-lead">{{ t("c30.exceptions.lead") }}</p>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-exc"><table>
+  <thead><tr><th scope="col">{{ t("g.provider") }} · {{ t("g.contract") }}</th><th scope="col">{{ t("c30.provision") }}</th>
+    <th scope="col">{{ t("c30.ui.ex.reason") }}</th><th scope="col">{{ t("c30.ui.ex.approver") }}</th><th scope="col">{{ t("c30.ui.ex.until") }}</th></tr></thead>
+  <tbody>{% for e in plan.exceptions %}<tr><td><strong>{{ e.providers }}</strong><br><span class="mono">{{ e.contract_ref }}</span></td>
+    <td><span class="mono small">{{ e.provision.article }}</span><br>{{ e.provision.title(lang) }} <span class="pill {{ e.status.value }}">{{ t("st." ~ e.status.value) }}</span></td>
+    <td>{{ e.reason }}</td><td>{{ e.approver or "—" }}</td><td class="num">{{ fmt(e.until) }}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endif %}
+
 <h2 id="to-assess">{{ t("c30.to_assess") }}</h2>
 <p class="section-lead">{{ t("c30.to_assess.lead") }}</p>
 {% if plan.to_assess %}

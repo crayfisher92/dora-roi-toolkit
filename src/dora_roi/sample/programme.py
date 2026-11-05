@@ -11,5 +11,4 @@ from dora_roi.workspace import Workspace
 
 def load_sample_programme(ws: Workspace, now: datetime | None = None) -> None:
     """Fill ``ws`` with the Alpenrand sample assessments and incidents."""
-    ws.contracts = sample_assessments(ws.register)
-    ws.incidents = sample_incidents(ws.register, now)
+    ws.replace_programme(sample_assessments(ws.register), sample_incidents(ws.register, now))

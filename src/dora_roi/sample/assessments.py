@@ -189,6 +189,15 @@ def sample_assessments(register: RegisterOfInformation | None = None) -> Assessm
             elif p.scope is Scope.ALL or ref not in _NON_CRITICAL:
                 clause, evidence = _DEFAULT_CLAUSES[p.id]
                 a.set(p.id, P, clause, evidence)
+        if ref == "MSA-DE-0001":  # hyperscaler audit rights: approved, time-bound exception
+            item = a.items["30.3.e.i"]
+            a.items["30.3.e.i"] = item.model_copy(update={
+                "exception_reason": "Pooled audit through the financial-services customer "
+                                    "consortium and annual SOC 2 Type II report as compensating "
+                                    "controls; full on-site rights to be renegotiated at the "
+                                    "2027 renewal.",
+                "exception_approver": "Head of ICT Third-Party Risk (sample)",
+                "exception_until": date(2027, 6, 30)})
         if ref == SAMPLE_CONTRACT_REF:  # reviewed keyword suggestions (audit trail)
             suggested = suggest(SAMPLE_CONTRACT_TEXT).by_id()
             for pid, item in a.items.items():

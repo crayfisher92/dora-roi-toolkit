@@ -8,7 +8,14 @@ from typing import Any
 
 from dora_roi import __version__
 from dora_roi.i18n import translator
-from dora_roi.incidents.classify import Classification, RecurringGroup, classify, recurring_groups
+from dora_roi.incidents.classify import (
+    Classification,
+    RecurrenceCandidate,
+    RecurringGroup,
+    classify,
+    possible_recurrences,
+    recurring_groups,
+)
 from dora_roi.incidents.criteria import COUNTED, DEFAULT_THRESHOLDS, Criterion, Thresholds, criteria
 from dora_roi.incidents.deadlines import Deadline, DeadlineState, humanise, next_deadline, timeline
 from dora_roi.incidents.model import Incident, IncidentLog, IncidentStatus, zone
@@ -97,6 +104,7 @@ class IncidentOverview:
     views: list[IncidentView]
     recurring: list[RecurringGroup]
     now: datetime
+    candidates: list[RecurrenceCandidate] = field(default_factory=list)
 
     def counts(self) -> dict[str, int]:
         return {
@@ -123,7 +131,8 @@ class IncidentOverview:
 def overview(log: IncidentLog, register: RegisterOfInformation | None, now: datetime,
              th: Thresholds = DEFAULT_THRESHOLDS) -> IncidentOverview:
     views = [incident_view(i, register, now, th) for i in log.ordered()]
-    return IncidentOverview(views, recurring_groups(log, now, th), now)
+    return IncidentOverview(views, recurring_groups(log, now, th), now,
+                            possible_recurrences(log, now, th))
 
 
 # =========================================================================== exports

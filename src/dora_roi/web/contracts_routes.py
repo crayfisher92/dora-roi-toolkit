@@ -29,6 +29,7 @@ from dora_roi.contracts.analysis import (
     gaps_by_provision,
     remediation_plan,
 )
+from dora_roi.contracts.consistency import consistency_hints
 from dora_roi.contracts.extract import ExtractionError, extract_text, pdf_supported
 from dora_roi.contracts.model import (
     AssessmentBook,
@@ -40,6 +41,7 @@ from dora_roi.contracts.model import (
 from dora_roi.contracts.provisions import PROVISIONS, Scope, applicable
 from dora_roi.contracts.report import render_plan_html, write_plan_workbook
 from dora_roi.contracts.suggest import SuggestionResult, apply_suggestions, suggest
+from dora_roi.reporting.pdf import pdf_available as pdf_available_
 from dora_roi.sample.contract_docs import (
     SAMPLE_CONTRACT_NAME,
     SAMPLE_CONTRACT_REF,
@@ -47,11 +49,11 @@ from dora_roi.sample.contract_docs import (
     docx_bytes,
 )
 from dora_roi.web.context import XLSX, Ui, download, form_text, stem
-from dora_roi.workspace import Workspace
+from dora_roi.workspace import DEFAULT_USER, Workspace
 
 DOC_SUFFIXES = {".pdf", ".docx", ".txt", ".md"}
 ASSESSMENT_SUFFIXES = {".json", ".xlsx", ".xlsm"}
-STATUS_FILTERS = ("all", "gaps", "not_assessed", "incomplete", "compliant")
+STATUS_FILTERS = ("all", "gaps", "not_assessed", "incomplete", "exception", "compliant")
 
 
 def contract_url(wid: str, ref: str) -> str:
@@ -79,7 +81,8 @@ def register(app: FastAPI, ui: Ui) -> None:
         return ui.ws_page(request, ws, "ws_contracts.html.j2", "programme", pf=pf, rows=rows,
                           status_filter=status, critical=critical, q=q, plan=_plan(ws),
                           by_provision=gaps_by_provision(pf), filters=STATUS_FILTERS,
-                          imported=imported, problems=problems, contract_url=contract_url)
+                          imported=imported, problems=problems, contract_url=contract_url,
+                          pdf=pdf_available_())
 
     @app.get("/w/{wid}/contracts/checklist", response_class=HTMLResponse)
     def checklist(request: Request, wid: str) -> HTMLResponse:
@@ -92,6 +95,15 @@ def register(app: FastAPI, ui: Ui) -> None:
         ws = ui.ws_or_404(wid)
         return HTMLResponse(render_plan_html(_plan(ws), lang=ui.lang_of(request),
                                              client=ws.report.maintainer_name or ws.name))
+
+    @app.get("/w/{wid}/contracts/plan.pdf")
+    def plan_pdf(request: Request, wid: str) -> Response:
+        from dora_roi.web.programme_routes import pdf_response
+
+        ws = ui.ws_or_404(wid)
+        html = render_plan_html(_plan(ws), lang=ui.lang_of(request),
+                                client=ws.report.maintainer_name or ws.name)
+        return pdf_response(html, f"{stem(ws)}-art30-remediation-plan.pdf")
 
     @app.get("/w/{wid}/contracts/plan.xlsx")
     def plan_xlsx(request: Request, wid: str) -> Response:
@@ -140,7 +152,10 @@ def register(app: FastAPI, ui: Ui) -> None:
         except (ValueError, ValidationError, KeyError, OSError, zipfile.BadZipFile) as exc:
             raise HTTPException(status_code=400,
                                 detail=t("err.read", name=name, error=str(exc)[:300])) from exc
-        n = ws.contracts.merge(book)
+        with ws.lock:
+            n = ws.contracts.merge(book)
+            ws.programme_changed("art30", name[:200], f"Imported {n} assessment(s)",
+                                 ui.user_of(request))
         return RedirectResponse(f"/w/{wid}/contracts?imported={n}&problems={len(problems)}",
                                 status_code=303)
 
@@ -174,6 +189,7 @@ def register(app: FastAPI, ui: Ui) -> None:
             document=document, callofs=callofs, b0201=b0201, statuses=list(ProvisionStatus),
             pdf=pdf_supported(), sample_doc=ref == SAMPLE_CONTRACT_REF and ws.kind == "sample",
             action_url=contract_url(ws.id, ref), contract_url=contract_url, error=error,
+            hints=consistency_hints(ws.register, compliance),
             provider_codes=set(ws.register.providers_by_code()))
 
     @app.get("/w/{wid}/contract/{ref:path}", response_class=HTMLResponse)
@@ -188,8 +204,11 @@ def register(app: FastAPI, ui: Ui) -> None:
         t = ui.t(request)
         if ref not in contract_contexts(ws.register) and ws.contracts.get(ref) is None:
             raise HTTPException(status_code=404)
+        user = ui.user_of(request)
         if action == "delete":
-            ws.contracts.remove(ref)
+            with ws.lock:
+                ws.contracts.remove(ref)
+                ws.programme_changed("art30", ref, "Assessment deleted", user)
             return RedirectResponse(f"/w/{wid}/contracts", status_code=303)
         if action in ("suggest", "sample"):
             return await _suggest(request, ws, ref, file, action == "sample")
@@ -197,7 +216,11 @@ def register(app: FastAPI, ui: Ui) -> None:
         assessment = _from_form(ref, form)
         if assessment is None:
             return assessment_page(request, ws, ref, error=t("c30.ui.invalid"), status=400)
-        ws.contracts.save(assessment, by=assessment.assessor)
+        if not assessment.assessor and user != DEFAULT_USER:
+            assessment = assessment.model_copy(update={"assessor": user})
+        with ws.lock:
+            stored = ws.contracts.save(assessment, by=user)
+            ws.programme_changed("art30", ref, stored.history[-1].summary, user)
         return RedirectResponse(contract_url(wid, ref) + "?saved=1", status_code=303)
 
     async def _suggest(request: Request, ws: Workspace, ref: str, file: UploadFile | None,
@@ -244,9 +267,18 @@ def _from_form(ref: str, form: Any) -> ContractAssessment | None:
             if not raw and not form_text(form, f"ev-{p.id}") and not form_text(form, f"cl-{p.id}"):
                 continue
             sug = form_text(form, f"sg-{p.id}")
-            a.set(p.id, ProvisionStatus.parse(raw), form_text(form, f"cl-{p.id}", 200),
+            status = ProvisionStatus.parse(raw)
+            reason = form_text(form, f"exr-{p.id}", 1000)
+            until_raw = form_text(form, f"exu-{p.id}")
+            until = date.fromisoformat(until_raw) if until_raw else None
+            if reason and (until is None or status not in (ProvisionStatus.MISSING,
+                                                           ProvisionStatus.PARTIAL)):
+                raise ValueError("an exception needs a gap and an end date")
+            a.set(p.id, status, form_text(form, f"cl-{p.id}", 200),
                   form_text(form, f"ev-{p.id}"),
-                  suggested=ProvisionStatus.parse(sug) if sug else None)
+                  suggested=ProvisionStatus.parse(sug) if sug else None,
+                  exception=(reason, form_text(form, f"exa-{p.id}", 200), until)
+                  if reason else None)
     except (ValueError, ValidationError):
         return None
     return a

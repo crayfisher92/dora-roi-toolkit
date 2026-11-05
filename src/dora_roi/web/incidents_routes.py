@@ -36,6 +36,7 @@ from dora_roi.incidents.report import (
     summary_dict,
 )
 from dora_roi.model.refdata import EEA_COUNTRIES, country_name
+from dora_roi.reporting.pdf import pdf_available
 from dora_roi.web.context import Ui, download, form_text, stem
 from dora_roi.workspace import Workspace
 
@@ -127,6 +128,15 @@ def incident_from_form(form: Any, log: IncidentLog, incident_id: str,
         values = form.getlist(name) if hasattr(form, "getlist") else []
         return [v.strip()[:200] for v in values if isinstance(v, str) and v.strip()]
 
+    probe = {"occurred_at": times["occurred_at"], "classified_at": times["classified_at"],
+             "resolved_at": times["resolved_at"]}
+    start = times["occurred_at"] or times["detected_at"]
+    if probe["occurred_at"] and probe["occurred_at"] > times["detected_at"]:
+        raise FormError("occurred_at")
+    if probe["classified_at"] and probe["classified_at"] < times["detected_at"]:
+        raise FormError("classified_at")
+    if probe["resolved_at"] and probe["resolved_at"] < start:
+        raise FormError("resolved_at")
     try:
         return Incident(
             id=incident_id, title=title, description=form_text(form, "description"),
@@ -171,14 +181,20 @@ def register(app: FastAPI, ui: Ui) -> None:
         ws = ui.ws_or_404(wid)
         ov = overview(ws.incidents, ws.register, _now())
         return ui.ws_page(request, ws, "ws_incidents.html.j2", "programme", ov=ov,
-                          imported=imported, timezones=TIMEZONES, **page_ctx(request, ws))
+                          imported=imported, timezones=TIMEZONES, pdf=pdf_available(),
+                          provider_names={c: p.legal_name or c for c, p in
+                                          ws.register.providers_by_code().items()},
+                          **page_ctx(request, ws))
 
     @app.post("/w/{wid}/incidents/settings")
     async def settings(request: Request, wid: str) -> Response:
         ws = ui.ws_or_404(wid)
         tz = form_text(await request.form(), "timezone")
-        if tz in TIMEZONES:
-            ws.incidents.timezone = tz
+        if tz in TIMEZONES and tz != ws.incidents.timezone:
+            with ws.lock:
+                ws.incidents.timezone = tz
+                ws.programme_changed("incident", "settings", f"Time zone {tz}",
+                                     ui.user_of(request))
         return RedirectResponse(f"/w/{wid}/incidents", status_code=303)
 
     @app.get("/w/{wid}/incidents/summary.html", response_class=HTMLResponse)
@@ -188,6 +204,17 @@ def register(app: FastAPI, ui: Ui) -> None:
         return HTMLResponse(render_summary_html(ov, lang=ui.lang_of(request),
                                                 client=ws.report.maintainer_name or ws.name,
                                                 timezone=ws.incidents.timezone))
+
+    @app.get("/w/{wid}/incidents/summary.pdf")
+    def summary_pdf(request: Request, wid: str) -> Response:
+        from dora_roi.web.programme_routes import pdf_response
+
+        ws = ui.ws_or_404(wid)
+        ov = overview(ws.incidents, ws.register, _now())
+        html = render_summary_html(ov, lang=ui.lang_of(request),
+                                   client=ws.report.maintainer_name or ws.name,
+                                   timezone=ws.incidents.timezone)
+        return pdf_response(html, f"{stem(ws)}-incident-summary.pdf")
 
     @app.get("/w/{wid}/incidents/summary.json")
     def summary_json(wid: str) -> JSONResponse:
@@ -217,7 +244,10 @@ def register(app: FastAPI, ui: Ui) -> None:
         except (ValueError, ValidationError) as exc:
             raise HTTPException(status_code=400,
                                 detail=t("err.read", name=name, error=str(exc)[:300])) from exc
-        n = ws.incidents.merge(other)
+        with ws.lock:
+            n = ws.incidents.merge(other)
+            ws.programme_changed("incident", name[:200], f"Imported {n} incident(s)",
+                                 ui.user_of(request))
         return RedirectResponse(f"/w/{wid}/incidents?imported={n}", status_code=303)
 
     # ------------------------------------------------------------------ one incident
@@ -234,7 +264,8 @@ def register(app: FastAPI, ui: Ui) -> None:
         t = ui.t(request)
         error = None
         if error_field:
-            label = (t("inc.ui.f." + error_field) if error_field in (*TIME_FIELDS, "title", "form")
+            label = (t("inc.ui.f." + error_field)
+                     if error_field in (*TIME_FIELDS, "title", "form", "submitted_at")
                      else t("inc.q." + error_field))
             error = t("inc.ui.form_error", field=label)
         return ui.ws_page(
@@ -266,7 +297,7 @@ def register(app: FastAPI, ui: Ui) -> None:
             draft = Incident(id=new_id, title=form_text(form, "title", 200) or "-",
                              detected_at=_now())
             return form_page(request, ws, draft, True, exc.field, 400)
-        _save(ws, incident, None, form_text(form, "by", 200))
+        _save(ws, incident, None, ui.user_of(request))
         return RedirectResponse(f"/w/{wid}/incidents/{new_id}?saved=1", status_code=303)
 
     @app.get("/w/{wid}/incidents/{iid}", response_class=HTMLResponse)
@@ -285,10 +316,12 @@ def register(app: FastAPI, ui: Ui) -> None:
             raise HTTPException(status_code=404)
         form = await request.form()
         action = form_text(form, "action") or "save"
-        by = form_text(form, "by", 200)
+        by = ui.user_of(request)
         target = f"/w/{wid}/incidents/{iid}"
         if action == "delete":
-            ws.incidents.remove(iid)
+            with ws.lock:
+                ws.incidents.remove(iid)
+                ws.programme_changed("incident", iid, "Incident deleted", by)
             return RedirectResponse(f"/w/{wid}/incidents", status_code=303)
         if action == "report":
             kind = form_text(form, "kind")
@@ -297,11 +330,15 @@ def register(app: FastAPI, ui: Ui) -> None:
             try:
                 when = _parse_time(form_text(form, "submitted_at"), ws.incidents,
                                    "submitted_at") or _now()
-            except FormError as exc:
-                raise HTTPException(status_code=400, detail="submitted_at") from exc
-            ws.incidents.save(old.model_copy(update={f"{kind}_submitted_at": when}),
-                              f"report_{kind}", by=by,
-                              note=form_text(form, "authority_reference", 120))
+                updated = Incident.model_validate(
+                    old.model_dump() | {f"{kind}_submitted_at": when})
+            except (FormError, ValidationError):
+                return form_page(request, ws, old, False, "submitted_at", 400)
+            with ws.lock:
+                ws.incidents.save(updated, f"report_{kind}", by=by,
+                                  note=form_text(form, "authority_reference", 120))
+                ws.programme_changed("incident", iid, f"{kind} report submitted "
+                                     f"{when:%Y-%m-%d %H:%M} UTC", by)
             return RedirectResponse(target + "?saved=1", status_code=303)
         if action in ("resolve", "close", "reopen"):
             update: dict[str, Any] = {"status": {"resolve": IncidentStatus.RESOLVED,
@@ -309,9 +346,10 @@ def register(app: FastAPI, ui: Ui) -> None:
                                                  "reopen": IncidentStatus.OPEN}[action]}
             if action == "resolve" and old.resolved_at is None:
                 update["resolved_at"] = _now()
-            ws.incidents.save(old.model_copy(update=update),
-                              {"resolve": "resolved", "close": "closed",
-                               "reopen": "reopened"}[action], by=by)
+            event = {"resolve": "resolved", "close": "closed", "reopen": "reopened"}[action]
+            with ws.lock:
+                ws.incidents.save(old.model_copy(update=update), event, by=by)
+                ws.programme_changed("incident", iid, event, by)
             return RedirectResponse(target + "?saved=1", status_code=303)
         try:
             incident = incident_from_form(form, ws.incidents, iid, old)
@@ -324,12 +362,16 @@ def register(app: FastAPI, ui: Ui) -> None:
 def _save(ws: Workspace, incident: Incident, old: Incident | None, by: str) -> None:
     """Save and record classification changes; timestamp the first major classification."""
     now = _now()
-    before = classify(old, now).outcome if old else None
-    result = classify(incident, now)
-    if result.major and incident.classified_at is None:
-        incident = incident.model_copy(update={"classified_at": now})
-    stored = ws.incidents.save(incident, "created" if old is None else "updated", by=by,
-                               at=now)
-    if result.outcome is not before:
-        ws.incidents.save(stored, "classified", by=by, at=now,
-                          note=f"{before.value if before else '—'} → {result.outcome.value}")
+    with ws.lock:
+        before = classify(old, now).outcome if old else None
+        result = classify(incident, now)
+        if result.major and incident.classified_at is None:
+            incident = incident.model_copy(update={"classified_at": now})
+        action = "created" if old is None else "updated"
+        stored = ws.incidents.save(incident, action, by=by, at=now)
+        summary = action
+        if result.outcome is not before:
+            note = f"{before.value if before else '—'} → {result.outcome.value}"
+            ws.incidents.save(stored, "classified", by=by, at=now, note=note)
+            summary += f"; classification {note}"
+        ws.programme_changed("incident", incident.id, summary, by)

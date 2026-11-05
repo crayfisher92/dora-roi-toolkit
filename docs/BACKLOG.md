@@ -57,3 +57,28 @@ cross-origin POST, open redirect, oversized/bomb archives, formula injection, ru
 direct vs indirect dependency figures in app/report/key messages, diff noise) found **no
 remaining High or Medium items**. Open Low items: B-16 (findings export to spreadsheet),
 B-17 (validator messages EN only), B-26 (screenshots, scheduled with the release).
+
+---
+
+# DORA programme modules (branch `contracts-incidents`)
+
+Review of the Art. 30 contract gap analysis, incident classification, FINMA mapping and
+readiness dashboard, with the same two perspectives and severity scale as above, after
+merging the hardening work of the base branch. IDs `P-xx`.
+
+## Programme cycle 1
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| P-01 | High | SE | **Programme data is not saved in project files.** Art. 30 assessments and the incident log are lost when a workspace is saved as `.roiproj` and reopened (and on every autosave restart). | `save_project` → `load_project` of the sample: 13 assessments / 5 incidents → 0 / 0. | ✅ optional `programme` table in `.roiproj` (D-068); round-trip, legacy-file and tamper tests |
+| P-02 | High | SE | **Assessment and incident changes do not trigger autosave and are missing from the audit trail.** Only register edits call `on_change` and append a `Change`. | `ws.contracts.save(...)` → 0 `on_change` calls; audit CSV has no programme entries. | ✅ `Workspace.programme_changed` → audit trail (kinds `art30`/`incident`) + autosave; shown on the audit page and in the CSV (D-069) |
+| P-03 | Medium | SE | **Programme mutations are not serialised** by the workspace lock introduced in B-09; two concurrent saves of the same assessment can interleave history entries. | Code inspection (`contracts_routes`, `incidents_routes`). | ✅ all programme mutations under `ws.lock`; 8-thread test |
+| P-04 | Medium | SE | **Art. 30 portfolio recomputed several times per request**: ~1.2 s each on a 10 000-contract register (contracts page: twice; overview: readiness + FINMA). | Timing with `sample.large.generate_large()`. | ✅ portfolio cached on the workspace, invalidated on edits/programme changes (D-070) |
+| P-05 | Medium | SE | **Incident timestamps are not validated.** Occurrence after awareness, classification before awareness or resolution before the start are accepted and silently produce wrong durations and deadlines. | Incident with classified_at = detected − 1 d → initial notification due in the past; duration 0 h. | ✅ chronology validator on `Incident`; field-specific form errors; report submissions checked |
+| P-06 | Medium | TPR | **No risk acceptance for contract gaps.** Hyperscalers rarely grant unrestricted audit rights; banks accept the residual risk with compensating controls. Such gaps stay open forever and keep the contracts pillar red. | No field or action for it; base B-12 only covers validation findings. | ✅ time-bound exceptions (reason, approver, end date) – status *Gaps under exception*, *Approved exceptions* in plan/Excel, expiry → open gap (D-071) |
+| P-07 | Medium | TPR | **Concentration pillar is red because of contract expiries and notice deadlines** (contract lifecycle, not concentration), and its actions are the English key-message titles even in the German report. | Sample: concentration red from "5 arrangements expire …" / "2 notice deadlines …"; DE report shows English text. | ✅ concentration light from concentration metrics; expiries, notice deadlines and "renegotiate before notice deadline" in the contracts pillar; translated actions (D-072) |
+| P-08 | Medium | TPR | **Readiness report has no PDF, and its print layout breaks in WeasyPrint** (pills stretch across the page, one card per row → 8 pages), although the base now produces PDFs for the other reports. | `html_to_pdf(render_readiness_html(...))`, page images. | ✅ PDF downloads/CLI `.pdf` via WeasyPrint; print CSS without `min()` grid tracks and inline flex (6 instead of 8 pages) |
+| P-09 | Low | SE | Programme reports (plan, incident summary, readiness) are served with the app CSP instead of the stricter report CSP. | Response header of `/contracts/plan.html`. | ✅ report CSP for plan, incident summary and readiness report |
+| P-10 | Low | TPR | Suggestion snippets cross clause boundaries (an audit match in clause 12 shows the end of clause 11). | Screenshot 12-assessment. | ✅ snippet clipped to the matched clause |
+| P-11 | Low | TPR | No consistency hints between register and assessment (e.g. notice periods reported in B_02.02 while the termination clause is assessed missing; exit plan = true but no exit clause). | Inspection. | ✅ consistency hints on the assessment page (notice periods, locations, subcontractors, exit plan, audit date) |
+| P-12 | Low | TPR | Possible recurring incidents without a recurrence key are not pointed out (same provider and root-cause category within six months). | Inspection. | ✅ *Possible recurring incidents* (same provider and root-cause category within 6 months, no common key) |

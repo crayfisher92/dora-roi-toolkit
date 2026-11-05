@@ -16,7 +16,7 @@ from decimal import Decimal
 from enum import StrEnum
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from dora_roi import __version__
 
@@ -142,6 +142,13 @@ class Incident(BaseModel):
             value = value.replace(tzinfo=UTC)
         return value.astimezone(UTC)
 
+    @model_validator(mode="after")
+    def _chronology(self) -> Incident:
+        problem = timeline_problem(self)
+        if problem is not None:
+            raise ValueError(f"{problem}: timestamps out of order")
+        return self
+
     @property
     def start(self) -> datetime:
         """Start of the incident for the duration (occurrence, else awareness)."""
@@ -159,6 +166,28 @@ class Incident(BaseModel):
         return {ReportKind.INITIAL: self.initial_submitted_at,
                 ReportKind.INTERMEDIATE: self.intermediate_submitted_at,
                 ReportKind.FINAL: self.final_submitted_at}[kind]
+
+
+def timeline_problem(incident: Incident) -> str | None:
+    """The first timestamp that contradicts the chronology of an incident, if any.
+
+    occurred ≤ aware ≤ classified; start ≤ resolved; aware ≤ initial ≤ intermediate ≤ final
+    report. Equal times are allowed.
+    """
+    aware = incident.detected_at
+    checks: list[tuple[str, datetime | None, datetime | None]] = [
+        ("occurred_at", incident.occurred_at, aware),
+        ("classified_at", aware, incident.classified_at),
+        ("resolved_at", incident.occurred_at or aware, incident.resolved_at),
+        ("initial_submitted_at", aware, incident.initial_submitted_at),
+        ("intermediate_submitted_at", incident.initial_submitted_at,
+         incident.intermediate_submitted_at),
+        ("final_submitted_at", incident.intermediate_submitted_at, incident.final_submitted_at),
+    ]
+    for name, earlier, later in checks:
+        if earlier is not None and later is not None and later < earlier:
+            return name
+    return None
 
 
 class IncidentLog(BaseModel):

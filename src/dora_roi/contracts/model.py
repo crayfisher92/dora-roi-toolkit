@@ -69,6 +69,17 @@ class ProvisionAssessment(BaseModel):
     evidence: str = Field(default="", max_length=MAX_TEXT)
     #: What the keyword heuristic proposed (kept for the audit trail), if it was used.
     suggested_status: ProvisionStatus | None = None
+    #: Approved, time-bound exception for a missing/partial provision (D-071): why, by whom,
+    #: until when. It does not make the clause present; it takes the gap out of the action
+    #: list until the date passes.
+    exception_reason: str = Field(default="", max_length=1000)
+    exception_approver: str = Field(default="", max_length=200)
+    exception_until: date | None = None
+
+    def exception_valid(self, on: date) -> bool:
+        return (self.status in (ProvisionStatus.MISSING, ProvisionStatus.PARTIAL)
+                and bool(self.exception_reason) and self.exception_until is not None
+                and self.exception_until >= on)
 
     @field_validator("provision_id")
     @classmethod
@@ -108,11 +119,15 @@ class ContractAssessment(BaseModel):
         return self.items.get(provision_id) or ProvisionAssessment(provision_id=provision_id)
 
     def set(self, provision_id: str, status: ProvisionStatus | str, clause_ref: str = "",
-            evidence: str = "", suggested: ProvisionStatus | None = None) -> None:
+            evidence: str = "", suggested: ProvisionStatus | None = None,
+            exception: tuple[str, str, date | None] | None = None) -> None:
+        reason, approver, until = exception or ("", "", None)
         self.items[provision_id] = ProvisionAssessment(
             provision_id=provision_id,
             status=status if isinstance(status, ProvisionStatus) else ProvisionStatus.parse(status),
-            clause_ref=clause_ref.strip(), evidence=evidence.strip(), suggested_status=suggested)
+            clause_ref=clause_ref.strip(), evidence=evidence.strip(), suggested_status=suggested,
+            exception_reason=reason.strip(), exception_approver=approver.strip(),
+            exception_until=until)
 
     def assessed_items(self) -> dict[str, ProvisionAssessment]:
         return {k: v for k, v in self.items.items() if v.status is not ProvisionStatus.NOT_ASSESSED}
@@ -130,6 +145,10 @@ def describe_changes(old: ContractAssessment | None, new: ContractAssessment) ->
             changes.append(f"{pid}: {a.status.value} → {b.status.value}")
         elif (a.clause_ref, a.evidence) != (b.clause_ref, b.evidence):
             changes.append(f"{pid}: evidence updated")
+        if (a.exception_reason, a.exception_until) != (b.exception_reason, b.exception_until):
+            changes.append(f"{pid}: exception until {b.exception_until} approved by "
+                           f"{b.exception_approver or '?'}" if b.exception_reason
+                           else f"{pid}: exception withdrawn")
     for name in ("assessor", "assessed_on", "document", "notes", "inherit"):
         if getattr(old, name) != getattr(new, name):
             changes.append(f"{name} updated")
@@ -191,7 +210,8 @@ class AssessmentBook(BaseModel):
 
 SHEET = "Assessments"
 HEADERS = ("contract_ref", "provision_id", "article", "provision", "status", "clause_ref",
-           "evidence", "assessor", "assessed_on", "document")
+           "evidence", "assessor", "assessed_on", "document", "exception_reason",
+           "exception_approver", "exception_until")
 
 
 def write_assessment_workbook(book: AssessmentBook, path: Path,
@@ -221,9 +241,13 @@ def write_assessment_workbook(book: AssessmentBook, path: Path,
                          item.clause_ref if item else "", item.evidence if item else "",
                          a.assessor if a else "",
                          a.assessed_on.isoformat() if a and a.assessed_on else "",
-                         a.document if a else ""])
+                         a.document if a else "",
+                         item.exception_reason if item else "",
+                         item.exception_approver if item else "",
+                         item.exception_until.isoformat() if item and item.exception_until
+                         else ""])
     with SheetBook(path) as wb:
-        wb.sheet(SHEET, HEADERS, rows, (16, 12, 22, 60, 12, 16, 60, 18, 14, 30),
+        wb.sheet(SHEET, HEADERS, rows, (16, 12, 22, 60, 12, 16, 60, 18, 14, 30, 40, 20, 14),
                  lists={4: ("present", "partial", "missing")}, freeze_cols=2)
         wb.text_sheet("README", (
             "DORA Art. 30 contract assessment workbook",
@@ -232,6 +256,8 @@ def write_assessment_workbook(book: AssessmentBook, path: Path,
             "status: present | partial | missing (empty = not assessed).",
             "clause_ref: where the provision is found in the contract (e.g. 'Clause 14.2').",
             "evidence: short note or quotation supporting the status.",
+            "exception_reason / exception_approver / exception_until (YYYY-MM-DD): an approved, "
+            "time-bound exception for a missing or partial provision.",
             "Re-import with `roi contracts assess REGISTER --assessments THIS_FILE` or in the "
             "workbench (Art. 30 contracts → Import assessments).",
         ))
@@ -297,7 +323,15 @@ def read_assessment_workbook(path: Path) -> tuple[AssessmentBook, list[str]]:
                                        assessed_on=assessed_on,
                                        document=get("document")[:300])
             book.assessments[ref] = found
-        found.set(pid, status, get("clause_ref")[:200], get("evidence")[:MAX_TEXT])
+        until: date | None = None
+        if get("exception_until"):
+            try:
+                until = date.fromisoformat(get("exception_until")[:10])
+            except ValueError:
+                problems.append(f"row {number}: exception_until is not a date (YYYY-MM-DD)")
+        found.set(pid, status, get("clause_ref")[:200], get("evidence")[:MAX_TEXT],
+                  exception=(get("exception_reason")[:1000], get("exception_approver")[:200],
+                             until))
     return book, problems
 
 
