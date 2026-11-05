@@ -231,13 +231,16 @@ def test_workspace_bulk_add_delete(ws: Workspace) -> None:
 
 
 def test_workspace_export_keeps_raw_values(ws: Workspace, tmp_path: Path) -> None:
-    from dora_roi.io.excel import write_workbook
+    from dora_roi.io.excel import read_workbook, write_raw_workbook, write_workbook
     from dora_roi.io.loader import load
 
     ws.edit("B_02.02", 4, "c0120", "UK")
-    path = write_workbook(ws.export_register(), tmp_path / "x.xlsx")
-    loaded = load(path)
-    assert "FLD-005" in {f.rule_id for f in loaded.findings}
+    for path in (write_workbook(ws.export_register(), tmp_path / "x.xlsx"),
+                 write_raw_workbook(ws.raw, tmp_path / "y.xlsx")):
+        loaded = load(path)
+        assert "FLD-005" in {f.rule_id for f in loaded.findings}
+    raw = read_workbook(tmp_path / "y.xlsx")
+    assert any(r.values.get("c0120") == "UK" for r in raw.tables["B_02.02"].rows)
 
 
 def test_sample_workspace_bulk_fix(dirty_ws: Workspace) -> None:

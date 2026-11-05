@@ -66,7 +66,8 @@ def build_graph(register: RegisterOfInformation, *, critical_only: bool = False,
                 focus: str | None = None, with_isolated: bool = False) -> Graph:
     """Build and lay out the dependency graph."""
     providers = register.providers_by_code()
-    critical_refs = {s.contract_ref for s in register.b_02_02 if register.supports_critical(s)}
+    is_critical = register.critical_checker()
+    critical_refs = {s.contract_ref for s in register.b_02_02 if is_critical(s)}
     nodes: dict[str, Node] = {}
 
     def node(code: str) -> Node:

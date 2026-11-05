@@ -53,6 +53,7 @@ def notice_schedule(register: RegisterOfInformation, reference_date: date | None
     ref = reference_date or register.reference_date or date.today()
     providers = register.providers_by_code()
     entities = register.entities_by_lei()
+    is_critical = register.critical_checker()
     items: dict[str, NoticeItem] = {}
     for s in register.b_02_02:
         if not (s.contract_ref and s.end_date) or s.end_date == INDEFINITE_END_DATE:
@@ -79,5 +80,5 @@ def notice_schedule(register: RegisterOfInformation, reference_date: date | None
             item.entities.append(name)
         if s.function_id and s.function_id not in item.functions:
             item.functions.append(s.function_id)
-        item.critical |= register.supports_critical(s)
+        item.critical |= is_critical(s)
     return sorted(items.values(), key=lambda i: (i.deadline, i.contract_ref))

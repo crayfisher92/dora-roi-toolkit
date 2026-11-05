@@ -199,6 +199,18 @@ importers (Excel · CSV · xBRL-CSV) → RawRegister → parser (format checks) 
 
 Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
+## Configuration
+
+| Environment variable | Default | Effect |
+|---|---|---|
+| `ROI_PROJECTS_DIR` | – | Folder for autosaved project files (same as `roi serve --projects`) |
+| `ROI_MAX_UNCOMPRESSED_MB` | `200` | Maximum uncompressed size of an uploaded workbook / zip / project file |
+| `ROI_MAX_ROWS_PER_TABLE` | `100000` | Maximum rows per template on import |
+| `ROI_MAX_STORE_ROWS` | `500000` | Rows the workbench keeps in memory across all workspaces (≈ 2 KB per row); least recently used workspaces are evicted first |
+
+Uploads are limited to 25 MB. A register with 10 000 contracts imports in about 3 seconds
+([`docs/PERFORMANCE.md`](docs/PERFORMANCE.md)).
+
 ## Documentation
 
 | Document | Content |
@@ -212,6 +224,7 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model (STRIDE), security controls and residual risks; disclosure policy in [`SECURITY.md`](SECURITY.md) |
 | [`docs/UX.md`](docs/UX.md) | Personas, jobs to be done, screen flow, accessibility principles |
 | [`docs/DEMO.md`](docs/DEMO.md) | 5-minute client demo with the Alpenrand sample |
+| [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) | Timings for a 10 000-contract register, what was optimised, memory |
 
 ## Known limitations
 

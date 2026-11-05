@@ -1,4 +1,4 @@
-"""Excel workbook import, export and blank template generation (openpyxl).
+"""Excel workbook import, export and blank template generation.
 
 Layout of a generated workbook (``docs/DECISIONS.md`` D-010):
 
@@ -9,24 +9,27 @@ Layout of a generated workbook (``docs/DECISIONS.md`` D-010):
 
 The importer is tolerant: sheet names such as ``b_02.02`` or ``B0202`` are recognised, the
 header row may contain codes *or* labels and may sit anywhere in the first 10 rows.
+
+Workbooks are written with XlsxWriter and read with python-calamine (D-045): both are
+several times faster than openpyxl on registers with tens of thousands of rows. Text is
+always written with ``write_string`` – client-supplied values never become formulas – and
+text starting with a formula trigger additionally gets Excel's quote prefix (CWE-1236).
 """
 
 from __future__ import annotations
 
-from datetime import date
+from collections.abc import Sequence
+from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Alignment, Font, PatternFill
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.worksheet.worksheet import Worksheet
+import xlsxwriter
+from xlsxwriter.utility import xl_col_to_name
+from xlsxwriter.worksheet import Worksheet
 
 from dora_roi import __version__
-from dora_roi.io.limits import check_archive
-from dora_roi.io.raw import RawRegister, RawValue
+from dora_roi.io.raw import RawRegister
 from dora_roi.io.tables import (
     build_table,
     column_hint,
@@ -34,20 +37,18 @@ from dora_roi.io.tables import (
     missing_template_findings,
     template_code_for,
 )
+from dora_roi.io.xlsx_read import iter_sheets
 from dora_roi.model import TEMPLATE_MODELS, CodeEnum, RegisterOfInformation
 from dora_roi.model.codelists import ALL_CODELISTS
 from dora_roi.model.refdata import COUNTRIES, CURRENCIES
 from dora_roi.model.types import Kind, Requirement
 
-HEADER_FILL = PatternFill("solid", fgColor="1C5CAB")
-LABEL_FILL = PatternFill("solid", fgColor="E8EEF7")
-HINT_FILL = PatternFill("solid", fgColor="F3F2EE")
-MANDATORY_FONT = Font(bold=True, color="0B0B0B")
 FIRST_DATA_ROW = 4
 FORMULA_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
 VALIDATION_ROWS = 5000
 CODELIST_SHEET = "_codelists"
 README_SHEET = "README"
+_EXCEL_EPOCH = date(1900, 3, 1)  # Excel cannot represent earlier dates reliably
 
 
 def _excel_value(value: Any) -> Any:
@@ -64,29 +65,53 @@ def _excel_value(value: Any) -> Any:
     return str(value)
 
 
-def _write_codelists(wb: Workbook) -> dict[str, str]:
-    """Write the hidden code-list sheet; return list name → absolute range formula."""
-    ws = wb.create_sheet(CODELIST_SHEET)
+class _Formats:
+    def __init__(self, wb: xlsxwriter.Workbook) -> None:
+        self.header = wb.add_format({"bold": True, "font_color": "#FFFFFF",
+                                     "bg_color": "#1C5CAB", "pattern": 1})
+        self.label = wb.add_format({"bg_color": "#E8EEF7", "pattern": 1, "text_wrap": True,
+                                    "valign": "top"})
+        self.label_mandatory = wb.add_format({"bg_color": "#E8EEF7", "pattern": 1,
+                                              "text_wrap": True, "valign": "top",
+                                              "bold": True, "font_color": "#0B0B0B"})
+        self.hint = wb.add_format({"bg_color": "#F3F2EE", "pattern": 1, "text_wrap": True,
+                                   "valign": "top", "italic": True, "font_size": 9,
+                                   "font_color": "#52514E"})
+        self.date = wb.add_format({"num_format": "yyyy-mm-dd"})
+        self.quoted = wb.add_format({"quote_prefix": True})
+        self.bold = wb.add_format({"bold": True})
+        self.title = wb.add_format({"bold": True, "font_size": 13})
+
+
+def _codelist_values() -> dict[str, list[str]]:
     lists: dict[str, list[str]] = {cl.__name__: [m.value for m in cl] for cl in ALL_CODELISTS}
     lists["Country"] = sorted(COUNTRIES)
     lists["Currency"] = sorted(CURRENCIES)
     lists["Boolean"] = ["true", "false"]
-    ranges: dict[str, str] = {}
-    for col_idx, (name, values) in enumerate(lists.items(), start=1):
-        letter = get_column_letter(col_idx)
-        ws.cell(row=1, column=col_idx, value=name).font = Font(bold=True)
-        for row_idx, v in enumerate(values, start=2):
-            ws.cell(row=row_idx, column=col_idx, value=v)
-        ranges[name] = f"'{CODELIST_SHEET}'!${letter}$2:${letter}${len(values) + 1}"
-    ws.sheet_state = "hidden"
-    return ranges
+    return lists
 
 
-def _write_readme(wb: Workbook) -> None:
-    ws = wb.active
-    if ws is None:  # pragma: no cover - a new Workbook always has an active sheet
-        raise RuntimeError("workbook has no active sheet")
-    ws.title = README_SHEET
+def _codelist_ranges(lists: dict[str, list[str]]) -> dict[str, str]:
+    """List name → absolute range formula on the hidden code-list sheet."""
+    out: dict[str, str] = {}
+    for col_idx, (name, values) in enumerate(lists.items()):
+        letter = xl_col_to_name(col_idx)
+        out[name] = f"'{CODELIST_SHEET}'!${letter}$2:${letter}${len(values) + 1}"
+    return out
+
+
+def _write_codelists(wb: xlsxwriter.Workbook, fmt: _Formats,
+                     lists: dict[str, list[str]]) -> None:
+    ws = wb.add_worksheet(CODELIST_SHEET)
+    for col_idx, (name, values) in enumerate(lists.items()):
+        ws.write_string(0, col_idx, name, fmt.bold)
+        for row_idx, v in enumerate(values, start=1):
+            ws.write_string(row_idx, col_idx, v)
+    ws.hide()
+
+
+def _write_readme(wb: xlsxwriter.Workbook, fmt: _Formats) -> None:
+    ws = wb.add_worksheet(README_SHEET)
     lines = [
         ("DORA Register of Information – workbook", True),
         (f"Generated by dora-roi-toolkit {__version__}. Not an official EBA/ESA template.", False),
@@ -105,89 +130,110 @@ def _write_readme(wb: Workbook) -> None:
         ("Templates", True),
     ]
     lines += [(f"{m.TEMPLATE} – {m.TITLE}", False) for m in TEMPLATE_MODELS]
-    for i, (text, bold) in enumerate(lines, start=1):
-        cell = ws.cell(row=i, column=1, value=text)
-        if bold:
-            cell.font = Font(bold=True, size=13 if i == 1 else 11)
-    ws.column_dimensions["A"].width = 110
+    for i, (text, bold) in enumerate(lines):
+        if text:
+            ws.write_string(i, 0, text, (fmt.title if i == 0 else fmt.bold) if bold else None)
+    ws.set_column(0, 0, 110)
+    ws.activate()
 
 
-def _validation_for(kind: Kind, codelist: type[CodeEnum] | None,
-                    ranges: dict[str, str]) -> DataValidation | None:
-    source: str | None = None
+def _validation_source(kind: Kind, codelist: type[CodeEnum] | None,
+                       ranges: dict[str, str]) -> str | None:
     if kind is Kind.CODELIST and codelist is not None:
-        source = ranges.get(codelist.__name__)
-    elif kind is Kind.COUNTRY:
-        source = ranges["Country"]
-    elif kind is Kind.CURRENCY:
-        source = ranges["Currency"]
-    elif kind is Kind.BOOLEAN:
-        source = ranges["Boolean"]
-    if source is None:
-        return None
-    dv = DataValidation(type="list", formula1=f"={source}", allow_blank=True)
-    dv.error = "Value not in the code list"
-    dv.errorStyle = "warning"
-    dv.showErrorMessage = True
-    return dv
+        return ranges.get(codelist.__name__)
+    return {Kind.COUNTRY: ranges["Country"], Kind.CURRENCY: ranges["Currency"],
+            Kind.BOOLEAN: ranges["Boolean"]}.get(kind)
 
 
-def _write_template_sheet(wb: Workbook, model: type[Any], records: list[Any],
-                          ranges: dict[str, str]) -> Worksheet:
-    ws: Worksheet = wb.create_sheet(model.TEMPLATE)
+def _write_cell(ws: Worksheet, row: int, col: int, value: Any, fmt: _Formats) -> None:
+    if value is None:
+        return
+    if isinstance(value, str):
+        # never let client-supplied text become a formula (CWE-1236)
+        ws.write_string(row, col, value, fmt.quoted if value[:1] in FORMULA_TRIGGERS else None)
+    elif isinstance(value, date):
+        if value < _EXCEL_EPOCH:
+            ws.write_string(row, col, value.isoformat())
+        else:
+            when = value if isinstance(value, datetime) else datetime(value.year, value.month,
+                                                                      value.day)
+            ws.write_datetime(row, col, when, fmt.date)
+    elif isinstance(value, int | float):
+        ws.write_number(row, col, value)
+    else:  # pragma: no cover - _excel_value only returns the types above
+        ws.write_string(row, col, str(value))
+
+
+def _write_template_sheet(wb: xlsxwriter.Workbook, fmt: _Formats, model: type[Any],
+                          rows: Sequence[Sequence[Any]], ranges: dict[str, str]) -> None:
+    ws = wb.add_worksheet(model.TEMPLATE)
     columns = model.columns()
-    for idx, spec in enumerate(columns, start=1):
-        letter = get_column_letter(idx)
-        c1 = ws.cell(row=1, column=idx, value=spec.code)
-        c1.font = Font(bold=True, color="FFFFFF")
-        c1.fill = HEADER_FILL
-        c2 = ws.cell(row=2, column=idx, value=spec.label)
-        c2.fill = LABEL_FILL
-        c2.alignment = Alignment(wrap_text=True, vertical="top")
-        if spec.col.requirement is Requirement.MANDATORY:
-            c2.font = MANDATORY_FONT
-        c3 = ws.cell(row=3, column=idx, value=column_hint(spec.col))
-        c3.fill = HINT_FILL
-        c3.font = Font(italic=True, size=9, color="52514E")
-        c3.alignment = Alignment(wrap_text=True, vertical="top")
-        ws.column_dimensions[letter].width = 24 if spec.col.kind is not Kind.TEXT else 32
-        dv = _validation_for(spec.col.kind, spec.col.codelist, ranges)
-        if dv is not None:
-            dv.add(f"{letter}{FIRST_DATA_ROW}:{letter}{FIRST_DATA_ROW + VALIDATION_ROWS}")
-            ws.add_data_validation(dv)
-        if spec.col.kind is Kind.DATE:
-            for r in range(FIRST_DATA_ROW, FIRST_DATA_ROW + max(len(records), 1)):
-                ws.cell(row=r, column=idx).number_format = "yyyy-mm-dd"
-    ws.row_dimensions[2].height = 45
-    ws.row_dimensions[3].height = 60
-    ws.freeze_panes = f"A{FIRST_DATA_ROW}"
-    for r_idx, record in enumerate(records, start=FIRST_DATA_ROW):
-        for c_idx, spec in enumerate(columns, start=1):
-            value = _excel_value(getattr(record, spec.attr))
-            cell = ws.cell(row=r_idx, column=c_idx, value=value)
-            if isinstance(value, str):
-                # never let client-supplied text become a formula (CWE-1236)
-                cell.data_type = "s"
-                if value[:1] in FORMULA_TRIGGERS:
-                    cell.quotePrefix = True
-            if spec.col.kind is Kind.DATE:
-                cell.number_format = "yyyy-mm-dd"
-    return ws
+    last_row = FIRST_DATA_ROW - 1 + max(VALIDATION_ROWS, len(rows))
+    for idx, spec in enumerate(columns):
+        ws.write_string(0, idx, spec.code, fmt.header)
+        mandatory = spec.col.requirement is Requirement.MANDATORY
+        ws.write_string(1, idx, spec.label, fmt.label_mandatory if mandatory else fmt.label)
+        ws.write_string(2, idx, column_hint(spec.col), fmt.hint)
+        ws.set_column(idx, idx, 24 if spec.col.kind is not Kind.TEXT else 32,
+                      fmt.date if spec.col.kind is Kind.DATE else None)
+        source = _validation_source(spec.col.kind, spec.col.codelist, ranges)
+        if source is not None:
+            ws.data_validation(FIRST_DATA_ROW - 1, idx, last_row, idx, {
+                "validate": "list", "source": f"={source}", "ignore_blank": True,
+                "error_type": "warning", "error_message": "Value not in the code list"})
+    ws.set_row(1, 45)
+    ws.set_row(2, 60)
+    ws.freeze_panes(FIRST_DATA_ROW - 1, 0)
+    for r_idx, values in enumerate(rows, start=FIRST_DATA_ROW - 1):
+        for c_idx, value in enumerate(values):
+            if value is None:
+                continue
+            if type(value) is str:  # fast path for the most common cell type
+                ws.write_string(r_idx, c_idx, value,
+                                fmt.quoted if value[:1] in FORMULA_TRIGGERS else None)
+            else:
+                _write_cell(ws, r_idx, c_idx, _excel_value(value), fmt)
 
 
 def write_workbook(register: RegisterOfInformation | None, path: str | Path) -> Path:
     """Write ``register`` (or a blank template when ``None``) to an ``.xlsx`` file."""
     register = register or RegisterOfInformation()
-    wb = Workbook()
-    _write_readme(wb)
-    ranges = _write_codelists(wb)
+    tables: dict[str, list[list[Any]]] = {}
     for model in TEMPLATE_MODELS:
-        _write_template_sheet(wb, model, register.records(model.TEMPLATE), ranges)
-    # keep the hidden code-list sheet last
-    wb.move_sheet(CODELIST_SHEET, offset=len(wb.sheetnames))
+        attrs = [spec.attr for spec in model.columns()]
+        tables[model.TEMPLATE] = [[getattr(rec, a) for a in attrs]
+                                  for rec in register.records(model.TEMPLATE)]
+    return _write(tables, path)
+
+
+def write_raw_workbook(raw: RawRegister, path: str | Path) -> Path:
+    """Write raw cell values (including invalid ones still to be fixed) to an ``.xlsx`` file.
+
+    Faster than building a register first, and keeps every value exactly as entered.
+    """
+    tables: dict[str, list[list[Any]]] = {}
+    for model in TEMPLATE_MODELS:
+        codes = [spec.code for spec in model.columns()]
+        table = raw.tables.get(model.TEMPLATE)
+        tables[model.TEMPLATE] = [[r.values.get(c) for c in codes]
+                                  for r in (table.rows if table else [])]
+    return _write(tables, path)
+
+
+def _write(tables: dict[str, list[list[Any]]], path: str | Path) -> Path:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(out)
+    # in_memory: no temporary files with client data on disk (and works on read-only roots)
+    wb = xlsxwriter.Workbook(str(out), {"in_memory": True, "strings_to_formulas": False,
+                                        "strings_to_numbers": False, "strings_to_urls": False})
+    fmt = _Formats(wb)
+    lists = _codelist_values()
+    ranges = _codelist_ranges(lists)
+    _write_readme(wb, fmt)
+    for model in TEMPLATE_MODELS:
+        _write_template_sheet(wb, fmt, model, tables[model.TEMPLATE], ranges)
+    _write_codelists(wb, fmt, lists)  # hidden, last
+    wb.close()
     return out
 
 
@@ -200,43 +246,21 @@ def read_workbook(path: str | Path) -> RawRegister:
     """Read an RoI workbook into a :class:`RawRegister` (never raises for content problems)."""
     p = Path(path)
     source = p.name
-    check_archive(p)
-    wb = load_workbook(p, read_only=True, data_only=True)
     raw = RawRegister(source=source)
-    try:
-        for ws in wb.worksheets:
-            name = ws.title
-            code = template_code_for(name)
-            if code is None:
-                if not name.startswith("_") and name.casefold() != README_SHEET.casefold():
-                    raw.findings.append(import_finding(
-                        "IMP-001", f"Sheet '{name}' does not match an RoI template; ignored",
-                        source=source))
-                continue
-            if code in raw.tables:
+    for name, values in iter_sheets(p):
+        code = template_code_for(name)
+        if code is None:
+            if not name.startswith("_") and name.casefold() != README_SHEET.casefold():
                 raw.findings.append(import_finding(
-                    "IMP-001", f"Sheet '{name}' duplicates template {code}; ignored",
-                    template=code, source=source))
-                continue
-            rows = (
-                (i, list(values))
-                for i, values in enumerate(ws.iter_rows(values_only=True), start=1)
-            )
-            raw.tables[code] = build_table(code, _rows(rows), f"{source}:{name}", raw.findings)
-    finally:
-        wb.close()
+                    "IMP-001", f"Sheet '{name}' does not match an RoI template; ignored",
+                    source=source))
+            continue
+        if code in raw.tables:
+            raw.findings.append(import_finding(
+                "IMP-001", f"Sheet '{name}' duplicates template {code}; ignored",
+                template=code, source=source))
+            continue
+        raw.tables[code] = build_table(code, enumerate(values, start=1), f"{source}:{name}",
+                                       raw.findings)
     raw.findings.extend(missing_template_findings(raw.tables, source))
     return raw
-
-
-def _rows(rows: Any) -> Any:
-    for i, values in rows:
-        yield i, [_clean(v) for v in values]
-
-
-def _clean(value: Any) -> RawValue:
-    if isinstance(value, str):
-        return value
-    if value is None or isinstance(value, bool | int | float | date | Decimal):
-        return value
-    return str(value)

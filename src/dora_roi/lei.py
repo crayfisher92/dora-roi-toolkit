@@ -9,6 +9,7 @@ and verify ``n mod 97 == 1``.
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 
 LEI_PATTERN = re.compile(r"^[A-Z0-9]{18}[0-9]{2}$")
 
@@ -22,6 +23,7 @@ def is_valid_lei_format(value: str) -> bool:
     return bool(LEI_PATTERN.match(value))
 
 
+@lru_cache(maxsize=65_536)  # registers repeat the same few thousand LEIs many times
 def is_valid_lei(value: str) -> bool:
     """True if ``value`` is a syntactically valid LEI with a correct MOD 97-10 checksum."""
     return is_valid_lei_format(value) and _to_digits(value) % 97 == 1
@@ -41,6 +43,7 @@ def make_lei(base: str) -> str:
     return base + lei_check_digits(base)
 
 
+@lru_cache(maxsize=65_536)
 def explain_lei_error(value: str) -> str:
     """Human-readable reason why ``value`` is not a valid LEI (empty string if it is valid)."""
     if len(value) != 20:

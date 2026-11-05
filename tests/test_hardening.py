@@ -154,10 +154,26 @@ def test_workspace_ids_are_unguessable(client: TestClient) -> None:
 # ------------------------------------------------------------------ B-07 defusedxml
 
 
-def test_defusedxml_is_used_by_openpyxl() -> None:
-    from openpyxl.xml import DEFUSEDXML
+def test_xml_entity_attacks_are_rejected(tmp_path: Path) -> None:
+    """XXE / billion laughs in a sheet: the reader refuses the file (no entity expansion)."""
+    from dora_roi.io.xlsx_read import SpreadsheetError, iter_sheets
 
-    assert DEFUSEDXML is True
+    src = write_workbook(build_valid_register(), tmp_path / "ok.xlsx")
+    evil = tmp_path / "evil.xlsx"
+    dtd = ('<?xml version="1.0"?><!DOCTYPE r [<!ENTITY xxe SYSTEM "file:///etc/passwd">'
+           '<!ENTITY a "aaaaaaaaaa"><!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;">]>')
+    with zipfile.ZipFile(src) as zin, zipfile.ZipFile(evil, "w") as zout:
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+            if item.filename == "xl/sharedStrings.xml":
+                text = data.decode().split("?>", 1)[1]
+                text = text.replace("<t>c0010</t>", "<t>&xxe;&b;</t>", 1)
+                data = (dtd + text).encode()
+            zout.writestr(item, data)
+    with pytest.raises(SpreadsheetError):
+        list(iter_sheets(evil))
+    r = TestClient(create_app()).post("/import", files={"file": ("evil.xlsx", evil.read_bytes())})
+    assert r.status_code == 400 and "/etc/passwd" not in r.text and "root:x:0" not in r.text
 
 
 # ------------------------------------------------------------------ B-08 / B-09 performance & locks

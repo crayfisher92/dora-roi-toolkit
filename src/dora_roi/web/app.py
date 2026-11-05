@@ -19,6 +19,7 @@ import tempfile
 import uuid
 import zipfile
 from collections import OrderedDict
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -49,7 +50,7 @@ from dora_roi.inventory import (
     suggest_mapping,
 )
 from dora_roi.io.csv_folder import register_to_csv_texts
-from dora_roi.io.excel import write_blank_template, write_workbook
+from dora_roi.io.excel import write_blank_template, write_raw_workbook
 from dora_roi.io.limits import InputTooLargeError
 from dora_roi.io.loader import UnsupportedInputError, load_raw
 from dora_roi.io.xbrl_csv import XbrlCsvOptions, build_package_files, package_name
@@ -84,12 +85,24 @@ T = TypeVar("T")
 
 
 class LRUStore(Generic[T]):
-    """Thread-safe bounded store."""
+    """Thread-safe bounded store.
 
-    def __init__(self, capacity: int) -> None:
+    Bounded by item count and, optionally, by a total ``weight`` (for workspaces: the number
+    of rows, which drives memory – roughly 2 KB per row once parsed and validated). The most
+    recently added item is always kept.
+    """
+
+    def __init__(self, capacity: int, *, max_weight: int | None = None,
+                 weight: Callable[[T], int] | None = None) -> None:
         self.capacity = capacity
+        self.max_weight = max_weight
+        self._weight = weight
         self._items: OrderedDict[str, T] = OrderedDict()
         self._lock = Lock()
+
+    def _total_weight(self) -> int:
+        weigh = self._weight
+        return sum(weigh(v) for v in self._items.values()) if weigh else 0
 
     def add(self, key: str, item: T) -> None:
         with self._lock:
@@ -97,6 +110,9 @@ class LRUStore(Generic[T]):
             self._items.move_to_end(key)
             while len(self._items) > self.capacity:
                 self._items.popitem(last=False)
+            if self.max_weight is not None:
+                while len(self._items) > 1 and self._total_weight() > self.max_weight:
+                    self._items.popitem(last=False)
 
     def get(self, key: str) -> T:
         with self._lock:
@@ -133,6 +149,14 @@ def _env() -> Environment:
     return env
 
 
+def max_store_rows() -> int:
+    """Row budget for all workspaces held in memory (``ROI_MAX_STORE_ROWS``)."""
+    try:
+        return max(1, int(os.environ.get("ROI_MAX_STORE_ROWS", "500000")))
+    except ValueError:
+        return 500_000
+
+
 def create_app(capacity: int = MAX_WORKSPACES,
                projects_dir: str | Path | None = None) -> FastAPI:
     app = FastAPI(title="DORA RoI Workbench", version=__version__,
@@ -141,7 +165,8 @@ def create_app(capacity: int = MAX_WORKSPACES,
     app.add_middleware(SameOriginMiddleware)
     app.add_middleware(SessionMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
-    workspaces: LRUStore[Workspace] = LRUStore(capacity)
+    workspaces: LRUStore[Workspace] = LRUStore(capacity, max_weight=max_store_rows(),
+                                               weight=Workspace.row_count)
     wizards: LRUStore[Wizard] = LRUStore(capacity)
     app.state.workspaces = workspaces
     app.state.wizards = wizards
@@ -355,7 +380,7 @@ def create_app(capacity: int = MAX_WORKSPACES,
                 path.write_bytes(data)
             try:
                 sheet = read_inventory(path)
-            except Exception as exc:  # openpyxl/csv raise many types on corrupt input
+            except Exception as exc:  # spreadsheet/csv readers raise many types on corrupt input
                 t = translator(lang_of(request))
                 return render(request, "wizard_upload.html.j2", status=400, wstep=1,
                               error=t("err.read", name=name, error=str(exc) or
@@ -632,8 +657,8 @@ def create_app(capacity: int = MAX_WORKSPACES,
                 data = save_project(ws, Path(tmp) / f"p{PROJECT_SUFFIX}").read_bytes()
             return _download(data, f"{stem}{PROJECT_SUFFIX}", "application/vnd.sqlite3")
         if kind == "xlsx":
-            with tempfile.TemporaryDirectory() as tmp:
-                data = write_workbook(ws.export_register(), Path(tmp) / "r.xlsx").read_bytes()
+            with tempfile.TemporaryDirectory() as tmp, ws.lock:
+                data = write_raw_workbook(ws.raw, Path(tmp) / "r.xlsx").read_bytes()
             return _download(data, f"{stem}-corrected.xlsx", XLSX)
         if kind == "csv":
             buf = io.BytesIO()

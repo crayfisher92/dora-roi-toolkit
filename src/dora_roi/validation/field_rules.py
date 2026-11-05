@@ -77,8 +77,9 @@ DEFAULT_FORMAT_RULE = "FLD-007"
       description="Every column flagged mandatory (M) in the ITS must be reported for each row.")
 def check_mandatory(ctx: ValidationContext) -> Iterator[Finding]:
     for record in ctx.register.iter_all():
+        invalid = record.invalid_fields
         for spec in record.columns():
-            if not spec.col.mandatory or spec.attr in record.invalid_fields:
+            if not spec.col.mandatory or spec.attr in invalid:
                 continue
             if getattr(record, spec.attr) is None:
                 yield ctx.finding("FLD-001", f"Mandatory column {spec.code} '{spec.label}' is "

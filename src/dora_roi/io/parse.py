@@ -66,9 +66,10 @@ def parse_row(
         cleaned = {k: v for k, v in data.items() if k not in invalid}
         record = model.model_validate(cleaned)
     record.set_provenance(row.row, source, frozenset(invalid))
-    key = record.key_str()
-    for f in findings:
-        f.record_key = key
+    if findings:
+        key = record.key_str()
+        for f in findings:
+            f.record_key = key
     return record, findings
 
 

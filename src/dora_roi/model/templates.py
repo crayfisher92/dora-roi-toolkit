@@ -86,6 +86,7 @@ class ColumnSpec:
 
 
 _COLUMNS_CACHE: dict[type[BaseModel], tuple[ColumnSpec, ...]] = {}
+_TEXTUAL_ATTRS: dict[type[BaseModel], frozenset[str]] = {}
 
 _TEXTUAL_KINDS = {Kind.TEXT, Kind.LEI, Kind.PROVIDER_CODE, Kind.COUNTRY, Kind.CURRENCY,
                   Kind.CODELIST}
@@ -141,23 +142,28 @@ class RoIRecord(BaseModel):
     @property
     def row(self) -> int | None:
         """Source row number (1-based, as shown in Excel/CSV) if known."""
-        return self._row
+        # direct dict access: pydantic's private-attribute __getattr__ is ~10x slower and
+        # these properties are read hundreds of thousands of times by the rule engine
+        return self.__pydantic_private__["_row"]  # type: ignore[index, no-any-return]
 
     @property
     def source(self) -> str | None:
-        return self._source
+        return self.__pydantic_private__["_source"]  # type: ignore[index, no-any-return]
 
     @property
     def invalid_fields(self) -> frozenset[str]:
         """Attributes whose raw value failed format validation and was discarded."""
-        return self._invalid
+        return self.__pydantic_private__["_invalid"]  # type: ignore[index, no-any-return]
 
     def set_provenance(
         self, row: int | None, source: str | None, invalid: frozenset[str] = frozenset()
     ) -> None:
-        self._row = row
-        self._source = source
-        self._invalid = invalid
+        private = self.__pydantic_private__
+        if private is None:  # pragma: no cover - pydantic always initialises it
+            private = self.__pydantic_private__ = {}
+        private["_row"] = row
+        private["_source"] = source
+        private["_invalid"] = invalid
 
     # ----------------------------------------------------------------- helpers
 
@@ -179,20 +185,18 @@ class RoIRecord(BaseModel):
     def _normalise_input(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
-        cols = {c.attr: c.col for c in cls.columns()}
+        textual = _TEXTUAL_ATTRS.get(cls)
+        if textual is None:
+            textual = _TEXTUAL_ATTRS[cls] = frozenset(
+                c.attr for c in cls.columns() if c.col.kind in _TEXTUAL_KINDS)
         out: dict[str, Any] = {}
+        # exact type checks: this runs for every row of every import (hot path); enum
+        # members (str subclasses) pass through unchanged
         for key, value in data.items():
-            if isinstance(value, str):
-                value = value.strip()
-                if value == "":
-                    value = None
-            col = cols.get(key)
-            if (
-                col is not None
-                and col.kind in _TEXTUAL_KINDS
-                and isinstance(value, int | float)
-                and not isinstance(value, bool)
-            ):
+            t = type(value)
+            if t is str:
+                value = value.strip() or None
+            elif (t is int or t is float) and key in textual:
                 value = str(int(value)) if float(value).is_integer() else str(value)
             out[key] = value
         return out

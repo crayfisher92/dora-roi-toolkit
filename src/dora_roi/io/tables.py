@@ -119,6 +119,7 @@ def build_table(
     table = RawTable(template=template, columns=[], source=source)
     mapping: dict[int, str] | None = None
     in_header_block = False
+    row_limit = max_rows_per_table()
     for row_no, cells in rows:
         if mapping is None:
             if row_no > 10:
@@ -145,7 +146,7 @@ def build_table(
         if all(v is None for v in values.values()):
             continue
         table.rows.append(RawRow(row=row_no, values=values))
-        if len(table.rows) > max_rows_per_table():
+        if len(table.rows) > row_limit:
             check_rows(template, len(table.rows))
     if mapping is None:
         findings.append(import_finding(

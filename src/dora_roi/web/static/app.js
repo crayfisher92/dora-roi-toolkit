@@ -20,6 +20,27 @@
     apply(current);
   }
 
+  /* ---------- busy state for slow form posts (imports of large registers) */
+  document.querySelectorAll("form[data-busy]").forEach(function (form) {
+    form.addEventListener("submit", function () {
+      if (form.getAttribute("aria-busy") === "true") return;
+      form.setAttribute("aria-busy", "true");
+      announce(form.dataset.busy);
+      var btn = form.querySelector("button[type=submit], button:not([type])");
+      if (btn) {
+        // disable after the submit has been dispatched so the button value is still sent
+        setTimeout(function () { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = form.dataset.busy; }, 0);
+      }
+    });
+  });
+  window.addEventListener("pageshow", function () { // back/forward cache: reset
+    document.querySelectorAll("form[aria-busy=true]").forEach(function (form) {
+      form.removeAttribute("aria-busy");
+      var btn = form.querySelector("button[disabled]");
+      if (btn) { btn.disabled = false; if (btn.dataset.label) btn.textContent = btn.dataset.label; }
+    });
+  });
+
   /* ---------- "use suggestion" buttons */
   document.addEventListener("click", function (ev) {
     var btn = ev.target.closest && ev.target.closest("[data-suggest]");

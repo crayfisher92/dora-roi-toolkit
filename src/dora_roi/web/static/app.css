@@ -228,3 +228,15 @@ main { padding-top: 24px; }
 .ok-mark { color: var(--ok-ink); font-weight: 600; }
 .no-mark { color: var(--danger); }
 .project-open { border-top: 1px solid var(--grid); padding-top: 12px; margin-top: 4px; }
+
+/* busy state while a slow form post (large import) is processed */
+form[aria-busy="true"] button[disabled] { cursor: progress; opacity: .75; }
+form[aria-busy="true"] button[disabled]::before {
+  content: ""; display: inline-block; width: .9em; height: .9em; margin-right: .5em;
+  vertical-align: -0.1em; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: roi-spin .8s linear infinite;
+}
+@keyframes roi-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  form[aria-busy="true"] button[disabled]::before { animation: none; }
+}

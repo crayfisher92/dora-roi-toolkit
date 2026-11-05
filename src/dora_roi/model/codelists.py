@@ -26,6 +26,9 @@ def _norm(text: str) -> str:
 
 
 _LOOKUP_CACHE: dict[type, dict[str, object]] = {}
+#: exact input text → member, filled on successful lookups (inputs repeat a lot)
+_RAW_CACHE: dict[type, dict[str, object]] = {}
+_RAW_CACHE_MAX = 10_000
 
 
 class CodeEnum(StrEnum):
@@ -47,6 +50,10 @@ class CodeEnum(StrEnum):
     @classmethod
     def lookup(cls, raw: str) -> Self | None:
         """Resolve ``raw`` (code, label or alias, any case) to a member, or ``None``."""
+        memo = _RAW_CACHE.setdefault(cls, {})
+        hit = memo.get(raw)
+        if hit is not None:
+            return hit  # type: ignore[return-value]
         table = _LOOKUP_CACHE.get(cls)
         if table is None:
             table = {}
@@ -57,7 +64,11 @@ class CodeEnum(StrEnum):
                 table[_norm(member.value)] = member
             _LOOKUP_CACHE[cls] = table
         found = table.get(_norm(raw))
-        return found if isinstance(found, cls) else None
+        if not isinstance(found, cls):
+            return None
+        if len(memo) < _RAW_CACHE_MAX:
+            memo[raw] = found
+        return found
 
     @classmethod
     def describe(cls) -> str:

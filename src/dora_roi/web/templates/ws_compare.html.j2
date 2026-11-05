@@ -15,7 +15,7 @@
     <button class="btn" type="submit">{{ t("cmp.run") }}</button>
   </form>
 </div>
-<form method="post" action="/w/{{ ws.id }}/compare" enctype="multipart/form-data" class="row upload-row">
+<form method="post" action="/w/{{ ws.id }}/compare" enctype="multipart/form-data" class="row upload-row" data-busy="{{ t('busy.import') }}">
   <label for="cmp-file">{{ t("cmp.upload") }}</label><input id="cmp-file" name="file" type="file" accept=".xlsx,.xlsm,.zip" required>
   <button class="btn" type="submit">{{ t("cmp.run") }}</button>
 </form>

@@ -135,6 +135,10 @@ class Workspace:
         self._row_index: dict[str, dict[int, RawRow]] = {}
         self.snapshot("Imported", user=user)
 
+    def row_count(self) -> int:
+        """Rows in all templates (a proxy for the workspace's memory footprint)."""
+        return sum(len(t.rows) for t in self.raw.tables.values())
+
     # ------------------------------------------------------------------ derived state
 
     def _parse(self) -> tuple[RegisterOfInformation, list[Finding]]:
