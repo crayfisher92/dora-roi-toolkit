@@ -7,6 +7,11 @@ from typing import Any
 
 import pytest
 
+try:
+    from playwright.sync_api import expect
+except ImportError:  # pragma: no cover - conftest skips (or, in CI, fails) the e2e tests
+    expect = None
+
 pytestmark = pytest.mark.e2e
 
 
@@ -30,13 +35,6 @@ def test_overview_shows_score_and_stepper(page: Any) -> None:
 
 
 def test_inline_fix_revalidates_without_reload(page: Any) -> None:
-    # diagnostics for an intermittent failure seen once (not reproducible in 15 runs)
-    trace: list[str] = []
-    page.on("response", lambda r: trace.append(f"{r.request.method} {r.url} {r.status}")
-            if "/cell" in r.url else None)
-    page.on("console", lambda m: trace.append(f"console {m.type}: {m.text}"))
-    page.on("framenavigated", lambda f: trace.append(f"navigated {f.url}")
-            if f == page.main_frame else None)
     url = open_sample(page)
     page.goto(url + "/fix?template=B_02.02")
     item = page.locator("[data-finding]").filter(has=page.locator('input[value="UK"]'))
@@ -46,12 +44,13 @@ def test_inline_fix_revalidates_without_reload(page: Any) -> None:
     page.evaluate("window.__marker = 1")  # survives only if there is no reload
     item.get_by_role("button", name="Save").click()
     page.wait_for_selector("[data-finding].fixed")
-    assert page.evaluate("window.__marker") == 1, trace
-    assert page.locator('[data-bind="errors"]').first.inner_text() == "26", trace
+    assert page.evaluate("window.__marker") == 1
+    assert page.locator('[data-bind="errors"]').first.inner_text() == "26"
     # the live region is cleared and refilled after a short delay so that screen readers
-    # announce repeated messages; wait for the announcement instead of reading it at once
-    page.wait_for_function(
-        "document.getElementById('live').textContent.includes('26 error(s)')", timeout=5000)
+    # announce repeated messages; wait for the announcement instead of reading it at once.
+    # (Not page.wait_for_function with a string: when it has to poll it evaluates the string
+    # with eval() in the page, which the app's CSP blocks – the cause of earlier CI flakes.)
+    expect(page.locator("#live")).to_contain_text("26 error(s)", timeout=5000)
 
 
 def test_register_search_and_row_edit(page: Any) -> None:
