@@ -37,6 +37,9 @@ built by [`.github/workflows/release.yml`](../.github/workflows/release.yml) fro
 To rebuild an existing tag without publishing (e.g. to test the workflow), run it manually
 (*Actions → Release → Run workflow*) with `publish` unchecked.
 
+After the first release, set the GHCR package's visibility to *public* (Package settings) if
+the image should be pullable without logging in – new packages start private.
+
 ## Not (yet) automated
 
 - **PyPI.** Publishing is a one-step addition once a PyPI project exists: a

@@ -93,8 +93,9 @@ def main() -> None:
 @main.command()
 @input_arg
 @click.option("-f", "--format", "fmt",
-              type=click.Choice(["text", "json", "md", "html", "pdf"]), default="text",
-              show_default=True, help="Report format (pdf needs -o and the [pdf] extra).")
+              type=click.Choice(["text", "json", "md", "html", "pdf", "xlsx"]), default="text",
+              show_default=True,
+              help="Report format (pdf/xlsx need -o; pdf needs the [pdf] extra).")
 @click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path),
               help="Write the report to a file instead of stdout.")
 @click.option("--fail-on", type=click.Choice(["error", "warning", "never"]), default="error",
@@ -109,15 +110,19 @@ def validate(input_path: Path, fmt: str, output: Path | None, fail_on: str,
              reference_date: object, code_map: Path | None) -> None:
     """Validate a register and print or save a report."""
     from dora_roi.reporting import render
-    from dora_roi.reporting.validation_report import render_pdf
+    from dora_roi.reporting.validation_report import render_pdf, render_xlsx
 
-    if fmt == "pdf" and output is None:
-        raise click.UsageError("--format pdf needs --output FILE")
+    if fmt in ("pdf", "xlsx") and output is None:
+        raise click.UsageError(f"--format {fmt} needs --output FILE")
     ref = reference_date.date() if hasattr(reference_date, "date") else None
     loaded = _load(input_path, _code_map(code_map))
     report = validate_loaded(loaded, _config(disable, ref, downgrade))
     if fmt == "pdf" and output is not None:
         _write_pdf(lambda: render_pdf(report), output)
+    elif fmt == "xlsx" and output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(render_xlsx(report))
+        click.echo(f"Wrote {output}", err=True)
     else:
         _write(render(report, fmt), output)
     if output is not None or fmt != "text":

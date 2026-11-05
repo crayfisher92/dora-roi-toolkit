@@ -357,6 +357,19 @@ class Workspace:
             self._invalidate()
             self._changed()
 
+    def record_export(self, what: str, user: str = DEFAULT_USER) -> None:
+        """Log an export in the audit trail with the register's state at that moment."""
+        with self.lock:
+            counts = self.report.severity_counts()
+            state = (f"{counts['error']} error(s), {counts['warning']} warning(s), "
+                     f"after {self.data_change_count()} data change(s)")
+            self.changes.append(Change("export", "register", 0, None, None, None, user=user,
+                                       note=f"{what} – {state}"))
+            self._changed()
+
+    def data_change_count(self) -> int:
+        return sum(1 for c in self.changes if c.kind in ("set", "add", "delete"))
+
     # ------------------------------------------------------------------ versions
 
     def snapshot(self, label: str, user: str = DEFAULT_USER) -> Version:

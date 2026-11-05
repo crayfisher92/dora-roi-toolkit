@@ -130,3 +130,23 @@ def test_without_weasyprint(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> 
     xlsx = write_workbook(generate_sample().source_register, tmp_path / "s.xlsx")
     res = CliRunner().invoke(main, ["report", str(xlsx), "-o", str(tmp_path / "e.pdf")])
     assert res.exit_code == 2 and "WeasyPrint" in res.output
+
+
+def test_concurrent_renders_are_limited(monkeypatch: pytest.MonkeyPatch) -> None:
+    held = []
+    try:
+        while pdf_mod._JOBS.acquire(blocking=False):  # occupy every slot
+            held.append(1)
+        with pytest.raises(pdf_mod.PdfBusyError):
+            html_to_pdf("<p>x</p>", wait=0.05)
+        client = TestClient(create_app())
+        url = client.post("/sample", data={"variant": "clean"}, follow_redirects=False
+                          ).headers["location"]
+        monkeypatch.setitem(pdf_mod.html_to_pdf.__kwdefaults__, "wait", 0.05)
+        r = client.get(url + "/download/executive.pdf")
+        assert r.status_code == 503 and r.headers["retry-after"] == "10"
+        assert "busy" in r.text
+    finally:
+        for _ in held:
+            pdf_mod._JOBS.release()
+    assert html_to_pdf("<p>x</p>")[:5] == b"%PDF-"

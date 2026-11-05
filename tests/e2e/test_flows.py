@@ -10,7 +10,7 @@ import pytest
 try:
     from playwright.sync_api import expect
 except ImportError:  # pragma: no cover - conftest skips (or, in CI, fails) the e2e tests
-    expect = None
+    expect = None  # type: ignore[assignment]
 
 pytestmark = pytest.mark.e2e
 

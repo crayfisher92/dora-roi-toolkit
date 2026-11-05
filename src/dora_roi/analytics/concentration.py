@@ -376,9 +376,14 @@ def analyse(register: RegisterOfInformation,
         if entry.contract_ref and entry.rank:
             chain_rank[entry.contract_ref] = max(chain_rank[entry.contract_ref], entry.rank)
     fdeps: list[FunctionDependency] = []
+    services_by_function: dict[tuple[str | None, str | None], list[ContractSpecific]] = \
+        defaultdict(list)
+    for s in services:
+        services_by_function[(s.function_id, s.entity_lei)].append(s)
+    group_spend = {g.group_name: g.spend for g in group_list}
     for (fid, lei) in sorted(idx.critical_keys):
         fn = idx.functions[(fid, lei)]
-        svc = [s for s in services if (s.function_id, s.entity_lei) == (fid, lei)]
+        svc = services_by_function.get((fid, lei), [])
         provs = sorted({s.provider_code or "" for s in svc})
         assessments = [idx.assessment(s) for s in svc]
         with_exit = sum(1 for a in assessments if a is not None and a.exit_plan is True)
@@ -389,7 +394,9 @@ def analyse(register: RegisterOfInformation,
             entity_name=(idx.entities[lei].name or lei) if lei in idx.entities else lei,
             function_name=fn.function_name or fid,
             providers=[idx.provider_name(p) for p in provs],
-            provider_groups=sorted({idx.provider_name(idx.group_of(p)) for p in provs}),
+            # most exposed first, so a truncated list still shows what matters
+            provider_groups=sorted({idx.provider_name(idx.group_of(p)) for p in provs},
+                                   key=lambda name: (-group_spend.get(name, 0), name)),
             single_provider=len({idx.group_of(p) for p in provs}) == 1,
             hard_to_substitute=any(a is not None and a.substitutability is not None
                                    and a.substitutability.is_hard for a in assessments),

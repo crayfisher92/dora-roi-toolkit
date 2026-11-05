@@ -215,6 +215,7 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
 | `ROI_MAX_UNCOMPRESSED_MB` | `200` | Maximum uncompressed size of an uploaded workbook / zip / project file |
 | `ROI_MAX_ROWS_PER_TABLE` | `100000` | Maximum rows per template on import |
 | `ROI_MAX_STORE_ROWS` | `500000` | Rows the workbench keeps in memory across all workspaces (≈ 2 KB per row); least recently used workspaces are evicted first |
+| `ROI_MAX_PDF_JOBS` | `2` | PDF reports rendered at the same time; further requests wait up to 60 s, then get 503 |
 
 Uploads are limited to 25 MB. A register with 10 000 contracts imports in about 3 seconds
 ([`docs/PERFORMANCE.md`](docs/PERFORMANCE.md)).

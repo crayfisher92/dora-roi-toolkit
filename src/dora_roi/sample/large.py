@@ -14,7 +14,7 @@ from dataclasses import replace
 
 from dora_roi.io.parse import parse_raw
 from dora_roi.model import ContractType, IctServiceType, RegisterOfInformation, Substitutability
-from dora_roi.sample.catalogue import Catalogue, OfferingSpec, ProviderSpec
+from dora_roi.sample.catalogue import Catalogue, FunctionSpec, OfferingSpec, ProviderSpec
 from dora_roi.sample.generator import (
     DEFAULT_REFERENCE_DATE,
     DEFAULT_SEED,
@@ -81,12 +81,35 @@ def _offerings(rng: random.Random, cat: Catalogue,
     return tuple(out)
 
 
-def generate_large(contracts: int = 10_000, providers: int = 1_000,
+_PROCESSES = ("Reconciliation", "Reporting", "Onboarding", "Monitoring", "Settlement",
+              "Pricing", "Archiving", "Scheduling", "Screening", "Analytics", "Collateral",
+              "Billing")
+
+
+def _functions(rng: random.Random, base: Catalogue,
+               total: int) -> dict[str, tuple[FunctionSpec, ...]]:
+    """The catalogue's functions plus generated ones, up to ``total`` across all entities."""
+    out = {k: list(v) for k, v in base.functions.items()}
+    activities = sorted({fn.activity for fns in base.functions.values() for fn in fns})
+    keys = sorted(out)
+    i = 0
+    while sum(len(v) for v in out.values()) < total:
+        i += 1
+        critical = rng.random() < 0.35
+        out[keys[i % len(keys)]].append(FunctionSpec(
+            f"gen{i:03d}", f"{rng.choice(_PROCESSES)} process {i:03d}", rng.choice(activities),
+            critical, rng.choice([4, 8, 24, 48]), rng.choice([1, 4, 24])))
+    return {k: tuple(v) for k, v in out.items()}
+
+
+def generate_large(contracts: int = 10_000, providers: int = 1_000, functions: int = 300,
                    seed: int = DEFAULT_SEED) -> SampleResult:
-    """A valid register with about ``contracts`` arrangements and ``providers`` providers."""
+    """A valid register with about ``contracts`` arrangements, ``providers`` providers and
+    ``functions`` functions (the catalogue's 31 plus generated ones)."""
     # bandit B311: synthetic data, not security
     rng = random.Random(seed)  # nosec B311
     base = Catalogue()
+    base = replace(base, functions=_functions(rng, base, functions))
     extra = _providers(rng, max(0, providers - len(base.providers)))
     cat = replace(base, providers=base.providers + extra,
                   offerings=base.offerings + _offerings(rng, base, extra))
@@ -108,6 +131,6 @@ def generate_large(contracts: int = 10_000, providers: int = 1_000,
     return SampleResult(ctx.reg, parsed.register, parsed.findings, [], DEFAULT_REFERENCE_DATE)
 
 
-def large_register(contracts: int = 10_000, providers: int = 1_000,
+def large_register(contracts: int = 10_000, providers: int = 1_000, functions: int = 300,
                    seed: int = DEFAULT_SEED) -> RegisterOfInformation:
-    return generate_large(contracts, providers, seed).register
+    return generate_large(contracts, providers, functions, seed).register

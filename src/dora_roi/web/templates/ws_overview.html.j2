@@ -7,7 +7,7 @@
   <div class="card tile"><div class="label">{{ t("ws.score") }}</div><div class="value">{{ quality.score }}<span class="muted small">/100</span></div><div class="sub">{{ t("ws.score.help") }}</div></div>
   <div class="card tile"><div class="label">{{ severity_badge("error", t) }}</div><div class="value">{{ counts.error }}</div></div>
   <div class="card tile"><div class="label">{{ severity_badge("warning", t) }}</div><div class="value">{{ counts.warning }}</div></div>
-  <div class="card tile"><div class="label">{{ t("ws.records") }}</div><div class="value">{{ "{:,}".format(quality.records) }}</div><div class="sub">{{ ws.changes | length }} {{ t("ws.changes") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("ws.records") }}</div><div class="value">{{ "{:,}".format(quality.records) }}</div><div class="sub">{{ ws.data_change_count() }} {{ t("ws.changes") | lower }}</div></div>
 </section>
 <p class="next-action">
   {% if counts.error %}<a class="btn primary" href="/w/{{ ws.id }}/fix">{{ t("ws.next.fix", n=counts.error) }}</a>

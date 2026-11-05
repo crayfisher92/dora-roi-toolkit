@@ -26,7 +26,8 @@ reconciled against the official EBA taxonomy package (see [Known limitations](#k
   supply chain (ranks, recipients, cycles) and business (exit plans, notice periods, critical
   functions, duplicate providers) – each mapped to DORA articles and ITS provisions
   ([`docs/REGULATORY_MAPPING.md`](docs/REGULATORY_MAPPING.md)).
-- Reports as text, Markdown, HTML, JSON and **PDF**; configurable severities
+- Reports as text, Markdown, HTML, JSON, **PDF** and an Excel findings list for business
+  owners (explanation, regulation, owner/status columns); configurable severities
   (`--disable`, `--downgrade`), exit codes for CI pipelines.
 
 **Import and export**
@@ -48,8 +49,8 @@ reconciled against the official EBA taxonomy package (see [Known limitations](#k
 **Workbench (web UI)**
 - Guided Import → Fix → Analyse → Export flow with a quality score and readiness status.
 - Inline fixing with explanations, regulation references, suggestions and bulk replace;
-  accepting warnings with a justification; full audit trail (who, when, old → new) exportable
-  as CSV (`roi audit-log`); versions and comparison with a previous register.
+  accepting warnings with a justification; full audit trail (who, when, old → new, and every
+  export) exportable as CSV (`roi audit-log`); versions and comparison with a previous register.
 - Browsable register, provider pages with failure impact and exit plans, interactive
   dependency graph, renewals page.
 - English and German, WCAG 2.2 AA (axe-core in CI), keyboard operable, responsive,
