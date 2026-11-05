@@ -85,3 +85,23 @@
     });
   });
 })();
+
+/* ---------- chart tooltips (data-tip attributes on SVG marks) */
+(function () {
+  "use strict";
+  var t = document.getElementById("viz-tip");
+  if (!t || !document.querySelector("[data-tip]")) return;
+  document.querySelectorAll("[data-tip] title").forEach(function (n) { n.remove(); });
+  document.querySelectorAll("[data-tip][title]").forEach(function (n) { n.removeAttribute("title"); });
+  document.addEventListener("mousemove", function (e) {
+    var n = e.target.closest && e.target.closest("[data-tip]");
+    if (!n) { t.hidden = true; return; }
+    t.textContent = n.getAttribute("data-tip");
+    t.hidden = false;
+    var x = e.clientX + 14, y = e.clientY + 14;
+    if (x + t.offsetWidth > innerWidth - 8) { x = e.clientX - t.offsetWidth - 14; }
+    if (y + t.offsetHeight > innerHeight - 8) { y = e.clientY - t.offsetHeight - 14; }
+    t.style.left = x + "px";
+    t.style.top = y + "px";
+  });
+})();

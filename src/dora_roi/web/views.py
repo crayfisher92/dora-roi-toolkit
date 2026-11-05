@@ -8,6 +8,7 @@ from decimal import Decimal
 from typing import Any
 
 from dora_roi.analytics import ProviderExposure
+from dora_roi.analytics.impact import FailureImpact, failure_impact
 from dora_roi.model import (
     ContractSpecific,
     Function,
@@ -65,6 +66,7 @@ class ProviderProfile:
     functions: list[tuple[Function, int]] = field(default_factory=list)
     assessments: list[ServiceAssessment] = field(default_factory=list)
     flags: list[Flag] = field(default_factory=list)
+    impact: FailureImpact | None = None
     findings: list[Finding] = field(default_factory=list)
     spend: Decimal = Decimal(0)
     share: float = 0.0
@@ -79,6 +81,7 @@ def provider_profile(ws: Workspace, code: str, t: Callable[..., str]) -> Provide
             exposure.name if exposure else code)
     group = exposure.group_name if exposure else name
     profile = ProviderProfile(provider, code, name, exposure, group)
+    profile.impact = failure_impact(reg, code)
     profile.services = [s for s in reg.b_02_02 if s.provider_code == code]
     fl = reg.function_lookup()
     counts: dict[tuple[str, str], int] = {}
@@ -91,9 +94,13 @@ def provider_profile(ws: Workspace, code: str, t: Callable[..., str]) -> Provide
     if exposure:
         profile.spend = exposure.spend
         profile.share = exposure.spend_share
-        if exposure.critical_functions:
-            profile.flags.append(Flag("high", t("prov.flag.critical",
-                                                n=exposure.critical_functions)))
+    impact = profile.impact
+    if impact.critical:
+        profile.flags.append(Flag("high", t(
+            "prov.flag.impact", n=len(impact.critical), d=impact.critical_direct,
+            i=impact.critical_indirect_only, e=len(impact.entities),
+            rto=impact.shortest_rto if impact.shortest_rto is not None else "—")))
+    if exposure:
         if exposure.hard_to_substitute:
             profile.flags.append(Flag("high", t("prov.flag.hard")))
         if exposure.critical_services_without_exit_plan:

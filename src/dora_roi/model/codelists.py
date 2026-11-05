@@ -25,6 +25,9 @@ def _norm(text: str) -> str:
     return re.sub(r"[\s_\-]+", " ", text)
 
 
+_LOOKUP_CACHE: dict[type, dict[str, object]] = {}
+
+
 class CodeEnum(StrEnum):
     """String enum with a human label and lookup by code, label or alias."""
 
@@ -44,14 +47,17 @@ class CodeEnum(StrEnum):
     @classmethod
     def lookup(cls, raw: str) -> Self | None:
         """Resolve ``raw`` (code, label or alias, any case) to a member, or ``None``."""
-        key = _norm(raw)
-        for member in cls:
-            if key in (_norm(member.value), _norm(member.label)):
-                return member
-        alias = {_norm(k): v for k, v in cls.aliases().items()}.get(key)
-        if alias is not None:
-            return cls(alias)
-        return None
+        table = _LOOKUP_CACHE.get(cls)
+        if table is None:
+            table = {}
+            for k, v in cls.aliases().items():
+                table[_norm(k)] = cls(v)
+            for member in cls:
+                table[_norm(member.label)] = member
+                table[_norm(member.value)] = member
+            _LOOKUP_CACHE[cls] = table
+        found = table.get(_norm(raw))
+        return found if isinstance(found, cls) else None
 
     @classmethod
     def describe(cls) -> str:

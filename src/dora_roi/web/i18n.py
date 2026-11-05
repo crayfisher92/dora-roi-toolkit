@@ -22,14 +22,14 @@ MESSAGES: dict[str, dict[str, str]] = {
         "theme.system": "System",
         "theme.light": "Light",
         "theme.dark": "Dark",
-        "footer.note": "Not an official EBA/ESA tool and not legal advice. Data stays in memory "
-                       "on this machine and is discarded when the app stops.",
+        "footer.note": "Not an official EBA/ESA tool and not legal advice. Data stays in memory on"
+                       " this machine and is discarded when the app stops.",
         "home.title": "Start a register workspace",
         "home.lead": "Bring the register in, fix what the validator finds, analyse concentration "
                      "risk and export the files for the supervisor and the CRO.",
         "home.import.title": "I have an RoI workbook",
-        "home.import.text": "Excel workbook with one sheet per template (B_01.01 – B_07.01), a "
-                            "zip of CSV files or an xBRL-CSV package.",
+        "home.import.text": "Excel workbook with one sheet per template (B_01.01 – B_07.01), a zip"
+                            " of CSV files or an xBRL-CSV package.",
         "home.import.button": "Upload and validate",
         "home.map.title": "I have our own contract inventory",
         "home.map.text": "Any Excel or CSV list of contracts with your own column names. Map the "
@@ -62,6 +62,31 @@ MESSAGES: dict[str, dict[str, str]] = {
         "ws.register": "Register",
         "ws.compare": "Compare",
         "ws.versions": "Versions",
+        "ws.audit": "Audit trail",
+        "audit.title": "Audit trail",
+        "audit.lead": "Every change to this register: who changed which field, when, from which "
+                      "value to which. Export it as evidence for internal audit.",
+        "audit.export": "Export audit log",
+        "audit.when": "When (UTC)",
+        "audit.who": "Who",
+        "audit.what": "Action",
+        "audit.where": "Field",
+        "audit.none": "No changes yet.",
+        "audit.kind.set": "Value changed",
+        "audit.kind.add": "Row added",
+        "audit.kind.delete": "Row deleted",
+        "audit.kind.accept": "Finding accepted",
+        "audit.kind.unaccept": "Acceptance withdrawn",
+        "fix.accept": "Accept with justification",
+        "fix.accept.reason": "Justification",
+        "fix.accept.button": "Accept finding",
+        "fix.accepted.title": "Accepted findings",
+        "fix.accepted.lead": "Warnings and notes accepted with a justification. They no longer "
+                             "count against the score; errors can never be accepted.",
+        "fix.accepted.reopen": "Reopen",
+        "user.label": "Your name (for the audit trail)",
+        "user.save": "Save name",
+        "user.help": "Stored in a cookie in this browser only.",
         "ws.score": "Data-quality score",
         "ws.score.help": "Share of records without findings (records with only warnings count "
                          "half). Submission needs zero errors.",
@@ -77,8 +102,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "ws.changes": "Changes made",
         "ws.key_messages": "Key messages",
         "fix.title": "Fix findings",
-        "fix.lead": "Findings are grouped by template and severity. Edit a value and press "
-                    "Save – the register is re-validated immediately.",
+        "fix.lead": "Findings are grouped by template and severity. Edit a value and press Save – "
+                    "the register is re-validated immediately.",
         "fix.all_templates": "All templates",
         "fix.none": "Nothing to fix here.",
         "fix.none_all": "No findings – the register passes every check.",
@@ -132,7 +157,18 @@ MESSAGES: dict[str, dict[str, str]] = {
         "prov.country": "Headquarters",
         "prov.spend": "Annual spend",
         "prov.share": "Share of spend",
-        "prov.flag.critical": "Supports {n} critical or important function(s)",
+        "prov.flag.impact": "If it fails: {n} critical or important function(s) affected ({d} "
+                            "directly, {i} only through subcontracting) in {e} entit(y/ies); "
+                            "shortest RTO {rto} h",
+        "prov.impact.title": "Failure impact",
+        "prov.impact.lead": "Functions that would be affected if this provider became unavailable "
+                            "– directly, or because it is a subcontractor of a provider you depend"
+                            " on.",
+        "prov.col.function": "Function",
+        "prov.col.criticality": "Criticality",
+        "prov.col.dependency": "Dependency",
+        "prov.dep.direct": "direct contract",
+        "prov.dep.via": "via",
         "prov.flag.hard": "Hard or impossible to substitute",
         "prov.flag.no_exit": "{n} critical service(s) without exit plan",
         "prov.flag.third": "Group headquartered in a third country ({country})",
@@ -142,8 +178,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "an.title": "Analyse concentration risk",
         "an.dashboard": "Concentration dashboard",
         "an.graph": "Dependency graph",
-        "an.graph.lead": "Direct providers (left) and their subcontractors. Select a provider "
-                         "to open its page; hover or focus to highlight its links.",
+        "an.graph.lead": "Direct providers (left) and their subcontractors. Select a provider to "
+                         "open its page; hover or focus to highlight its links.",
         "an.color_by": "Colour by",
         "an.color.criticality": "Criticality",
         "an.color.region": "Region",
@@ -164,8 +200,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "ex.xbrl.text": "Structure of the supervisory report package. Verify against the EBA "
                         "taxonomy and filing rules before submitting.",
         "ex.excel": "Corrected Excel workbook",
-        "ex.excel.text": "All templates with your changes, ready to send back to the client or "
-                         "to keep as master.",
+        "ex.excel.text": "All templates with your changes, ready to send back to the client or to "
+                         "keep as master.",
         "ex.csv": "CSV files (zip)",
         "ex.csv.text": "One file per template for data pipelines.",
         "ex.validation": "Validation report",
@@ -174,8 +210,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "ex.executive.text": "Concentration-risk summary for the CRO (HTML, printable).",
         "ex.download": "Download",
         "cmp.title": "Compare registers",
-        "cmp.lead": "Show what changed between two versions – for example last year's "
-                    "submission and this year's register.",
+        "cmp.lead": "Show what changed between two versions – for example last year's submission "
+                    "and this year's register.",
         "cmp.with": "Compare with",
         "cmp.version": "an earlier version of this workspace",
         "cmp.workspace": "another workspace",
@@ -184,6 +220,12 @@ MESSAGES: dict[str, dict[str, str]] = {
         "cmp.added": "Added",
         "cmp.removed": "Removed",
         "cmp.changed": "Changed",
+        "cmp.admin": "Administrative only",
+        "cmp.admin.short": "administrative",
+        "cmp.admin.help": "Administrative changes (dates of last update, assessment or audit; "
+                          "amounts changing by less than 10 %) are counted separately.",
+        "cmp.admin.show": "Show administrative changes",
+        "cmp.admin.hide": "Hide administrative changes",
         "cmp.none": "No differences.",
         "cmp.spend": "Annual spend",
         "cmp.cif": "Critical or important functions",
@@ -203,8 +245,8 @@ MESSAGES: dict[str, dict[str, str]] = {
                            "own column names are fine – German or English.",
         "wiz.upload.sample": "Use the sample inventory (German, messy)",
         "wiz.upload.button": "Upload and continue",
-        "wiz.map.lead": "We suggested a target for each column. Check the suggestions, change "
-                        "them where needed, or leave a column unmapped.",
+        "wiz.map.lead": "We suggested a target for each column. Check the suggestions, change them"
+                        " where needed, or leave a column unmapped.",
         "wiz.map.source": "Your column",
         "wiz.map.samples": "Sample values",
         "wiz.map.target": "RoI field",
@@ -213,8 +255,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "wiz.map.confidence.medium": "possible match",
         "wiz.map.continue": "Continue",
         "wiz.map.found": "Header found in row {row} of sheet “{sheet}”; {n} data rows.",
-        "wiz.entity.lead": "The inventory does not say who you are. These details fill "
-                           "templates B_01.01 and B_01.02.",
+        "wiz.entity.lead": "The inventory does not say who you are. These details fill templates "
+                           "B_01.01 and B_01.02.",
         "wiz.entity.lei": "LEI of your entity",
         "wiz.entity.name": "Legal name",
         "wiz.entity.country": "Country (ISO code)",
@@ -223,8 +265,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "wiz.entity.date": "Reference date",
         "wiz.entity.currency": "Reporting currency",
         "wiz.preview.lead": "First rows after normalisation. Changed values show the original "
-                            "below. Anything we could not interpret is kept and will be "
-                            "flagged in the Fix step.",
+                            "below. Anything we could not interpret is kept and will be flagged in"
+                            " the Fix step.",
         "wiz.preview.import": "Create workspace",
         "wiz.back": "Back",
         "wiz.error.lei": "Enter a valid 20-character LEI.",
@@ -249,19 +291,19 @@ MESSAGES: dict[str, dict[str, str]] = {
         "theme.system": "System",
         "theme.light": "Hell",
         "theme.dark": "Dunkel",
-        "footer.note": "Kein offizielles Werkzeug der EBA/ESAs und keine Rechtsberatung. Die "
-                       "Daten bleiben im Arbeitsspeicher dieses Rechners und werden beim Beenden "
+        "footer.note": "Kein offizielles Werkzeug der EBA/ESAs und keine Rechtsberatung. Die Daten"
+                       " bleiben im Arbeitsspeicher dieses Rechners und werden beim Beenden "
                        "verworfen.",
         "home.title": "Arbeitsbereich für ein Register anlegen",
-        "home.lead": "Register einlesen, Prüfergebnisse beheben, Konzentrationsrisiken "
-                     "analysieren und die Dateien für Aufsicht und CRO exportieren.",
+        "home.lead": "Register einlesen, Prüfergebnisse beheben, Konzentrationsrisiken analysieren"
+                     " und die Dateien für Aufsicht und CRO exportieren.",
         "home.import.title": "Ich habe eine RoI-Arbeitsmappe",
-        "home.import.text": "Excel-Datei mit einem Blatt je Vorlage (B_01.01 – B_07.01), ein "
-                            "Zip mit CSV-Dateien oder ein xBRL-CSV-Paket.",
+        "home.import.text": "Excel-Datei mit einem Blatt je Vorlage (B_01.01 – B_07.01), ein Zip "
+                            "mit CSV-Dateien oder ein xBRL-CSV-Paket.",
         "home.import.button": "Hochladen und prüfen",
         "home.map.title": "Ich habe ein eigenes Vertragsinventar",
-        "home.map.text": "Beliebige Excel- oder CSV-Liste mit eigenen Spaltennamen. Ordnen Sie "
-                         "die Spalten in vier kurzen Schritten den RoI-Feldern zu.",
+        "home.map.text": "Beliebige Excel- oder CSV-Liste mit eigenen Spaltennamen. Ordnen Sie die"
+                         " Spalten in vier kurzen Schritten den RoI-Feldern zu.",
         "home.map.button": "Zuordnungsassistent starten",
         "home.sample.title": "Mit Beispieldaten erkunden",
         "home.sample.text": "Die fiktive Alpenrand-Bankengruppe: 3 Gesellschaften, ~45 "
@@ -290,6 +332,33 @@ MESSAGES: dict[str, dict[str, str]] = {
         "ws.register": "Register",
         "ws.compare": "Vergleich",
         "ws.versions": "Versionen",
+        "ws.audit": "Prüfpfad",
+        "audit.title": "Prüfpfad",
+        "audit.lead": "Jede Änderung an diesem Register: wer welches Feld wann von welchem auf "
+                      "welchen Wert geändert hat. Als Nachweis für die interne Revision "
+                      "exportierbar.",
+        "audit.export": "Prüfpfad exportieren",
+        "audit.when": "Zeitpunkt (UTC)",
+        "audit.who": "Wer",
+        "audit.what": "Aktion",
+        "audit.where": "Feld",
+        "audit.none": "Noch keine Änderungen.",
+        "audit.kind.set": "Wert geändert",
+        "audit.kind.add": "Zeile hinzugefügt",
+        "audit.kind.delete": "Zeile gelöscht",
+        "audit.kind.accept": "Befund akzeptiert",
+        "audit.kind.unaccept": "Akzeptanz zurückgenommen",
+        "fix.accept": "Mit Begründung akzeptieren",
+        "fix.accept.reason": "Begründung",
+        "fix.accept.button": "Befund akzeptieren",
+        "fix.accepted.title": "Akzeptierte Befunde",
+        "fix.accepted.lead": "Mit Begründung akzeptierte Warnungen und Hinweise. Sie zählen "
+                             "nicht mehr gegen den Qualitätswert; Fehler können nie akzeptiert "
+                             "werden.",
+        "fix.accepted.reopen": "Wieder öffnen",
+        "user.label": "Ihr Name (für den Prüfpfad)",
+        "user.save": "Namen speichern",
+        "user.help": "Wird nur in einem Cookie dieses Browsers gespeichert.",
         "ws.score": "Datenqualitätswert",
         "ws.score.help": "Anteil der Datensätze ohne Befund (Datensätze nur mit Warnungen zählen "
                          "halb). Für die Einreichung dürfen keine Fehler vorliegen.",
@@ -360,7 +429,17 @@ MESSAGES: dict[str, dict[str, str]] = {
         "prov.country": "Hauptsitz",
         "prov.spend": "Jährliche Kosten",
         "prov.share": "Anteil an den Kosten",
-        "prov.flag.critical": "Unterstützt {n} kritische oder wichtige Funktion(en)",
+        "prov.flag.impact": "Bei Ausfall: {n} kritische oder wichtige Funktion(en) betroffen ({d} "
+                            "direkt, {i} nur über Unterauftragsketten) in {e} Gesellschaft(en); "
+                            "kürzeste RTO {rto} h",
+        "prov.impact.title": "Auswirkung bei Ausfall",
+        "prov.impact.lead": "Funktionen, die bei Ausfall dieses Dienstleisters betroffen wären – "
+                            "direkt oder weil er Unterauftragnehmer eines Ihrer Dienstleister ist.",
+        "prov.col.function": "Funktion",
+        "prov.col.criticality": "Kritikalität",
+        "prov.col.dependency": "Abhängigkeit",
+        "prov.dep.direct": "direkter Vertrag",
+        "prov.dep.via": "über",
         "prov.flag.hard": "Schwer oder nicht ersetzbar",
         "prov.flag.no_exit": "{n} kritische Leistung(en) ohne Exit-Plan",
         "prov.flag.third": "Gruppe mit Hauptsitz in einem Drittland ({country})",
@@ -415,6 +494,13 @@ MESSAGES: dict[str, dict[str, str]] = {
         "cmp.added": "Hinzugefügt",
         "cmp.removed": "Entfernt",
         "cmp.changed": "Geändert",
+        "cmp.admin": "Nur administrativ",
+        "cmp.admin.short": "administrativ",
+        "cmp.admin.help": "Administrative Änderungen (Datum der letzten Aktualisierung, Bewertung "
+                          "oder Prüfung; Beträge mit weniger als 10 % Änderung) werden getrennt "
+                          "gezählt.",
+        "cmp.admin.show": "Administrative Änderungen anzeigen",
+        "cmp.admin.hide": "Administrative Änderungen ausblenden",
         "cmp.none": "Keine Unterschiede.",
         "cmp.spend": "Jährliche Kosten",
         "cmp.cif": "Kritische oder wichtige Funktionen",
@@ -444,8 +530,7 @@ MESSAGES: dict[str, dict[str, str]] = {
         "wiz.map.confidence.high": "sichere Zuordnung",
         "wiz.map.confidence.medium": "mögliche Zuordnung",
         "wiz.map.continue": "Weiter",
-        "wiz.map.found": "Kopfzeile in Zeile {row} des Blatts „{sheet}“ gefunden; {n} "
-                         "Datenzeilen.",
+        "wiz.map.found": "Kopfzeile in Zeile {row} des Blatts „{sheet}“ gefunden; {n} Datenzeilen.",
         "wiz.entity.lead": "Das Inventar sagt nicht, wer Sie sind. Diese Angaben füllen die "
                            "Vorlagen B_01.01 und B_01.02.",
         "wiz.entity.lei": "LEI Ihres Unternehmens",
@@ -455,8 +540,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "wiz.entity.authority": "Zuständige Behörde",
         "wiz.entity.date": "Stichtag",
         "wiz.entity.currency": "Berichtswährung",
-        "wiz.preview.lead": "Erste Zeilen nach der Normalisierung. Bei geänderten Werten steht "
-                            "der Ursprungswert darunter. Was nicht interpretiert werden konnte, "
+        "wiz.preview.lead": "Erste Zeilen nach der Normalisierung. Bei geänderten Werten steht der"
+                            " Ursprungswert darunter. Was nicht interpretiert werden konnte, "
                             "bleibt erhalten und wird im Schritt Korrigieren markiert.",
         "wiz.preview.import": "Arbeitsbereich anlegen",
         "wiz.back": "Zurück",
@@ -464,8 +549,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "wiz.error.required": "Dieses Feld ist erforderlich.",
         "wiz.notes": "Import-Zusammenfassung",
         "err.not_found": "Nicht gefunden oder abgelaufen.",
-        "err.upload_type": "Nicht unterstützter Dateityp „{suffix}“. Laden Sie .xlsx, .xlsm, "
-                           ".zip oder .csv hoch.",
+        "err.upload_type": "Nicht unterstützter Dateityp „{suffix}“. Laden Sie .xlsx, .xlsm, .zip "
+                           "oder .csv hoch.",
         "err.too_large": "Datei zu groß (maximal 25 MB).",
         "err.read": "„{name}“ konnte nicht gelesen werden: {error}",
         "common.yes": "Ja",

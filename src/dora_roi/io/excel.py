@@ -25,6 +25,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
 from dora_roi import __version__
+from dora_roi.io.limits import check_archive
 from dora_roi.io.raw import RawRegister, RawValue
 from dora_roi.io.tables import (
     build_table,
@@ -43,6 +44,7 @@ LABEL_FILL = PatternFill("solid", fgColor="E8EEF7")
 HINT_FILL = PatternFill("solid", fgColor="F3F2EE")
 MANDATORY_FONT = Font(bold=True, color="0B0B0B")
 FIRST_DATA_ROW = 4
+FORMULA_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
 VALIDATION_ROWS = 5000
 CODELIST_SHEET = "_codelists"
 README_SHEET = "README"
@@ -160,7 +162,13 @@ def _write_template_sheet(wb: Workbook, model: type[Any], records: list[Any],
     ws.freeze_panes = f"A{FIRST_DATA_ROW}"
     for r_idx, record in enumerate(records, start=FIRST_DATA_ROW):
         for c_idx, spec in enumerate(columns, start=1):
-            cell = ws.cell(row=r_idx, column=c_idx, value=_excel_value(getattr(record, spec.attr)))
+            value = _excel_value(getattr(record, spec.attr))
+            cell = ws.cell(row=r_idx, column=c_idx, value=value)
+            if isinstance(value, str):
+                # never let client-supplied text become a formula (CWE-1236)
+                cell.data_type = "s"
+                if value[:1] in FORMULA_TRIGGERS:
+                    cell.quotePrefix = True
             if spec.col.kind is Kind.DATE:
                 cell.number_format = "yyyy-mm-dd"
     return ws
@@ -191,6 +199,7 @@ def read_workbook(path: str | Path) -> RawRegister:
     """Read an RoI workbook into a :class:`RawRegister` (never raises for content problems)."""
     p = Path(path)
     source = p.name
+    check_archive(p)
     wb = load_workbook(p, read_only=True, data_only=True)
     raw = RawRegister(source=source)
     try:

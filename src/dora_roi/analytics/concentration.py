@@ -86,6 +86,8 @@ class ProviderExposure(BaseModel):
     hard_to_substitute: bool = False
     critical_services_without_exit_plan: int = 0
     subcontractor_appearances: int = 0
+    #: Critical functions supported directly or through supply chains (rank >= 2).
+    critical_functions_incl_indirect: int = 0
 
 
 class GroupExposure(BaseModel):
@@ -98,6 +100,7 @@ class GroupExposure(BaseModel):
     spend: Decimal = Decimal(0)
     spend_share: float = 0.0
     indirect_contracts: int = 0
+    critical_functions_incl_indirect: int = 0
 
 
 class FunctionDependency(BaseModel):
@@ -312,7 +315,18 @@ def analyse(register: RegisterOfInformation,
             if entry.contract_ref in critical_contracts:
                 sub_critical[entry.provider_code].add(entry.contract_ref)
 
+    contract_cif: dict[str, set[tuple[str, str]]] = defaultdict(set)
+    for s in services:
+        if s.contract_ref and idx.is_critical(s):
+            contract_cif[s.contract_ref].add((s.function_id or "", s.entity_lei or ""))
+    critical_incl: dict[str, set[tuple[str, str]]] = defaultdict(set)
+    for code in set(critical_of) | set(sub_chains):
+        critical_incl[code] = set(critical_of.get(code, set()))
+        for chain_ref in sub_chains.get(code, ()):
+            critical_incl[code] |= contract_cif.get(chain_ref, set())
+
     for code, e in exposures.items():
+        e.critical_functions_incl_indirect = len(critical_incl.get(code, set()))
         e.contracts = len(contracts_of[code])
         e.entities = len(entities_of[code])
         e.functions = len(functions_of[code])
@@ -336,6 +350,9 @@ def analyse(register: RegisterOfInformation,
         g.spend += e.spend
         group_contracts[e.group_code] |= contracts_of[e.code]
         group_critical[e.group_code] |= critical_of[e.code]
+    group_incl: dict[str, set[tuple[str, str]]] = defaultdict(set)
+    for code, keys in critical_incl.items():
+        group_incl[idx.group_of(code)] |= keys
     for code, chains in sub_chains.items():
         gcode = idx.group_of(code)
         if gcode in groups:
@@ -343,6 +360,8 @@ def analyse(register: RegisterOfInformation,
     for gcode, g in groups.items():
         g.contracts = len(group_contracts[gcode])
         g.critical_functions = len(group_critical[gcode])
+        g.critical_functions_incl_indirect = len(group_incl.get(gcode, set()) |
+                                                 group_critical[gcode])
         g.spend_share = _share(g.spend, total_spend)
     group_list = sorted(groups.values(), key=lambda g: (-g.spend, -g.contracts, g.group_name))
     shares = [g.spend_share for g in group_list]
@@ -375,8 +394,9 @@ def analyse(register: RegisterOfInformation,
             max_chain_rank=max((chain_rank.get(s.contract_ref or "", 0) for s in svc), default=0),
             data_regions=regions,
         ))
-    multi_cif = [g for g in group_list if g.critical_functions >= cfg.multi_cif_threshold]
-    multi_cif.sort(key=lambda g: (-g.critical_functions, -g.spend))
+    multi_cif = [g for g in group_list
+                 if g.critical_functions_incl_indirect >= cfg.multi_cif_threshold]
+    multi_cif.sort(key=lambda g: (-g.critical_functions_incl_indirect, -g.spend))
 
     # ---- geography
     region_count: Counter[str] = Counter()
@@ -535,14 +555,16 @@ def key_findings(a: ConcentrationAnalysis, cfg: AnalyticsConfig) -> list[KeyFind
                 level=Level.MEDIUM, title=f"ICT spend is {a.hhi_band} (HHI {a.hhi:,.0f})",
                 detail=f"Top three provider groups account for {_pct(a.top3_share)} of spend."))
     if a.multi_cif_groups:
-        names = ", ".join(f"{g.group_name} ({g.critical_functions})"
+        names = ", ".join(f"{g.group_name} ({g.critical_functions_incl_indirect}, "
+                          f"{g.critical_functions} directly)"
                           for g in a.multi_cif_groups[:3])
         out.append(KeyFinding(
             level=Level.HIGH,
             title=f"{len(a.multi_cif_groups)} provider group(s) support "
             f"{cfg.multi_cif_threshold} or more critical or important functions",
-            detail=f"Most exposed: {names}. A failure at one of these providers would affect "
-            "several critical functions simultaneously."))
+            detail=f"Most exposed: {names}, counting dependencies through subcontracting "
+            "chains. A failure at one of these providers would affect several critical "
+            "functions simultaneously."))
     single = [f for f in a.critical_functions if f.single_provider]
     hard_single = [f for f in single if f.hard_to_substitute]
     if single:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable, Sequence
 
+from dora_roi.io.limits import check_rows, max_rows_per_table
 from dora_roi.io.raw import RawRow, RawTable, RawValue
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RoIRecord
 from dora_roi.model.types import Col, Kind
@@ -144,6 +145,8 @@ def build_table(
         if all(v is None for v in values.values()):
             continue
         table.rows.append(RawRow(row=row_no, values=values))
+        if len(table.rows) > max_rows_per_table():
+            check_rows(template, len(table.rows))
     if mapping is None:
         findings.append(import_finding(
             "IMP-004", f"No header row with column codes (c0010 …) found for {template}",

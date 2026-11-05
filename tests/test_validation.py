@@ -165,6 +165,7 @@ CASES: list[tuple[str, Mutation]] = [
     ("BUS-022", _set("b_07_01.0.last_audit_date", date(2020, 1, 1))),
     ("BUS-023", _set("b_02_02.0.provider_code", ENTITY)),
     ("BUS-024", _set("b_02_02.0.end_date", date(2090, 1, 1))),
+    ("BUS-025", _set("b_05_01.1.legal_name", "SAAS VENDOR Ltd.")),
 ]
 
 

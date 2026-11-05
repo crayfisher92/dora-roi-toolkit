@@ -37,8 +37,9 @@ workspaces by restarting the app (`docker compose restart`) so the demo starts c
 > "97 % of the records are clean – but 27 errors would make the supervisor reject the
 > file. The score tells you how far you are; the status tells you whether you can submit."
 
-**Scroll** to *Key messages*: four provider groups each support five or more critical
-functions; five contracts supporting critical functions expire within a year.
+**Scroll** to *Key messages*: eight provider groups each support five or more critical
+functions once subcontracting is counted; five contracts supporting critical functions
+expire within a year.
 
 ## 1:15 – Fixing, in plain language (75 s)
 
@@ -61,10 +62,16 @@ repeated mistakes can be fixed in bulk.
 **Click** *Analyse*, scroll to the **dependency graph**, and click
 **Nimbus Cloud Services EMEA Ltd**.
 
-> "This is everything about one provider on one page: it supports 13 critical or important
-> functions, is hard to substitute, sits in 11 supply chains as a subcontractor, and its
-> group is headquartered in a third country. These are the questions the board risk
-> committee asks."
+> "This is everything about one provider on one page: if it fails, 13 critical or important
+> functions in all three entities are affected; it is hard to substitute, sits in 11 supply
+> chains as a subcontractor, and its group is headquartered in a third country. These are
+> the questions the board risk committee asks."
+
+Then open its US parent **Nimbus Cloud Inc.** from the *Failure impact* table or the graph:
+
+> "Only one contract is with the US parent directly – but 15 critical functions depend on it,
+> 14 of them only through subcontracting chains. That is the concentration you do not see in
+> the contract list."
 
 ## 3:15 – Concentration and fourth parties (45 s)
 

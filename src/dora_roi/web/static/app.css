@@ -207,3 +207,14 @@ del { color: var(--text-muted); }
 }
 main > h2:first-child, main > h1:first-child, main > .doc:first-child, main > p:first-child + h2 { margin-top: 0; }
 main { padding-top: 24px; }
+#viz-tip { position: fixed; pointer-events: none; z-index: 10; background: var(--surface-1);
+  color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+  font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 320px; }
+#viz-tip[hidden] { display: none; }
+.accept { margin-top: 4px; }
+.accept summary { cursor: pointer; font-size: 13px; color: var(--text-secondary); min-height: 24px; }
+.cell-accept { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.cell-accept input[name="reason"] { flex: 1 1 260px; }
+.accepted { margin-top: 32px; }
+.user-form { margin: 0 0 20px; }
+.user-form input { min-width: 220px; }

@@ -46,19 +46,20 @@ from dora_roi.inventory import (
 )
 from dora_roi.io.csv_folder import register_to_csv_texts
 from dora_roi.io.excel import write_blank_template, write_workbook
+from dora_roi.io.limits import InputTooLargeError
 from dora_roi.io.loader import UnsupportedInputError, load_raw
 from dora_roi.io.xbrl_csv import XbrlCsvOptions, build_package_files, package_name
 from dora_roi.lei import is_valid_lei
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, EntityType
 from dora_roi.model.refdata import COUNTRIES, CURRENCIES, country_name
 from dora_roi.reporting import render_html, render_json, render_markdown
-from dora_roi.reporting.charts import TOOLTIP_SCRIPT
 from dora_roi.reporting.executive import build_charts, money, pct, render_executive_summary
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
-from dora_roi.validation import RULES, Finding
+from dora_roi.validation import RULES, Finding, finding_key
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
+from dora_roi.web.security import SameOriginMiddleware, SecurityHeadersMiddleware, safe_next
 from dora_roi.web.views import display, provider_profile, stepper
-from dora_roi.workspace import EditError, Workspace
+from dora_roi.workspace import DEFAULT_USER, EditError, Workspace
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 MAX_WORKSPACES = 20
@@ -115,21 +116,16 @@ def _env() -> Environment:
     )
     env.globals.update(money=money, pct=pct, version=__version__, display=display,
                        country_name=country_name, templates=TEMPLATE_MODELS, RULES=RULES,
-                       languages=LANGUAGES)
+                       languages=LANGUAGES, finding_key=finding_key)
     return env
-
-
-def _safe_next(target: str | None, default: str) -> str:
-    """Only allow local redirect targets."""
-    if target and target.startswith("/") and not target.startswith("//"):
-        return target
-    return default
 
 
 def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
     app = FastAPI(title="DORA RoI Workbench", version=__version__,
                   description="Prepare, fix and analyse a DORA register of information.")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.add_middleware(SameOriginMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
     workspaces: LRUStore[Workspace] = LRUStore(capacity)
     wizards: LRUStore[Wizard] = LRUStore(capacity)
     app.state.workspaces = workspaces
@@ -161,6 +157,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         if step in ("analyse", "export"):
             ws.visited.add(step)
         return render(request, page_template, ws=ws, steps=stepper(ws, step), step=step,
+                      user=user_of(request),
                       quality=ws.quality, counts=ws.report.severity_counts(), **ctx)
 
     def add_workspace(ws: Workspace) -> RedirectResponse:
@@ -219,7 +216,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                     ValueError, OSError) as exc:
                 t = translator(lang_of(request))
                 return render(request, "home.html.j2", status=400,
-                              error=t("err.read", name=name, error=type(exc).__name__),
+                              error=t("err.read", name=name, error=_reason(exc)),
                               **home_ctx())
         raw.source = name
         return add_workspace(Workspace(name, raw, source=name))
@@ -399,13 +396,13 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         value = str(form.get("value", ""))
         try:
             row = int(str(form.get("row", "")))
-            change = ws.edit(template, row, column, value)
+            change = ws.edit(template, row, column, value, user=user_of(request))
         except (ValueError, EditError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         if "application/json" in request.headers.get("accept", ""):
             return JSONResponse(_state_json(ws, template, row, column, change is not None,
                                             translator(lang_of(request))))
-        target = _safe_next(str(form.get("next", "")), f"/w/{wid}/fix")
+        target = safe_next(str(form.get("next", "")), f"/w/{wid}/fix")
         return RedirectResponse(target, status_code=303)
 
     @app.post("/w/{wid}/bulk")
@@ -415,10 +412,11 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         rows = [int(x) for x in str(form.get("rows", "")).split(",") if x.strip().isdigit()]
         try:
             ws.bulk_replace(str(form.get("template", "")), str(form.get("column", "")),
-                            str(form.get("old", "")), str(form.get("new", "")), rows or None)
+                            str(form.get("old", "")), str(form.get("new", "")), rows or None,
+                            user=user_of(request))
         except EditError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        return RedirectResponse(_safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
+        return RedirectResponse(safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
                                 status_code=303)
 
     @app.get("/w/{wid}/register", response_class=HTMLResponse)
@@ -468,7 +466,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         form = await request.form()
         if form.get("delete"):
             try:
-                ws.delete_row(template, row)
+                ws.delete_row(template, row, user=user_of(request))
             except EditError as exc:
                 raise HTTPException(status_code=404) from exc
             return RedirectResponse(f"/w/{wid}/register/{template}", status_code=303)
@@ -478,16 +476,16 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                 if spec.code in form:
                     new = str(form.get(spec.code, ""))
                     if display(raw_row.values.get(spec.code)) != new.strip():
-                        ws.edit(template, row, spec.code, new)
+                        ws.edit(template, row, spec.code, new, user=user_of(request))
         except EditError as exc:
             raise HTTPException(status_code=404) from exc
         return RedirectResponse(f"/w/{wid}/register/{template}/{row}?saved=1", status_code=303)
 
     @app.post("/w/{wid}/register/{template}")
-    def register_add(wid: str, template: str) -> Response:
+    def register_add(request: Request, wid: str, template: str) -> Response:
         ws = ws_or_404(wid)
         try:
-            row = ws.add_row(template)
+            row = ws.add_row(template, user=user_of(request))
         except EditError as exc:
             raise HTTPException(status_code=404) from exc
         return RedirectResponse(f"/w/{wid}/register/{template}/{row}", status_code=303)
@@ -518,8 +516,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                          labels=_graph_labels(t))
         return ws_page(request, ws, "ws_analyse.html.j2", "analyse", a=ws.analysis,
                        charts=build_charts(ws.analysis), graph_svg=svg, color=color,
-                       critical=critical, isolated=isolated, chains=chains_table(ws.register),
-                       tooltip_script=TOOLTIP_SCRIPT)
+                       critical=critical, isolated=isolated, chains=chains_table(ws.register))
 
     @app.get("/w/{wid}/export", response_class=HTMLResponse)
     def export_page(request: Request, wid: str) -> HTMLResponse:
@@ -560,11 +557,14 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                                                          analysis=ws.analysis))
         if kind == "analysis.json":
             return JSONResponse(ws.analysis.model_dump(mode="json"))
+        if kind == "audit.csv":
+            return _download(audit_csv(ws).encode("utf-8-sig"), f"{stem}-audit-log.csv",
+                             "text/csv")
         raise HTTPException(status_code=404)
 
     @app.get("/w/{wid}/compare", response_class=HTMLResponse)
     def compare(request: Request, wid: str, other: str | None = None,
-                version: int | None = None) -> HTMLResponse:
+                version: int | None = None, all: int = 0) -> HTMLResponse:
         ws = ws_or_404(wid)
         result = None
         label = None
@@ -581,7 +581,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
             label = f"v{version}"
         others = [w for w in workspaces.values() if w.id != ws.id]
         return ws_page(request, ws, "ws_compare.html.j2", "analyse", result=result, label=label,
-                       others=others, other=other, version=version)
+                       others=others, other=other, version=version, show_all=bool(all))
 
     @app.post("/w/{wid}/compare")
     async def compare_upload(request: Request, wid: str,
@@ -592,7 +592,8 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
             return upload_error(request, got, "ws_compare.html.j2", ws=ws,
                                 steps=stepper(ws, "analyse"), step="analyse",
                                 quality=ws.quality, counts=ws.report.severity_counts(),
-                                result=None, others=[], other=None, version=None, label=None)
+                                result=None, others=[], other=None, version=None, label=None,
+                                show_all=False)
         name, data = got
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / f"previous{Path(name).suffix.lower()}"
@@ -605,6 +606,48 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         other = Workspace(name, raw, source=name)
         workspaces.add(other.id, other)
         return RedirectResponse(f"/w/{wid}/compare?other={other.id}", status_code=303)
+
+    @app.post("/user")
+    async def set_user(request: Request) -> Response:
+        form = await request.form()
+        name = clean_user(str(form.get("name", "")))
+        target = safe_next(str(form.get("next", "")), "/")
+        response = RedirectResponse(target, status_code=303)
+        response.set_cookie("roi_user", name, max_age=31536000, samesite="strict",
+                            httponly=True)
+        return response
+
+    @app.post("/w/{wid}/accept")
+    async def accept(request: Request, wid: str) -> Response:
+        ws = ws_or_404(wid)
+        form = await request.form()
+        key = str(form.get("key", ""))
+        finding = next((f for f in ws.report.findings if finding_key(f) == key), None)
+        if finding is None:
+            raise HTTPException(status_code=404)
+        try:
+            ws.accept(finding, str(form.get("reason", "")), user=user_of(request))
+        except EditError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        return RedirectResponse(safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
+                                status_code=303)
+
+    @app.post("/w/{wid}/unaccept")
+    async def unaccept(request: Request, wid: str) -> Response:
+        ws = ws_or_404(wid)
+        form = await request.form()
+        try:
+            ws.unaccept(str(form.get("key", "")), user=user_of(request))
+        except EditError as exc:
+            raise HTTPException(status_code=404) from exc
+        return RedirectResponse(safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
+                                status_code=303)
+
+    @app.get("/w/{wid}/audit", response_class=HTMLResponse)
+    def audit(request: Request, wid: str) -> HTMLResponse:
+        ws = ws_or_404(wid)
+        return ws_page(request, ws, "ws_audit.html.j2", "fix",
+                       entries=list(reversed(ws.changes)), column_label=_column_label)
 
     @app.get("/w/{wid}/versions", response_class=HTMLResponse)
     def versions(request: Request, wid: str) -> HTMLResponse:
@@ -637,6 +680,40 @@ XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 def _download(data: bytes, filename: str, media_type: str) -> Response:
     return Response(data, media_type=media_type,
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
+def user_of(request: Request) -> str:
+    return clean_user(request.cookies.get("roi_user", "")) or DEFAULT_USER
+
+
+def clean_user(name: str) -> str:
+    """Printable, trimmed user name (max 80 characters) for the audit trail."""
+    return "".join(ch for ch in name if ch.isprintable()).strip()[:80]
+
+
+def _reason(exc: Exception) -> str:
+    return str(exc) if isinstance(exc, InputTooLargeError) else type(exc).__name__
+
+
+def audit_csv(ws: Workspace) -> str:
+    """Audit trail as CSV (cells neutralised against formula injection)."""
+    import csv
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["timestamp_utc", "user", "action", "template", "row", "column",
+                     "column_label", "old_value", "new_value", "note"])
+    for ch in ws.changes:
+        writer.writerow([_csv_safe(x) for x in (
+            ch.at.isoformat(timespec="seconds"), ch.user, ch.kind, ch.template, ch.row,
+            ch.column or "", _column_label(ch.template, ch.column) if ch.column else "",
+            display(ch.old), display(ch.new), ch.note)])
+    return buf.getvalue()
+
+
+def _csv_safe(value: object) -> str:
+    text = "" if value is None else str(value)
+    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
 
 
 def _column_label(template: str | None, column: str | None) -> str:

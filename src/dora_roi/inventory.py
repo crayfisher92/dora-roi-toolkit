@@ -29,6 +29,7 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
+from dora_roi.io.limits import check_archive, check_rows
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
 from dora_roi.lei import is_valid_lei_format
 from dora_roi.model import TEMPLATE_MODELS, CodeEnum, EntityType
@@ -176,6 +177,7 @@ def _sheet_from_rows(rows: list[list[RawValue]], sheet: str, source: str) -> Inv
                for i, c in enumerate(rows[h] + [None] * (width - len(rows[h])))]
     data = [r + [None] * (width - len(r)) for r in rows[h + 1:]
             if any(c not in (None, "") for c in r)]
+    check_rows(sheet or "inventory", len(data))
     # drop trailing all-empty columns
     while headers and headers[-1].startswith("Column ") and all(
             r[len(headers) - 1] in (None, "") for r in data):
@@ -194,6 +196,7 @@ def read_inventory(path: str | Path, sheet: str | None = None) -> InventorySheet
         rows: list[list[RawValue]] = [list(r) for r in csv.reader(io.StringIO(text),
                                                                   delimiter=delim)]
         return _sheet_from_rows(rows, p.stem, p.name)
+    check_archive(p)
     wb = load_workbook(p, read_only=True, data_only=True)
     try:
         sheets = [wb[sheet]] if sheet else wb.worksheets

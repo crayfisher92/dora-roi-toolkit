@@ -17,7 +17,7 @@ from dora_roi.validation.engine import (
     rules_catalogue,
     validate,
 )
-from dora_roi.validation.findings import RULES, Category, Finding, Rule, Severity
+from dora_roi.validation.findings import RULES, Category, Finding, Rule, Severity, finding_key
 
 __all__ = [
     "RULES",
@@ -30,6 +30,7 @@ __all__ = [
     "ValidationContext",
     "ValidationReport",
     "engine_rules",
+    "finding_key",
     "rules_catalogue",
     "validate",
 ]
