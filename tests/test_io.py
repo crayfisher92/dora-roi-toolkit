@@ -229,10 +229,17 @@ def test_load_code_map(tmp_path: Path) -> None:
     good = tmp_path / "map.json"
     good.write_text(json.dumps({"Criticality": {"CRITICAL": "eba_BT:x28"}}))
     assert load_code_map(good) == {"Criticality": {"CRITICAL": "eba_BT:x28"}}
-    bad = tmp_path / "bad.json"
-    bad.write_text("[1, 2]")
-    with pytest.raises(ValueError):
-        load_code_map(bad)
+    for content in ("[1, 2]", '{"Criticality": 3}', '{"Nope": {}}',
+                    '{"Criticality": {"MAYBE": "x"}}'):
+        bad = tmp_path / "bad.json"
+        bad.write_text(content)
+        with pytest.raises(ValueError):
+            load_code_map(bad)
+    commented = tmp_path / "c.json"
+    commented.write_text('{"_comment": "x", "Impact": {"LOW": "eba_XX:x1"}}')
+    assert load_code_map(commented) == {"Impact": {"LOW": "eba_XX:x1"}}
+    example = Path(__file__).resolve().parent.parent / "examples" / "code-map.example.json"
+    assert "IctServiceType" in load_code_map(example)
 
 
 def test_detect_format_errors(tmp_path: Path) -> None:

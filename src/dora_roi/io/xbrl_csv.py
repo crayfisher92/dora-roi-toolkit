@@ -74,10 +74,25 @@ class ExportResult:
 
 def load_code_map(path: str | Path) -> CodeMap:
     """Load a JSON code map ``{"CodeListName": {"CODE": "eba_XX:xNN"}}``."""
+    from dora_roi.model import ALL_CODELISTS
+
     data = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(data, dict) or not all(isinstance(v, dict) for v in data.values()):
+    if not isinstance(data, dict):
         raise ValueError("code map must be a JSON object of objects")
-    return {str(k): {str(a): str(b) for a, b in v.items()} for k, v in data.items()}
+    lists = {cl.__name__: {m.value for m in cl} for cl in ALL_CODELISTS}
+    out: CodeMap = {}
+    for name, mapping in data.items():
+        if str(name).startswith("_"):
+            continue  # comments
+        if not isinstance(mapping, dict):
+            raise ValueError(f"code map entry {name!r} must be an object")
+        if name not in lists:
+            raise ValueError(f"unknown code list {name!r} (known: {', '.join(sorted(lists))})")
+        unknown = set(mapping) - lists[name]
+        if unknown:
+            raise ValueError(f"{name}: unknown code(s) {', '.join(sorted(unknown))}")
+        out[str(name)] = {str(a): str(b) for a, b in mapping.items()}
+    return out
 
 
 class _ValueMapper:

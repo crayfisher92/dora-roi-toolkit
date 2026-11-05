@@ -1,0 +1,11 @@
+{
+  "_comment": "Illustrative structure only. Replace the right-hand values with the EBA DORA taxonomy members in force (see docs/ASSUMPTIONS.md A-XBRL-05). Keys are code-list class names, then toolkit-internal codes.",
+  "IctServiceType": {
+    "S01": "eba_XX:REPLACE_ME"
+  },
+  "Criticality": {
+    "CRITICAL": "eba_XX:REPLACE_ME",
+    "NOT_CRITICAL": "eba_XX:REPLACE_ME",
+    "NOT_ASSESSED": "eba_XX:REPLACE_ME"
+  }
+}
