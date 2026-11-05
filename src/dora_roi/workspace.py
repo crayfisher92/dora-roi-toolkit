@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import threading
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from dora_roi.analytics import ConcentrationAnalysis, analyse
@@ -122,6 +124,10 @@ class Workspace:
         self.import_notes: list[str] | None = None
         #: Browser session that owns the workspace in the web app (``""`` elsewhere).
         self.owner: str = ""
+        #: Called after every change (used for autosaving project files).
+        self.on_change: Callable[[Workspace], None] | None = None
+        #: Where the workspace is autosaved, if anywhere.
+        self.project_path: Path | None = None
         self.lock = threading.RLock()
         self._derived: _Derived | None = None
         self._analysis: ConcentrationAnalysis | None = None
@@ -334,6 +340,7 @@ class Workspace:
                                        finding.row or 0, finding.column, None, None,
                                        user=user, note=f"{finding.rule_id}: {acc.reason}"))
             self._invalidate()
+            self._changed()
             return acc
 
     def unaccept(self, key: str, user: str = DEFAULT_USER) -> None:
@@ -344,6 +351,7 @@ class Workspace:
             self.changes.append(Change("unaccept", "register", 0, None, None, None, user=user,
                                        note=f"{acc.rule_id}: {acc.reason}"))
             self._invalidate()
+            self._changed()
 
     # ------------------------------------------------------------------ versions
 
@@ -356,7 +364,12 @@ class Workspace:
             self.versions.append(version)
             if len(self.versions) > MAX_VERSIONS:
                 del self.versions[1]  # keep the imported original
+            self._changed()
             return version
+
+    def _changed(self) -> None:
+        if self.on_change is not None:
+            self.on_change(self)
 
     def version(self, number: int) -> Version:
         for v in self.versions:

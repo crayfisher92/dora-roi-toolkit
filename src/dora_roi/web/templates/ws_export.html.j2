@@ -7,6 +7,8 @@
 <div class="grid entry">
   <section class="card entry-card"><h3>{{ t("ex.xbrl") }}</h3><p class="muted">{{ t("ex.xbrl.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/xbrl">{{ t("ex.download") }} (.zip)</a></section>
   <section class="card entry-card"><h3>{{ t("ex.excel") }}</h3><p class="muted">{{ t("ex.excel.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/xlsx">{{ t("ex.download") }} (.xlsx)</a></section>
+  <section class="card entry-card"><h3>{{ t("ex.project") }}</h3><p class="muted">{{ t("ex.project.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/project">{{ t("ex.download") }} (.roiproj)</a>
+    {% if ws.project_path %}<p class="small muted">{{ t("ex.project.autosaved", file=ws.project_path.name) }}</p>{% endif %}</section>
   <section class="card entry-card"><h3>{{ t("ex.csv") }}</h3><p class="muted">{{ t("ex.csv.text") }}</p><a class="btn" href="/w/{{ ws.id }}/download/csv">{{ t("ex.download") }} (.zip)</a></section>
   <section class="card entry-card"><h3>{{ t("ex.validation") }}</h3><p class="muted">{{ t("ex.validation.text") }}</p>
     <div class="row"><a class="btn" href="/w/{{ ws.id }}/download/validation.html" target="_blank" rel="noopener">HTML</a><a class="btn" href="/w/{{ ws.id }}/download/validation.md">Markdown</a><a class="btn" href="/w/{{ ws.id }}/download/validation.json">JSON</a></div></section>

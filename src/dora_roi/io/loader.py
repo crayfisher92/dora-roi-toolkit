@@ -18,6 +18,7 @@ from dora_roi.validation import Finding
 
 
 class InputFormat(StrEnum):
+    PROJECT = "project"
     EXCEL = "excel"
     CSV = "csv"
     XBRL_CSV = "xbrl-csv"
@@ -42,6 +43,8 @@ def detect_format(path: str | Path) -> InputFormat:
     if p.is_dir():
         return InputFormat.XBRL_CSV if is_xbrl_package(p) else InputFormat.CSV
     suffix = p.suffix.lower()
+    if suffix == ".roiproj":
+        return InputFormat.PROJECT
     if suffix in {".xlsx", ".xlsm"}:
         return InputFormat.EXCEL
     if suffix == ".zip":
@@ -69,6 +72,10 @@ def _read_csv_zip(path: Path) -> RawRegister:
 def load_raw(path: str | Path, code_map: CodeMap | None = None) -> tuple[RawRegister, InputFormat]:
     p = Path(path)
     fmt = detect_format(p)
+    if fmt is InputFormat.PROJECT:
+        from dora_roi.project import load_project
+
+        return load_project(p).raw, fmt
     if fmt is InputFormat.EXCEL:
         return read_workbook(p), fmt
     if fmt is InputFormat.XBRL_CSV:

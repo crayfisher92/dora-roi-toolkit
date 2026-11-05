@@ -15,13 +15,15 @@ from openpyxl import load_workbook
 
 from dora_roi.analytics import analyse
 from dora_roi.analytics.impact import failure_impact
+from dora_roi.audit import audit_csv
+from dora_roi.audit import csv_safe as _csv_safe
 from dora_roi.diff import diff_registers
 from dora_roi.io.excel import write_workbook
 from dora_roi.io.limits import InputTooLargeError, check_archive
 from dora_roi.io.loader import load
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
 from dora_roi.validation import Severity
-from dora_roi.web.app import _csv_safe, audit_csv, clean_user, create_app
+from dora_roi.web.app import clean_user, create_app
 from dora_roi.web.security import APP_CSP, REPORT_CSP, safe_next
 from dora_roi.workspace import EditError, Workspace
 

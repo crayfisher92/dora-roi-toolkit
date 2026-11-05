@@ -15,6 +15,11 @@
       <button class="btn primary" type="submit">{{ t("home.import.button") }}</button>
     </form>
     <p class="small"><a href="/template.xlsx">{{ t("home.template") }}</a></p>
+    <form action="/project/open" method="post" enctype="multipart/form-data" class="stack project-open">
+      <label for="proj-file">{{ t("home.project.open") }} <span class="muted small">(.roiproj)</span></label>
+      <input id="proj-file" name="file" type="file" accept=".roiproj" required>
+      <button class="btn" type="submit">{{ t("home.project.button") }}</button>
+    </form>
   </section>
   <section class="card entry-card" aria-labelledby="h-map">
     <h2 id="h-map">{{ t("home.map.title") }}</h2>
@@ -31,6 +36,18 @@
     </form>
   </section>
 </div>
+
+{% if projects is not none %}
+<h2>{{ t("home.projects") }}</h2>
+{% if projects %}
+<div class="table-wrap"><table>
+  <thead><tr><th scope="col">{{ t("col.workspace") }}</th><th scope="col">{{ t("home.project.saved") }}</th><th scope="col"><span class="visually-hidden">{{ t("home.project.button") }}</span></th></tr></thead>
+  <tbody>{% for path, meta in projects %}
+  <tr><td>{{ meta.name }}<div class="small muted mono">{{ path.name }}</div></td><td class="small">{{ meta.saved[:16] | replace("T", " ") }} UTC</td>
+    <td><form method="post" action="/projects/open"><input type="hidden" name="file" value="{{ path.name }}"><button class="btn" type="submit">{{ t("home.project.button") }}</button></form></td></tr>
+  {% endfor %}</tbody></table></div>
+{% else %}<p class="muted">{{ t("home.projects.none") }}</p>{% endif %}
+{% endif %}
 
 <h2>{{ t("home.recent") }}</h2>
 {% if recent %}

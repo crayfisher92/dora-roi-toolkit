@@ -227,3 +227,4 @@ main { padding-top: 24px; }
 .ren-later::before { background: var(--series-muted); }
 .ok-mark { color: var(--ok-ink); font-weight: 600; }
 .no-mark { color: var(--danger); }
+.project-open { border-top: 1px solid var(--grid); padding-top: 12px; margin-top: 4px; }

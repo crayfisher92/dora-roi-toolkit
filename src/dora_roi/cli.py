@@ -277,6 +277,21 @@ def diff(old_path: Path, new_path: Path, fmt: str, output: Path | None) -> None:
         _write(render_diff_markdown(result), output)
 
 
+@main.command("audit-log")
+@click.argument("project", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path))
+def audit_log(project: Path, output: Path | None) -> None:
+    """Export the change history (who/when/old/new) of a .roiproj project file as CSV."""
+    from dora_roi.audit import audit_csv
+    from dora_roi.project import ProjectError, load_project
+
+    try:
+        ws = load_project(project)
+    except ProjectError as exc:
+        raise click.UsageError(str(exc)) from exc
+    _write(audit_csv(ws), output)
+
+
 @main.command("check-package")
 @click.argument("reference", type=click.Path(exists=True, path_type=Path))
 @click.option("--ours", type=click.Path(exists=True, path_type=Path),
@@ -304,7 +319,10 @@ def check_package(reference: Path, ours: Path | None, output: Path | None) -> No
 @click.option("--port", default=8000, show_default=True, type=int)
 @click.option("--access-log", is_flag=True,
               help="Log every request line (off by default: URLs can contain client data).")
-def serve(host: str, port: int, access_log: bool) -> None:
+@click.option("--projects", "projects", type=click.Path(file_okay=False, path_type=Path),
+              default=None, help="Folder where workspaces are autosaved as .roiproj project "
+              "files and listed for reopening (single-user mode).")
+def serve(host: str, port: int, access_log: bool, projects: Path | None) -> None:
     """Start the web UI (requires the 'web' extra)."""
     try:
         import uvicorn
@@ -313,7 +331,8 @@ def serve(host: str, port: int, access_log: bool) -> None:
     except ImportError as exc:
         raise click.ClickException(
             "The web UI needs extra dependencies: pip install 'dora-roi-toolkit[web]'") from exc
-    uvicorn.run(create_app(), host=host, port=port, access_log=access_log, server_header=False,
+    uvicorn.run(create_app(projects_dir=projects), host=host, port=port, access_log=access_log,
+                server_header=False,
                 log_level="warning")
 
 

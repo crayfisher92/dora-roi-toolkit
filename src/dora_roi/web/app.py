@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import io
 import math
+import os
+import re
 import tempfile
 import uuid
 import zipfile
@@ -30,6 +32,7 @@ from fastapi.staticfiles import StaticFiles
 from jinja2 import ChoiceLoader, Environment, PackageLoader, select_autoescape
 
 from dora_roi import __version__
+from dora_roi.audit import audit_csv, column_label
 from dora_roi.diff import diff_registers
 from dora_roi.explain import explain, rule_title
 from dora_roi.fixes import bulk_groups, findings_by_template, suggest
@@ -53,6 +56,8 @@ from dora_roi.io.xbrl_csv import XbrlCsvOptions, build_package_files, package_na
 from dora_roi.lei import is_valid_lei
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, EntityType
 from dora_roi.model.refdata import COUNTRIES, CURRENCIES, country_name
+from dora_roi.project import SUFFIX as PROJECT_SUFFIX
+from dora_roi.project import ProjectError, list_projects, load_project, save_project
 from dora_roi.reporting import render_html, render_json, render_markdown
 from dora_roi.reporting.executive import build_charts, money, pct, render_executive_summary
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
@@ -128,7 +133,8 @@ def _env() -> Environment:
     return env
 
 
-def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
+def create_app(capacity: int = MAX_WORKSPACES,
+               projects_dir: str | Path | None = None) -> FastAPI:
     app = FastAPI(title="DORA RoI Workbench", version=__version__,
                   description="Prepare, fix and analyse a DORA register of information.")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -174,8 +180,23 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
             raise HTTPException(status_code=404, detail="not found")
         return wiz
 
+    folder = Path(projects_dir or os.environ.get("ROI_PROJECTS_DIR", "") or ".")
+    autosave = bool(projects_dir or os.environ.get("ROI_PROJECTS_DIR"))
+    if autosave:
+        folder.mkdir(parents=True, exist_ok=True)
+    app.state.projects_dir = folder if autosave else None
+
+    def save_to_folder(ws: Workspace) -> None:
+        if ws.project_path is None:
+            slug = re.sub(r"[^A-Za-z0-9]+", "-", Path(ws.name).stem).strip("-")[:40] or "register"
+            ws.project_path = folder / f"{slug}-{ws.id[:8]}{PROJECT_SUFFIX}"
+        save_project(ws, ws.project_path)
+
     def own(ws: Workspace) -> Workspace:
         ws.owner = CURRENT_SESSION.get()
+        if autosave:
+            ws.on_change = save_to_folder
+            save_to_folder(ws)
         workspaces.add(ws.id, ws)
         return ws
 
@@ -216,7 +237,43 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
     # ------------------------------------------------------------------ home & basics
 
     def home_ctx() -> dict[str, Any]:
-        return {"recent": my_workspaces()}
+        return {"recent": my_workspaces(),
+                "projects": list_projects(folder) if autosave else None}
+
+    @app.post("/project/open")
+    async def open_project(request: Request, file: Annotated[UploadFile, File()]) -> Response:
+        got = await read_upload(file, {PROJECT_SUFFIX})
+        if isinstance(got, str):
+            return upload_error(request, got, "home.html.j2", **home_ctx())
+        name, data = got
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / f"project{PROJECT_SUFFIX}"
+            path.write_bytes(data)
+            try:
+                ws = load_project(path)
+            except ProjectError as exc:
+                t = translator(lang_of(request))
+                return render(request, "home.html.j2", status=400,
+                              error=t("err.read", name=name, error=str(exc)), **home_ctx())
+        ws.id = uuid.uuid4().hex  # never reuse an id from a file (session isolation)
+        return add_workspace(ws)
+
+    @app.post("/projects/open")
+    async def open_saved(request: Request) -> Response:
+        if not autosave:
+            raise HTTPException(status_code=404)
+        form = await request.form()
+        wanted = str(form.get("file", ""))
+        match = next((p for p, _ in list_projects(folder) if p.name == wanted), None)
+        if match is None:  # only files listed in the projects folder (no paths)
+            raise HTTPException(status_code=404)
+        try:
+            ws = load_project(match)
+        except ProjectError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        ws.id = uuid.uuid4().hex
+        ws.project_path = match
+        return add_workspace(ws)
 
     @app.get("/", response_class=HTMLResponse)
     def home(request: Request) -> HTMLResponse:
@@ -570,6 +627,10 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
     def download(wid: str, kind: str) -> Response:
         ws = ws_or_404(wid)
         stem = Path(ws.name).stem.replace(" ", "_") or "register"
+        if kind == "project":
+            with tempfile.TemporaryDirectory() as tmp:
+                data = save_project(ws, Path(tmp) / f"p{PROJECT_SUFFIX}").read_bytes()
+            return _download(data, f"{stem}{PROJECT_SUFFIX}", "application/vnd.sqlite3")
         if kind == "xlsx":
             with tempfile.TemporaryDirectory() as tmp:
                 data = write_workbook(ws.export_register(), Path(tmp) / "r.xlsx").read_bytes()
@@ -739,32 +800,7 @@ def _reason(exc: Exception) -> str:
     return str(exc) if isinstance(exc, InputTooLargeError) else type(exc).__name__
 
 
-def audit_csv(ws: Workspace) -> str:
-    """Audit trail as CSV (cells neutralised against formula injection)."""
-    import csv
-
-    buf = io.StringIO()
-    writer = csv.writer(buf)
-    writer.writerow(["timestamp_utc", "user", "action", "template", "row", "column",
-                     "column_label", "old_value", "new_value", "note"])
-    for ch in ws.changes:
-        writer.writerow([_csv_safe(x) for x in (
-            ch.at.isoformat(timespec="seconds"), ch.user, ch.kind, ch.template, ch.row,
-            ch.column or "", _column_label(ch.template, ch.column) if ch.column else "",
-            display(ch.old), display(ch.new), ch.note)])
-    return buf.getvalue()
-
-
-def _csv_safe(value: object) -> str:
-    text = "" if value is None else str(value)
-    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
-
-
-def _column_label(template: str | None, column: str | None) -> str:
-    if not template or not column or template not in TEMPLATES_BY_CODE:
-        return column or ""
-    spec = TEMPLATES_BY_CODE[template].column_by_code(column)
-    return spec.label if spec else column
+_column_label = column_label
 
 
 def _raw_value(ws: Workspace, f: Finding) -> str:

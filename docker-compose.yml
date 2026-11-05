@@ -15,3 +15,8 @@ services:
     cap_drop:
       - ALL
     restart: unless-stopped
+    # Optional: keep several client registers as project files (autosaved). Uncomment both
+    # lines; the volume then holds confidential client data – protect it accordingly.
+    # environment: { ROI_PROJECTS_DIR: /data }
+    # volumes: [ "roi-projects:/data" ]
+# volumes: { roi-projects: {} }
