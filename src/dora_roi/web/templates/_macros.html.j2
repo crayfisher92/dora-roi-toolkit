@@ -28,3 +28,7 @@
        {% if describedby %}aria-describedby="{{ describedby }}"{% endif %}>
 {% endif %}
 {%- endmacro %}
+
+{% macro pill(kind, text) -%}
+<span class="pill {{ kind }}">{{ text }}</span>
+{%- endmacro %}

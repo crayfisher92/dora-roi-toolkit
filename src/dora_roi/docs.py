@@ -9,8 +9,11 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 
+from dora_roi.contracts.analysis import evaluate
+from dora_roi.contracts.provisions import checklist_markdown
 from dora_roi.io.tables import KIND_HINTS
-from dora_roi.model import ALL_CODELISTS, TEMPLATE_MODELS
+from dora_roi.model import ALL_CODELISTS, TEMPLATE_MODELS, RegisterOfInformation
+from dora_roi.sample.assessments import sample_assessments
 from dora_roi.validation import Category, rules_catalogue
 from dora_roi.validation.references import DORA, ITS, REFERENCES
 
@@ -161,7 +164,36 @@ def sample_data_markdown() -> str:
         lines.append(f"| {i} | {rules} | {e.template} | {_cell(e.record)} | "
                      f"{_cell(e.description)} |")
     lines.append("")
+    lines += _sample_assessments_section(clean.register)
     return "\n".join(lines)
+
+
+def _sample_assessments_section(register: RegisterOfInformation) -> list[str]:
+    book = sample_assessments(register)
+    pf = evaluate(register, book)
+    lines = [
+        "## Sample Art. 30 contract assessments",
+        "",
+        f"{len(book)} arrangements are assessed against the DORA Art. 30 checklist "
+        "(`roi sample … --assessments a.json`, loaded automatically by the workbench samples). "
+        "They show the typical gaps of pre-DORA contracts; call-offs of the Nimbus and Cirrus "
+        "master agreements inherit their assessment; the sample contract document "
+        "(`--contract-document`) belongs to `AR-DE-0057`.",
+        "",
+        "| Arrangement | Provider | Scope | Status | Gaps (missing / partial) |",
+        "|---|---|---|---|---|",
+    ]
+    for c in pf.contracts:
+        if not c.assessed:
+            continue
+        gaps = "; ".join(f"{i.provision.id} {i.status.value}" for i in c.gaps
+                         if not i.inherited_from) or ("inherited from " + c.inherited_from
+                                                       if c.inherited_from else "—")
+        lines.append(f"| `{c.ref}` | {_cell(c.context.provider_names)} | "
+                     f"{'30(2)+(3)' if c.context.critical else '30(2)'} | {c.status.value} | "
+                     f"{_cell(gaps)} |")
+    lines.append("")
+    return lines
 
 
 def write_docs(folder: str | Path = "docs") -> list[Path]:
@@ -171,6 +203,7 @@ def write_docs(folder: str | Path = "docs") -> list[Path]:
         out / "REGULATORY_MAPPING.md": regulatory_mapping_markdown(),
         out / "DATA_DICTIONARY.md": data_dictionary_markdown(),
         out / "SAMPLE_DATA.md": sample_data_markdown(),
+        out / "ART30_CHECKLIST.md": checklist_markdown(),
     }
     for path, text in targets.items():
         path.write_text(text, encoding="utf-8")

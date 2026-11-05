@@ -15,6 +15,8 @@ from datetime import UTC, datetime
 from functools import cached_property
 
 from dora_roi.analytics import ConcentrationAnalysis, analyse
+from dora_roi.contracts.analysis import Portfolio, evaluate
+from dora_roi.contracts.model import AssessmentBook
 from dora_roi.io.parse import parse_raw
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RegisterOfInformation, RoIRecord
@@ -78,6 +80,8 @@ class Workspace:
         self.versions: list[Version] = []
         self.visited: set[str] = set()
         self.import_notes: list[str] | None = None
+        #: DORA Art. 30 contract assessments, keyed by B_02.01 arrangement reference.
+        self.contracts = AssessmentBook()
         self._derived: _Derived | None = None
         self.snapshot("Imported")
 
@@ -110,6 +114,11 @@ class Workspace:
     @property
     def quality(self) -> QualityScore:
         return quality_score(self.report)
+
+    @property
+    def portfolio(self) -> Portfolio:
+        """Art. 30 compliance of every arrangement (recomputed: assessments change often)."""
+        return evaluate(self.register, self.contracts)
 
     # ------------------------------------------------------------------ access
 

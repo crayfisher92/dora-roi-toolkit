@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ t("c30.plan.title") }}{% if client %} · {{ client }}{% endif %}</title>
+<style>
+{% include "_style.css.j2" %}
+{% include "_report.css.j2" %}
+</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA · Regulation (EU) 2022/2554 · Art. 30</p>
+  <h1>{{ t("c30.plan.title") }}{% if client %} – {{ client }}{% endif %}</h1>
+  <p class="meta">{{ t("g.prepared", date=fmt(plan.plan_date)) }}{% if prepared_by %} {{ t("g.prepared_by", name=prepared_by) }}{% endif %}</p>
+  <p class="section-lead">{{ t("c30.plan.lead") }}</p>
+</header>
+
+{% set counts = pf.counts() %}
+{% set pc = plan.counts() %}
+<section class="grid tiles" aria-label="{{ t('c30.title') }}">
+  <div class="card tile"><div class="label">{{ t("c30.contracts_total") }}</div><div class="value">{{ pf.contracts | length }}</div>
+    <div class="sub">{{ pf.critical_contracts | length }} {{ t("g.critical") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.assessed") }}</div><div class="value">{{ pf.contracts | length - counts.not_assessed }}</div>
+    <div class="sub">{{ "%.0f" | format(pf.critical_assessed_share() * 100) }}% {{ t("c30.critical_assessed") }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.with_gaps") }}</div><div class="value">{{ counts.gaps }}</div>
+    <div class="sub">{{ t("c30.gaps") }}: {{ pf.total_missing }} · {{ pf.total_partial }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.actions") }}</div><div class="value">{{ plan.items | length }}</div>
+    <div class="sub"><span class="pill high">{{ pc.high }} {{ t("prio.high") | lower }}</span> <span class="pill medium">{{ pc.medium }} {{ t("prio.medium") | lower }}</span> <span class="pill low">{{ pc.low }} {{ t("prio.low") | lower }}</span></div></div>
+</section>
+
+<h2 id="actions">{{ t("c30.actions") }}</h2>
+{% if plan.items %}
+<div class="table-wrap" tabindex="0" role="region" aria-label="{{ t('c30.actions') }}"><table>
+  <caption class="visually-hidden">{{ t("c30.actions") }}</caption>
+  <thead><tr><th scope="col">#</th><th scope="col">{{ t("g.priority") }}</th><th scope="col">{{ t("g.provider") }} · {{ t("g.contract") }}</th>
+    <th scope="col" class="wrap">{{ t("c30.provision") }}</th><th scope="col" class="wrap">{{ t("c30.finding") }}</th>
+    <th scope="col" class="wrap">{{ t("g.action") }}</th><th scope="col">{{ t("g.target") }}</th><th scope="col">{{ t("g.contract_end") }}</th></tr></thead>
+  <tbody>
+  {% for i in plan.items %}
+  <tr>
+    <td class="num">{{ loop.index }}</td>
+    <td><span class="pill {{ i.priority.value }}">{{ t("prio." ~ i.priority.value) }}</span></td>
+    <td><strong>{{ i.providers }}</strong><br><span class="mono">{{ i.contract_ref }}</span>
+      {% if i.critical %}<br><span class="small">◆ {{ i.critical_functions }}</span>{% endif %}
+      {% if i.applies_to %}<br><span class="small muted">{{ t("c30.applies_to", refs=i.applies_to | join(", ")) }}</span>{% endif %}
+      {% if i.inherited_from %}<br><span class="small muted">{{ t("c30.inherited", ref=i.inherited_from) }}</span>{% endif %}</td>
+    <td><span class="mono small">{{ i.provision.article }}</span><br>{{ i.provision.title(lang) }}</td>
+    <td><span class="pill {{ i.status.value }}">{{ t("st." ~ i.status.value) }}</span>{% if i.clause_ref %} <span class="small">{{ clause_label(i.clause_ref, lang) }}</span>{% endif %}
+      {% if i.evidence %}<div class="evidence">{{ i.evidence }}</div>{% endif %}</td>
+    <td>{{ i.action(lang) }}</td>
+    <td class="num">{{ fmt(i.target_date) }}</td>
+    <td class="num">{{ fmt(i.contract_end) if i.contract_end else t("g.open_ended") }}</td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div>
+{% else %}<p class="muted">{{ t("g.none") }}</p>{% endif %}
+
+<div class="grid two">
+<section aria-labelledby="h-prov">
+<h2 id="h-prov">{{ t("c30.by_provision") }}</h2>
+{% if by_provision %}
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-prov"><table>
+  <thead><tr><th scope="col">{{ t("c30.provision") }}</th><th scope="col" class="num">{{ t("st.missing") }}</th><th scope="col" class="num">{{ t("st.partial") }}</th></tr></thead>
+  <tbody>{% for p, m, pa in by_provision %}<tr><td><span class="mono small">{{ p.article }}</span> {{ p.title(lang) }}</td><td class="num">{{ m }}</td><td class="num">{{ pa }}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<p class="muted">{{ t("g.none") }}</p>{% endif %}
+</section>
+<section aria-labelledby="h-pv">
+<h2 id="h-pv">{{ t("c30.by_provider") }}</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-pv"><table>
+  <thead><tr><th scope="col">{{ t("g.provider") }}</th><th scope="col" class="num">{{ t("c30.critical_functions") }}</th>
+    <th scope="col" class="num">{{ t("c30.assessed") }}</th><th scope="col">{{ t("g.status") }}</th></tr></thead>
+  <tbody>{% for p in providers %}<tr><td>{{ p.name }}</td><td class="num">{{ p.critical_functions | length }}</td>
+    <td class="num">{{ p.assessed }}/{{ p.contracts | length }}</td>
+    <td><span class="pill {{ p.status.value }}">{{ t("cs." ~ p.status.value) }}</span>{% if p.missing or p.partial %} <span class="small">{{ p.missing }} · {{ p.partial }}</span>{% endif %}</td></tr>{% endfor %}</tbody>
+</table></div>
+</section>
+</div>
+
+<h2 id="to-assess">{{ t("c30.to_assess") }}</h2>
+<p class="section-lead">{{ t("c30.to_assess.lead") }}</p>
+{% if plan.to_assess %}
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="to-assess"><table>
+  <thead><tr><th scope="col">{{ t("g.contract") }}</th><th scope="col">{{ t("g.provider") }}</th><th scope="col">{{ t("g.status") }}</th><th scope="col">{{ t("c30.critical_functions") }}</th></tr></thead>
+  <tbody>{% for c in plan.to_assess %}<tr><td class="mono">{{ c.ref }}</td><td>{{ c.context.provider_names }}</td>
+    <td><span class="pill {{ c.status.value }}">{{ t("cs." ~ c.status.value) }}</span>{% if c.status.value == "incomplete" %} <span class="small">{{ t("c30.unassessed_n", n=c.unassessed) }}</span>{% endif %}</td>
+    <td class="small">{% for f in c.context.critical_functions %}◆ {{ f.function_id }} {{ f.name }}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% else %}<p class="muted">{{ t("g.none") }}</p>{% endif %}
+
+{% if pf.orphans %}
+<h2>{{ t("c30.orphans") }}</h2>
+<ul>{% for a in pf.orphans %}<li class="mono">{{ a.contract_ref }}</li>{% endfor %}</ul>
+{% endif %}
+
+<h2>{{ t("g.method") }}</h2>
+<p class="section-lead">{{ t("c30.method") }}</p>
+<footer>{{ t("g.disclaimer") }} · dora-roi-toolkit {{ version }}</footer>
+</main>
+</body>
+</html>

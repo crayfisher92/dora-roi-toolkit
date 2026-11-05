@@ -1,0 +1,103 @@
+{% extends "ws_base.html.j2" %}
+{% from "_macros.html.j2" import pill %}
+{% block page_title %}{{ ref }} · {{ t("c30.name") }}{% endblock %}
+{% block content %}
+<p><a href="/w/{{ ws.id }}/contracts">← {{ t("c30.ui.back") }}</a></p>
+<p class="eyebrow">{{ t("c30.title") }}</p>
+<h2 class="provider-name"><span class="mono">{{ ref }}</span> {{ pill(compliance.status.value, t("cs." ~ compliance.status.value)) }}</h2>
+{% if request.query_params.get("saved") %}<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("c30.ui.saved") }}</div></div>{% endif %}
+{% if not ctx.in_register %}<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t("c30.ui.not_in_register") }}</div></div>{% endif %}
+
+<section class="grid tiles" aria-label="{{ t('c30.ui.context') }}">
+  <div class="card tile"><div class="label">{{ t("g.provider") }}</div><div class="value small-value">
+    {% for code, name in ctx.providers.items() %}{% if code in provider_codes %}<a href="/w/{{ ws.id }}/provider/{{ code }}">{{ name }}</a>{% else %}{{ name }}{% endif %}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.ui.scope") }}</div><div class="value small-value">{% if ctx.critical %}◆ {{ t("c30.scope.critical") }}{% else %}{{ t("c30.scope.all") }}{% endif %}</div>
+    <div class="sub">{{ provisions | length }} {{ t("c30.ui.provisions_apply") }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.ui.result") }}</div><div class="value">{{ compliance.present }}/{{ compliance.items | length }}</div>
+    <div class="sub">{{ compliance.missing }} {{ t("st.missing") | lower }} · {{ compliance.partial }} {{ t("st.partial") | lower }} · {{ compliance.unassessed }} {{ t("st.not_assessed") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.ui.type") }}</div><div class="value small-value">{{ ctx.contract_type.label if ctx.contract_type else "—" }}</div>
+    <div class="sub">{% if ctx.overarching_ref %}{{ t("c30.ui.under") }} <a class="mono" href="{{ contract_url(ws.id, ctx.overarching_ref) }}">{{ ctx.overarching_ref }}</a>{% elif callofs %}{{ t("c30.ui.callofs", n=callofs | length) }}{% endif %}
+      {% if b0201 %}<br><a href="/w/{{ ws.id }}/register/B_02.01/{{ b0201 }}">B_02.01 {{ t("reg.row") }} {{ b0201 }}</a>{% endif %}</div></div>
+</section>
+
+{% if ctx.functions %}
+<details class="card ctx-details"><summary>{{ t("g.functions") }} ({{ ctx.functions | length }}) · {{ t("g.entity") }}: {{ ctx.entities.values() | join(", ") }}</summary>
+  <ul class="plain small">{% for f in ctx.functions %}<li>{% if f.critical %}<strong>◆</strong> {% endif %}<span class="mono">{{ f.function_id }}</span> {{ f.name }}{% if f.critical %} – {{ t("g.critical") }}{% endif %}</li>{% endfor %}</ul>
+</details>
+{% endif %}
+
+<section class="card" aria-labelledby="h-doc">
+  <h3 id="h-doc">{{ t("c30.ui.suggest_title") }}</h3>
+  <p class="small muted">{{ t("c30.ui.suggest_text") }}{% if not pdf %} {{ t("c30.ui.no_pdf") }}{% endif %}</p>
+  <form method="post" action="{{ action_url }}" enctype="multipart/form-data" class="row upload-row">
+    <label for="doc-file">{{ t("c30.ui.document") }} <span class="muted small">(.pdf, .docx, .txt)</span></label>
+    <input id="doc-file" name="file" type="file" accept=".pdf,.docx,.txt,.md">
+    <button class="btn" type="submit" name="action" value="suggest">{{ t("c30.ui.suggest_button") }}</button>
+    {% if sample_doc %}<button class="btn ghost" type="submit" name="action" value="sample" formnovalidate>{{ t("c30.ui.sample_doc") }}</button>{% endif %}
+  </form>
+</section>
+
+{% if draft %}
+<div class="banner warn" role="status" id="draft-banner"><span class="icon" aria-hidden="true">!</span><div>
+  <strong>{{ t("c30.ui.draft_title") }}</strong> {{ t("c30.ui.draft_text") }}
+  {% if document %}<div class="small">{{ t("c30.ui.draft_doc", name=document.name, words=document.words) }}{% for w in document.warnings %} · {{ w }}{% endfor %}</div>{% endif %}
+  {% if suggestion_counts %}<div class="small">{{ t("c30.ui.draft_counts", present=suggestion_counts.likely_present, partial=suggestion_counts.possibly_partial, missing=suggestion_counts.not_found) }}</div>{% endif %}
+</div></div>
+{% endif %}
+
+<form method="post" action="{{ action_url }}" class="assessment-form">
+  <input type="hidden" name="action" value="save">
+  <div class="form-grid meta-grid" role="group" aria-label="{{ t('c30.ui.meta') }}">
+    <div class="field"><label for="assessor">{{ t("c30.ui.assessor") }}</label><input id="assessor" name="assessor" value="{{ a.assessor }}" maxlength="200" autocomplete="name"></div>
+    <div class="field"><label for="assessed_on">{{ t("c30.ui.assessed_on") }}</label><input id="assessed_on" name="assessed_on" type="date" value="{{ a.assessed_on or '' }}"></div>
+    <div class="field"><label for="document">{{ t("c30.ui.document_name") }}</label><input id="document" name="document" value="{{ a.document }}" maxlength="300"></div>
+    <div class="field full"><label for="notes">{{ t("g.notes") }}</label><textarea id="notes" name="notes" rows="2" maxlength="4000">{{ a.notes }}</textarea></div>
+    {% if ctx.contract_type and ctx.contract_type.value == "SUBSEQUENT" and ctx.overarching_ref %}
+    <div class="full"><input type="hidden" name="inherit_shown" value="1">
+      <label class="check"><input type="checkbox" name="inherit" value="1" {% if a.inherit %}checked{% endif %}> {{ t("c30.ui.inherit", ref=ctx.overarching_ref) }}</label></div>
+    {% endif %}
+  </div>
+
+  {% for para, heading in (("30(1)", "c30.ui.p1"), ("30(2)", "c30.ui.p2"), ("30(3)", "c30.ui.p3")) %}
+  {% set group = provisions | selectattr("paragraph", "equalto", para) | list %}
+  {% if group %}
+  <h3>{{ t(heading) }}</h3>
+  {% for p in group %}{% set it = items[p.id] %}{% set own = a.item(p.id) %}{% set sg = suggestions.get(p.id) %}
+  {% set pid = p.id | replace(".", "_") %}
+  <fieldset class="card provision {% if it.is_gap %}gap{% endif %}" aria-describedby="req-{{ pid }}">
+    <legend><span class="mono small">{{ p.article }}</span> {{ p.title(lang) }}{% if p.key %} <span class="key-mark" title="{{ t('c30.ui.key') }}">★<span class="visually-hidden"> {{ t("c30.ui.key") }}</span></span>{% endif %}</legend>
+    <p id="req-{{ pid }}" class="small muted req-text">{{ p.requirement(lang) }}</p>
+    {% if sg %}<p class="suggestion small"><span class="pill provisional">{{ t("c30.ui.sg." ~ sg.suggestion.value) }}</span>
+      {% if sg.clause_ref %}{{ clause_label(sg.clause_ref, lang) }} · {% endif %}{% if sg.snippet %}<q>{{ sg.snippet }}</q>{% endif %}</p>
+      <input type="hidden" name="sg-{{ p.id }}" value="{{ sg.suggestion.status.value }}">
+    {% elif own.suggested_status %}<input type="hidden" name="sg-{{ p.id }}" value="{{ own.suggested_status.value }}">{% endif %}
+    {% if it.inherited_from %}<p class="small inherited">{{ t("c30.inherited", ref=it.inherited_from) }}: {{ pill(it.status.value, t("st." ~ it.status.value)) }}{% if it.clause_ref %} · {{ clause_label(it.clause_ref, lang) }}{% endif %}{% if it.evidence %} · {{ it.evidence }}{% endif %}</p>{% endif %}
+    <div class="status-radios">
+      {% for s in statuses %}
+      <label class="check status-{{ s.value }}"><input type="radio" name="st-{{ p.id }}" value="{{ s.value }}" {% if own.status == s %}checked{% endif %}> {{ t("st." ~ s.value) }}</label>
+      {% endfor %}
+    </div>
+    <div class="provision-fields">
+      <div class="field"><label for="cl-{{ pid }}">{{ t("c30.clause") }}</label><input id="cl-{{ pid }}" name="cl-{{ p.id }}" value="{{ own.clause_ref }}" maxlength="200" placeholder="{{ t('c30.ui.clause_placeholder') }}"></div>
+      <div class="field"><label for="ev-{{ pid }}">{{ t("c30.evidence") }}</label><textarea id="ev-{{ pid }}" name="ev-{{ p.id }}" rows="2" maxlength="4000">{{ own.evidence }}</textarea></div>
+    </div>
+  </fieldset>
+  {% endfor %}
+  {% endif %}
+  {% endfor %}
+  {% if not ctx.critical %}<p class="small muted">{{ t("c30.ui.no_30_3") }}</p>{% endif %}
+  <div class="row actions sticky-actions"><button class="btn primary" type="submit">{{ t("c30.ui.save") }}</button>
+    {% if draft %}<a class="btn" href="{{ action_url }}">{{ t("c30.ui.discard") }}</a>{% endif %}</div>
+</form>
+
+{% if stored and stored.history %}
+<section aria-labelledby="h-hist"><h3 id="h-hist">{{ t("c30.ui.history") }}</h3>
+  <ol class="plain history">{% for e in stored.history | reverse %}<li><time datetime="{{ e.at.isoformat() }}">{{ e.at.strftime("%Y-%m-%d %H:%M UTC") }}</time>{% if e.by %} · {{ e.by }}{% endif %} – {{ e.summary }}</li>{% endfor %}</ol>
+</section>
+{% endif %}
+{% if stored %}
+<details class="danger-zone"><summary>{{ t("c30.ui.delete") }}</summary>
+  <form method="post" action="{{ action_url }}"><p>{{ t("c30.ui.delete_confirm") }}</p><button class="btn danger" type="submit" name="action" value="delete">{{ t("c30.ui.delete") }}</button></form>
+</details>
+{% endif %}
+{% endblock %}

@@ -56,3 +56,27 @@ The default (non-clean) dataset contains the following deliberate defects; a tes
 | 23 | `BUS-008` | B_02.01 | AR-LU-0016 | Amount in CHF instead of the reporting currency |
 | 24 | `XRF-010` | B_05.01 | Legacy Mainframe Services GmbH | Provider decommissioned but still listed |
 | 25 | `BUS-016` | B_06.01 | F-AT-06 \| 8156AYQ5YUFTZEC92R45 | Function never assessed for criticality |
+
+## Sample Art. 30 contract assessments
+
+13 arrangements are assessed against the DORA Art. 30 checklist (`roi sample … --assessments a.json`, loaded automatically by the workbench samples). They show the typical gaps of pre-DORA contracts; call-offs of the Nimbus and Cirrus master agreements inherit their assessment; the sample contract document (`--contract-document`) belongs to `AR-DE-0057`.
+
+| Arrangement | Provider | Scope | Status | Gaps (missing / partial) |
+|---|---|---|---|---|
+| `AR-DE-0026` | Ledgerline Systems GmbH | 30(2)+(3) | gaps | 30.2.a.2 missing; 30.2.b.2 missing; 30.3.d missing; 30.3.e.i missing; 30.3.e.iii missing; 30.3.e.iv missing |
+| `AR-DE-0022` | Helix Core Banking AG | 30(2)+(3) | gaps | 30.2.f partial; 30.2.i missing; 30.3.b partial; 30.3.d missing; 30.3.e.ii missing; 30.3.f.i missing; 30.3.f.ii missing |
+| `AR-DE-0057` | Mobilio Digital Banking GmbH | 30(2)+(3) | gaps | 30.3.d missing; 30.3.e.i partial; 30.3.e.ii missing; 30.3.e.iii missing; 30.3.e.iv partial; 30.3.f.i missing; 30.3.f.ii partial |
+| `AR-LU-0049` | Wealthbridge Software Ltd | 30(2)+(3) | gaps | 30.3.e.i missing; 30.3.e.iii missing; 30.3.f.i partial |
+| `CO-LU-0011` | Cirrus Platforms Ireland Ltd | 30(2)+(3) | gaps | inherited from MSA-DE-0010 |
+| `MSA-DE-0010` | Cirrus Platforms Ireland Ltd | 30(2)+(3) | gaps | 30.2.a.2 partial; 30.3.d missing |
+| `AR-DE-0014` | Alpenrand Services AG | 30(2)+(3) | gaps | 30.2.h partial |
+| `AR-LU-0016` | Alpenrand Services AG | 30(2)+(3) | gaps | 30.2.h partial |
+| `CO-AT-0003` | Nimbus Cloud Services EMEA Ltd | 30(2)+(3) | gaps | inherited from MSA-DE-0001 |
+| `CO-LU-0002` | Nimbus Cloud Services EMEA Ltd | 30(2)+(3) | gaps | inherited from MSA-DE-0001 |
+| `MSA-DE-0001` | Nimbus Cloud Services EMEA Ltd | 30(2)+(3) | gaps | 30.3.d partial; 30.3.e.i partial; 30.3.f.i partial |
+| `AR-AT-0048` | Fundcalc Administration Services S.A. | 30(2)+(3) | incomplete | — |
+| `AR-DE-0030` | CardStream Processing S.A. | 30(2)+(3) | compliant | — |
+| `AR-DE-0039` | TreasuryOne SaaS GmbH | 30(2)+(3) | compliant | — |
+| `AR-DE-0064` | PeopleLedger SE | 30(2) | gaps | 30.2.b.2 missing; 30.2.i missing |
+| `AR-DE-0061` | CustomerSphere Inc. | 30(2) | gaps | 30.2.b.1 partial; 30.2.d partial; 30.2.g missing |
+| `CO-AT-0012` | Cirrus Platforms Ireland Ltd | 30(2) | gaps | inherited from MSA-DE-0010 |

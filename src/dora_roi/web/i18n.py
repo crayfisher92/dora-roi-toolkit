@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from dora_roi.i18n import CATALOGUE as PROGRAMME_CATALOGUE
+
 LANGUAGES = ("en", "de")
 DEFAULT_LANGUAGE = "en"
 
@@ -474,6 +476,12 @@ MESSAGES: dict[str, dict[str, str]] = {
         "common.of": "von",
     },
 }
+
+
+for _lang, _messages in PROGRAMME_CATALOGUE.items():
+    _clash = set(_messages) & set(MESSAGES[_lang])
+    assert not _clash, f"duplicate i18n keys: {sorted(_clash)}"
+    MESSAGES[_lang].update(_messages)
 
 
 def translator(lang: str) -> Callable[..., str]:

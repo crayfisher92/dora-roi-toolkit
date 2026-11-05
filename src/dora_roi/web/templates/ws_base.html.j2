@@ -39,6 +39,9 @@
       <li><a href="/w/{{ ws.id }}/export" {% if path.endswith("/export") %}aria-current="page"{% endif %}>{{ t("step.export") }}</a></li>
       <li><a href="/w/{{ ws.id }}/versions" {% if path.endswith("/versions") %}aria-current="page"{% endif %}>{{ t("ws.versions") }}</a></li>
     </ul>
+    <ul class="subnav programme" role="list" aria-label="{{ t('nav.programme') }}">
+      <li><a href="/w/{{ ws.id }}/contracts" {% if "/contract" in path %}aria-current="page"{% endif %}>{{ t("c30.name") }}</a></li>
+    </ul>
   </nav>
 </div>
 {% endblock %}

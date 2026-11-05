@@ -1,0 +1,102 @@
+{% extends "ws_base.html.j2" %}
+{% from "_macros.html.j2" import pill %}
+{% block page_title %}{{ t("c30.name") }}{% endblock %}
+{% block content %}
+<h2>{{ t("c30.title") }}</h2>
+<p class="lead">{{ t("c30.ui.lead") }}</p>
+{% if imported >= 0 %}
+<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("c30.ui.imported", n=imported) }}{% if problems %} {{ t("c30.ui.import_problems", n=problems) }}{% endif %}</div></div>
+{% endif %}
+{% set counts = pf.counts() %}
+{% set pc = plan.counts() %}
+<section class="grid tiles" aria-label="{{ t('c30.title') }}">
+  <div class="card tile"><div class="label">{{ t("c30.contracts_total") }}</div><div class="value">{{ pf.contracts | length }}</div>
+    <div class="sub">{{ pf.critical_contracts | length }} {{ t("g.critical") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.assessed") }}</div><div class="value">{{ pf.contracts | length - counts.not_assessed }}</div>
+    <div class="sub">{{ "%.0f" | format(pf.critical_assessed_share() * 100) }}% {{ t("c30.critical_assessed") }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.with_gaps") }}</div><div class="value">{{ counts.gaps }}</div>
+    <div class="sub">{{ pf.total_missing }} {{ t("st.missing") | lower }} · {{ pf.total_partial }} {{ t("st.partial") | lower }}</div></div>
+  <div class="card tile"><div class="label">{{ t("c30.actions") }}</div><div class="value">{{ plan.items | length }}</div>
+    <div class="sub">{{ pill("high", pc.high ~ " " ~ t("prio.high") | lower) }} {{ pill("medium", pc.medium ~ " " ~ t("prio.medium") | lower) }} {{ pill("low", pc.low ~ " " ~ t("prio.low") | lower) }}</div></div>
+</section>
+
+<div class="grid entry actions-grid">
+  <section class="card entry-card" aria-labelledby="h-plan">
+    <h3 id="h-plan">{{ t("c30.plan.title") }}</h3>
+    <p class="muted small">{{ t("c30.ui.plan_text") }}</p>
+    <div class="row"><a class="btn primary" href="/w/{{ ws.id }}/contracts/plan.html" target="_blank" rel="noopener">HTML</a>
+      <a class="btn" href="/w/{{ ws.id }}/contracts/plan.xlsx">Excel</a></div>
+  </section>
+  <section class="card entry-card" aria-labelledby="h-exp">
+    <h3 id="h-exp">{{ t("c30.ui.assessments") }}</h3>
+    <p class="muted small">{{ t("c30.ui.assessments_text") }}</p>
+    <div class="row"><a class="btn" href="/w/{{ ws.id }}/contracts/assessments.xlsx">Excel</a>
+      <a class="btn" href="/w/{{ ws.id }}/contracts/assessments.json">JSON</a></div>
+    <form method="post" action="/w/{{ ws.id }}/contracts/import" enctype="multipart/form-data" class="row upload-row">
+      <label for="assess-file">{{ t("c30.ui.import") }} <span class="muted small">(.xlsx, .json)</span></label>
+      <input id="assess-file" name="file" type="file" accept=".xlsx,.xlsm,.json" required>
+      <button class="btn" type="submit">{{ t("c30.ui.import_button") }}</button>
+    </form>
+  </section>
+  <section class="card entry-card" aria-labelledby="h-chk">
+    <h3 id="h-chk">{{ t("c30.ui.checklist") }}</h3>
+    <p class="muted small">{{ t("c30.ui.checklist_text") }}</p>
+    <a class="btn" href="/w/{{ ws.id }}/contracts/checklist">{{ t("c30.ui.checklist_open") }}</a>
+  </section>
+</div>
+
+<section aria-labelledby="h-providers">
+<h3 id="h-providers">{{ t("c30.by_provider") }}</h3>
+<div class="table-wrap"><table>
+  <caption class="visually-hidden">{{ t("c30.by_provider") }}</caption>
+  <thead><tr><th scope="col">{{ t("g.provider") }}</th><th scope="col" class="num">{{ t("c30.critical_functions") }}</th>
+    <th scope="col" class="num">{{ t("c30.assessed") }}</th><th scope="col" class="num">{{ t("st.missing") }}</th>
+    <th scope="col" class="num">{{ t("st.partial") }}</th><th scope="col">{{ t("g.status") }}</th></tr></thead>
+  <tbody>{% for p in pf.providers[:15] %}
+  <tr><td>{% if p.code in ws.register.providers_by_code() %}<a href="/w/{{ ws.id }}/provider/{{ p.code }}">{{ p.name }}</a>{% else %}{{ p.name }}{% endif %}</td>
+    <td class="num">{{ p.critical_functions | length }}</td><td class="num">{{ p.assessed }}/{{ p.contracts | length }}</td>
+    <td class="num">{{ p.missing }}</td><td class="num">{{ p.partial }}</td><td>{{ pill(p.status.value, t("cs." ~ p.status.value)) }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% if pf.providers | length > 15 %}<p class="small muted">{{ t("c30.ui.more_providers", n=pf.providers | length - 15) }}</p>{% endif %}
+</section>
+
+<section aria-labelledby="h-list">
+<h3 id="h-list">{{ t("g.contracts") }}</h3>
+<form method="get" class="filter-row" role="search" aria-label="{{ t('c30.ui.filter') }}">
+  <label for="c-status">{{ t("g.status") }}</label>
+  <select id="c-status" name="status">{% for f in filters %}<option value="{{ f }}" {% if f == status_filter %}selected{% endif %}>{{ t("sev.all") if f == "all" else t("cs." ~ f) }}</option>{% endfor %}</select>
+  <label class="check"><input type="checkbox" name="critical" value="1" {% if critical %}checked{% endif %}> {{ t("c30.ui.critical_only") }}</label>
+  <label for="c-q">{{ t("reg.search") }}</label>
+  <input id="c-q" name="q" type="search" value="{{ q }}" placeholder="{{ t('c30.ui.search_placeholder') }}">
+  <button class="btn" type="submit">{{ t("fix.filter.apply") }}</button>
+  <span class="muted small">{{ t("reg.rows", n=rows | length) }}</span>
+</form>
+<div class="table-wrap"><table class="contracts-table">
+  <caption class="visually-hidden">{{ t("g.contracts") }}</caption>
+  <thead><tr><th scope="col">{{ t("g.contract") }}</th><th scope="col">{{ t("g.provider") }}</th><th scope="col">{{ t("c30.ui.scope") }}</th>
+    <th scope="col">{{ t("g.status") }}</th><th scope="col" class="num">{{ t("st.missing") }}</th><th scope="col" class="num">{{ t("st.partial") }}</th>
+    <th scope="col" class="num">{{ t("st.not_assessed") }}</th><th scope="col">{{ t("c30.ui.assessed_on") }}</th></tr></thead>
+  <tbody>{% for c in rows %}
+  <tr><th scope="row"><a class="mono" href="{{ contract_url(ws.id, c.ref) }}">{{ c.ref }}</a>{% if c.inherited_from %}<div class="small muted">{{ t("c30.inherited", ref=c.inherited_from) }}</div>{% endif %}</th>
+    <td>{{ c.context.provider_names }}</td>
+    <td>{% if c.context.critical %}<strong>◆ {{ t("c30.scope.critical") }}</strong>{% else %}{{ t("c30.scope.all") }}{% endif %}</td>
+    <td>{{ pill(c.status.value, t("cs." ~ c.status.value)) }}</td>
+    <td class="num">{{ c.missing }}</td><td class="num">{{ c.partial }}</td><td class="num">{{ c.unassessed }}</td>
+    <td class="small">{{ c.assessment.assessed_on if c.assessment and c.assessment.assessed_on else "—" }}</td></tr>
+  {% else %}<tr><td colspan="8" class="muted">{{ t("g.none") }}</td></tr>{% endfor %}</tbody></table></div>
+</section>
+
+{% if by_provision %}
+<section aria-labelledby="h-byprov">
+<h3 id="h-byprov">{{ t("c30.by_provision") }}</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th scope="col">{{ t("c30.provision") }}</th><th scope="col" class="num">{{ t("st.missing") }}</th><th scope="col" class="num">{{ t("st.partial") }}</th></tr></thead>
+  <tbody>{% for p, m, pa in by_provision %}<tr><td><span class="mono small">{{ p.article }}</span> {{ p.title(lang) }}</td><td class="num">{{ m }}</td><td class="num">{{ pa }}</td></tr>{% endfor %}</tbody>
+</table></div>
+</section>
+{% endif %}
+{% if pf.orphans %}
+<section class="card" aria-labelledby="h-orph"><h3 id="h-orph">{{ t("c30.orphans") }}</h3>
+  <ul>{% for a in pf.orphans %}<li><a class="mono" href="{{ contract_url(ws.id, a.contract_ref) }}">{{ a.contract_ref }}</a></li>{% endfor %}</ul></section>
+{% endif %}
+{% endblock %}

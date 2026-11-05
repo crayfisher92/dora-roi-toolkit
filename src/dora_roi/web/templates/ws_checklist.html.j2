@@ -1,0 +1,19 @@
+{% extends "ws_base.html.j2" %}
+{% block page_title %}{{ t("c30.ui.checklist") }}{% endblock %}
+{% block content %}
+<p><a href="/w/{{ ws.id }}/contracts">← {{ t("c30.ui.back") }}</a></p>
+<h2>{{ t("c30.ui.checklist") }}</h2>
+<p class="lead">{{ t("c30.ui.checklist_lead") }}</p>
+{% for para, heading in (("30(1)", "c30.ui.p1"), ("30(2)", "c30.ui.p2"), ("30(3)", "c30.ui.p3")) %}
+<h3>{{ t(heading) }}</h3>
+<div class="table-wrap"><table>
+  <caption class="visually-hidden">{{ t(heading) }}</caption>
+  <thead><tr><th scope="col">{{ t("c30.ui.reference") }}</th><th scope="col">{{ t("c30.provision") }}</th><th scope="col">{{ t("c30.ui.requirement") }}</th><th scope="col">{{ t("c30.ui.register_fields") }}</th></tr></thead>
+  <tbody>{% for p in provisions if p.paragraph == para %}
+  <tr><td class="mono">{{ p.article }}</td><th scope="row">{{ p.title(lang) }}{% if p.key %} <span title="{{ t('c30.ui.key') }}">★</span>{% endif %}</th>
+    <td>{{ p.requirement(lang) }}{% if p.related %}<div class="small muted">{{ t("c30.ui.related") }}: {{ p.related | join("; ") }}</div>{% endif %}</td>
+    <td class="small mono">{{ p.register_fields | join(", ") or "—" }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% endfor %}
+<p class="small muted">{{ t("c30.ui.paraphrase") }}</p>
+{% endblock %}

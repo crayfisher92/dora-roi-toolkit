@@ -237,8 +237,12 @@ def rules(fmt: str) -> None:
 @click.option("--inventory", is_flag=True,
               help="Generate a messy German contract inventory for the mapping wizard.")
 @click.option("--seed", type=int, default=2554, show_default=True, help="Random seed.")
+@click.option("--assessments", "assessments_out", type=click.Path(dir_okay=False, path_type=Path),
+              help="Also write the sample Art. 30 contract assessments (.json or .xlsx).")
+@click.option("--contract-document", type=click.Path(dir_okay=False, path_type=Path),
+              help="Also write the sample contract document (.docx, .pdf or .txt).")
 def sample(output: Path, fmt: str, clean: bool, previous_year: bool, inventory: bool,
-           seed: int) -> None:
+           seed: int, assessments_out: Path | None, contract_document: Path | None) -> None:
     """Generate the synthetic sample register (fictional Swiss/EU banking group)."""
     from dora_roi.io.csv_folder import write_csv_folder
     from dora_roi.io.excel import write_workbook
@@ -254,6 +258,22 @@ def sample(output: Path, fmt: str, clean: bool, previous_year: bool, inventory: 
     path = (write_workbook(result.source_register, output) if fmt == "xlsx"
             else write_csv_folder(result.source_register, output))
     click.echo(f"Wrote {path} ({len(result.injected)} injected error(s))", err=True)
+    if assessments_out is not None:
+        from dora_roi.contracts.analysis import contract_contexts
+        from dora_roi.contracts.model import write_assessment_workbook
+        from dora_roi.sample.assessments import sample_assessments
+
+        book = sample_assessments(result.register)
+        if assessments_out.suffix.lower() == ".xlsx":
+            refs = {r: c.critical for r, c in contract_contexts(result.register).items()}
+            write_assessment_workbook(book, assessments_out, refs)
+            click.echo(f"Wrote {assessments_out}", err=True)
+        else:
+            _write(book.to_json(), assessments_out)
+    if contract_document is not None:
+        from dora_roi.sample.contract_docs import write_sample_contract
+
+        click.echo(f"Wrote {write_sample_contract(contract_document)}", err=True)
 
 
 @main.command()
@@ -297,6 +317,179 @@ def check_package(reference: Path, ours: Path | None, output: Path | None) -> No
         result = compare_packages(reference, ours)
     _write(result.to_markdown(), output)
     sys.exit(EXIT_FINDINGS if result.failures else 0)
+
+
+# =========================================================================== contracts
+
+lang_opt = click.option("--lang", type=click.Choice(["en", "de"]), default="en",
+                        show_default=True, help="Language of the output.")
+
+
+@main.group()
+def contracts() -> None:
+    """DORA Art. 30 contract gap analysis (checklist, assessments, remediation plan)."""
+
+
+@contracts.command("checklist")
+@click.option("-f", "--format", "fmt", type=click.Choice(["text", "md", "json"]),
+              default="text", show_default=True)
+@lang_opt
+def contracts_checklist(fmt: str, lang: str) -> None:
+    """Print the Art. 30 checklist with article references."""
+    from dora_roi.contracts.provisions import PROVISIONS, checklist_markdown
+
+    if fmt == "md":
+        click.echo(checklist_markdown(lang))
+        return
+    if fmt == "json":
+        click.echo(json.dumps([
+            {"id": p.id, "article": p.article, "scope": p.scope.value, "key": p.key,
+             "title": p.title(lang), "requirement": p.requirement(lang),
+             "remediation": p.remediation(lang), "related": list(p.related),
+             "register_fields": list(p.register_fields)} for p in PROVISIONS], indent=2,
+            ensure_ascii=False))
+        return
+    for p in PROVISIONS:
+        star = "*" if p.key else " "
+        click.echo(f"{p.id:11} {star} {p.article:24} {p.scope.value:8} {p.title(lang)}")
+
+
+def _assessments(path: Path) -> tuple[object, list[str]]:
+    from dora_roi.contracts.model import load_assessments
+
+    try:
+        return load_assessments(path)
+    except (OSError, ValueError) as exc:
+        raise click.BadParameter(str(exc), param_hint="--assessments") from exc
+
+
+@contracts.command("assess")
+@input_arg
+@click.option("--assessments", "assessments_path", required=True,
+              type=click.Path(exists=True, dir_okay=False, path_type=Path),
+              help="Assessments (.json or .xlsx assessment workbook).")
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path),
+              help="Write the remediation plan (.html, .xlsx or .json).")
+@click.option("--client", "client_name", help="Client name shown in the plan.")
+@click.option("--prepared-by", help="Author shown in the plan.")
+@click.option("--plan-date", type=click.DateTime(["%Y-%m-%d"]), default=None,
+              help="Date the target dates are computed from (default: today).")
+@click.option("--fail-on-gaps", is_flag=True,
+              help="Exit with status 1 if high-priority gaps exist.")
+@lang_opt
+@code_map_opt
+def contracts_assess(input_path: Path, assessments_path: Path, output: Path | None,
+                     client_name: str | None, prepared_by: str | None, plan_date: object,
+                     fail_on_gaps: bool, lang: str, code_map: Path | None) -> None:
+    """Evaluate a register's arrangements against Art. 30 and build the remediation plan."""
+    from dora_roi.contracts.analysis import evaluate, remediation_plan
+    from dora_roi.contracts.model import AssessmentBook
+    from dora_roi.contracts.report import render_plan_html, write_plan_workbook
+
+    loaded = _load(input_path, _code_map(code_map))
+    book, problems = _assessments(assessments_path)
+    assert isinstance(book, AssessmentBook)
+    for msg in problems:
+        click.echo(f"! {assessments_path.name}: {msg}", err=True)
+    pf = evaluate(loaded.register, book)
+    when = plan_date.date() if hasattr(plan_date, "date") else None
+    plan = remediation_plan(pf, when)
+    counts, pc = pf.counts(), plan.counts()
+    click.echo(f"Arrangements: {len(pf.contracts)} ({len(pf.critical_contracts)} supporting "
+               f"critical functions) · assessed: {len(pf.contracts) - counts['not_assessed']} · "
+               f"compliant: {counts['compliant']} · with gaps: {counts['gaps']} · "
+               f"incomplete: {counts['incomplete']}", err=True)
+    click.echo(f"Remediation actions: {len(plan.items)} (high {pc['high']}, medium "
+               f"{pc['medium']}, low {pc['low']}); orphan assessments: {len(pf.orphans)}",
+               err=True)
+    if output is None:
+        for i in plan.items[:20]:
+            click.echo(f"{i.priority.value:6} {i.contract_ref:14} {i.provision.id:11} "
+                       f"{i.status.value:8} {i.providers}")
+        if len(plan.items) > 20:
+            click.echo(f"… {len(plan.items) - 20} more (use -o plan.html or plan.xlsx)")
+    elif output.suffix.lower() == ".xlsx":
+        click.echo(f"Wrote {write_plan_workbook(plan, output, lang=lang, client=client_name)}",
+                   err=True)
+    elif output.suffix.lower() == ".json":
+        _write(json.dumps({
+            "schema": "dora-roi-toolkit/art30-remediation-plan/v1",
+            "plan_date": plan.plan_date.isoformat(), "counts": pc,
+            "contracts": {c.ref: {"status": c.status.value, "critical": c.context.critical,
+                                  "missing": c.missing, "partial": c.partial,
+                                  "not_assessed": c.unassessed,
+                                  "inherited_from": c.inherited_from} for c in pf.contracts},
+            "actions": [{"priority": i.priority.value, "contract_ref": i.contract_ref,
+                         "providers": i.providers, "provision": i.provision.id,
+                         "article": i.provision.article, "status": i.status.value,
+                         "clause_ref": i.clause_ref, "evidence": i.evidence,
+                         "target_date": i.target_date.isoformat(),
+                         "applies_to": list(i.applies_to)} for i in plan.items],
+        }, indent=2, ensure_ascii=False), output)
+    else:
+        _write(render_plan_html(plan, lang=lang, client=client_name, prepared_by=prepared_by),
+               output)
+    if fail_on_gaps and pc["high"]:
+        sys.exit(EXIT_FINDINGS)
+
+
+@contracts.command("template")
+@input_arg
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path), required=True,
+              help="Assessment workbook to write (.xlsx).")
+@click.option("--assessments", "assessments_path",
+              type=click.Path(exists=True, dir_okay=False, path_type=Path),
+              help="Pre-fill with existing assessments.")
+@lang_opt
+@code_map_opt
+def contracts_template(input_path: Path, output: Path, assessments_path: Path | None,
+                       lang: str, code_map: Path | None) -> None:
+    """Write an assessment workbook: one row per arrangement and applicable provision."""
+    from dora_roi.contracts.analysis import contract_contexts
+    from dora_roi.contracts.model import AssessmentBook, write_assessment_workbook
+
+    loaded = _load(input_path, _code_map(code_map))
+    book = AssessmentBook()
+    if assessments_path is not None:
+        found, _ = _assessments(assessments_path)
+        assert isinstance(found, AssessmentBook)
+        book = found
+    refs = {r: c.critical for r, c in contract_contexts(loaded.register).items()}
+    click.echo(f"Wrote {write_assessment_workbook(book, output, refs, lang=lang)}", err=True)
+
+
+@contracts.command("suggest")
+@click.argument("document", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--contract-ref", help="Arrangement reference (B_02.01 c0010) for the draft.")
+@click.option("--not-critical", is_flag=True,
+              help="Only Art. 30(2): the arrangement supports no critical function.")
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path),
+              help="Write a draft assessment file (.json) for review.")
+@lang_opt
+def contracts_suggest(document: Path, contract_ref: str | None, not_critical: bool,
+                      output: Path | None, lang: str) -> None:
+    """Keyword-based SUGGESTIONS for a contract document (.pdf, .docx, .txt) – review them."""
+    from dora_roi.contracts.extract import ExtractionError, extract_text
+    from dora_roi.contracts.model import AssessmentBook, ContractAssessment
+    from dora_roi.contracts.suggest import apply_suggestions, suggest
+
+    try:
+        extracted = extract_text(document.name, document.read_bytes())
+    except ExtractionError as exc:
+        raise click.UsageError(str(exc)) from exc
+    result = suggest(extracted.text, critical=not not_critical)
+    click.echo(f"{document.name}: {extracted.words} words, {result.headings} clause headings. "
+               "Suggestions only – review every item against the contract.", err=True)
+    for i in result.items:
+        click.echo(f"{i.provision.id:11} {i.suggestion.value:17} {i.clause_ref or '-':8} "
+                   f"{i.provision.title(lang)}")
+    if output is not None:
+        ref = contract_ref or document.stem
+        draft = apply_suggestions(ContractAssessment(contract_ref=ref, document=document.name),
+                                  result, lang=lang)
+        book = AssessmentBook()
+        book.save(draft, summary="Draft from keyword suggestions (not reviewed)")
+        _write(book.to_json(), output)
 
 
 @main.command()

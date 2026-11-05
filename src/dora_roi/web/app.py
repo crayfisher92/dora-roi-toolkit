@@ -29,6 +29,7 @@ from fastapi.staticfiles import StaticFiles
 from jinja2 import ChoiceLoader, Environment, PackageLoader, select_autoescape
 
 from dora_roi import __version__
+from dora_roi.contracts.provisions import clause_label
 from dora_roi.diff import diff_registers
 from dora_roi.explain import explain, rule_title
 from dora_roi.fixes import bulk_groups, findings_by_template, suggest
@@ -55,7 +56,10 @@ from dora_roi.reporting import render_html, render_json, render_markdown
 from dora_roi.reporting.charts import TOOLTIP_SCRIPT
 from dora_roi.reporting.executive import build_charts, money, pct, render_executive_summary
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
+from dora_roi.sample.programme import load_sample_programme
 from dora_roi.validation import RULES, Finding
+from dora_roi.web import contracts_routes
+from dora_roi.web.context import Ui
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
 from dora_roi.web.views import display, provider_profile, stepper
 from dora_roi.workspace import EditError, Workspace
@@ -115,7 +119,7 @@ def _env() -> Environment:
     )
     env.globals.update(money=money, pct=pct, version=__version__, display=display,
                        country_name=country_name, templates=TEMPLATE_MODELS, RULES=RULES,
-                       languages=LANGUAGES)
+                       languages=LANGUAGES, clause_label=clause_label)
     return env
 
 
@@ -233,14 +237,16 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                                kind="sample")
             new_ws = Workspace("Alpenrand 2025", register_to_raw(cur.source_register),
                                kind="sample")
+            load_sample_programme(new_ws)
             workspaces.add(old_ws.id, old_ws)
             workspaces.add(new_ws.id, new_ws)
             return RedirectResponse(f"/w/{new_ws.id}/compare?other={old_ws.id}", status_code=303)
         clean = variant == "clean"
         result = generate_sample(inject_errors=not clean)
         name = "Alpenrand (clean)" if clean else "Alpenrand (25 injected errors)"
-        return add_workspace(Workspace(name, register_to_raw(result.source_register),
-                                       kind="sample"))
+        ws = Workspace(name, register_to_raw(result.source_register), kind="sample")
+        load_sample_programme(ws)
+        return add_workspace(ws)
 
     # ------------------------------------------------------------------ mapping wizard
 
@@ -444,10 +450,12 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         page = min(max(page, 1), pages)
         shown = rows[(page - 1) * PAGE_SIZE: page * PAGE_SIZE]
         counts = {m.TEMPLATE: len(ws.table(m.TEMPLATE).rows) for m in TEMPLATE_MODELS}
+        art30 = ws.portfolio.by_ref() if template == "B_02.01" else None
         return ws_page(request, ws, "ws_register.html.j2", "fix", template=template, model=model,
                        rows=shown, total=len(rows), flagged=flagged, q=q, issues=issues,
                        page=page, pages=pages, table_counts=counts,
-                       provider_link=_provider_link(ws))
+                       provider_link=_provider_link(ws), art30=art30,
+                       contract_url=contracts_routes.contract_url)
 
     @app.get("/w/{wid}/register/{template}/{row}", response_class=HTMLResponse)
     def register_row(request: Request, wid: str, template: str, row: int) -> HTMLResponse:
@@ -457,9 +465,14 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         except EditError as exc:
             raise HTTPException(status_code=404) from exc
         findings = ws.findings_for(template, row)
+        art30 = None
+        if template in ("B_02.01", "B_02.02"):
+            ref = display(raw_row.values.get("c0010"))
+            art30 = ws.portfolio.by_ref().get(ref) if ref else None
         return ws_page(request, ws, "ws_row.html.j2", "fix", template=template,
                        model=TEMPLATES_BY_CODE[template], raw_row=raw_row, findings=findings,
-                       by_column={f.column: f for f in findings if f.column}, suggest=suggest)
+                       by_column={f.column: f for f in findings if f.column}, suggest=suggest,
+                       art30=art30, contract_url=contracts_routes.contract_url)
 
     @app.post("/w/{wid}/register/{template}/{row}")
     async def register_row_save(request: Request, wid: str, template: str, row: int
@@ -503,8 +516,10 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         graph = build_graph(ws.register, focus=code)
         svg = render_svg(graph, link_prefix=f"/w/{wid}/provider/",
                          labels=_graph_labels(t)) if graph.edges else None
+        art30 = next((pc for pc in ws.portfolio.providers if pc.code == code), None)
         return ws_page(request, ws, "ws_provider.html.j2", "analyse", p=profile, graph_svg=svg,
-                       chains=chains_table(ws.register, code))
+                       chains=chains_table(ws.register, code), art30=art30,
+                       contract_url=contracts_routes.contract_url)
 
     @app.get("/w/{wid}/analyse", response_class=HTMLResponse)
     def analyse_page(request: Request, wid: str, color: str = "criticality",
@@ -619,6 +634,10 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                              "readiness": q.readiness.value,
                              "counts": ws.report.severity_counts(),
                              "records": ws.report.record_counts})
+
+    ui = Ui(render=render, ws_page=ws_page, ws_or_404=ws_or_404, lang_of=lang_of,
+            read_upload=read_upload, workspaces=workspaces.values)
+    contracts_routes.register(app, ui)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> Response:
