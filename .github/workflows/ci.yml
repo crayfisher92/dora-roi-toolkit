@@ -87,3 +87,19 @@ jobs:
           name: screenshots
           path: docs/screenshots/
           retention-days: 7
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: docker build -t dora-roi-toolkit:ci .
+      - name: Smoke test (read-only, no capabilities, non-root)
+        run: |
+          docker run -d --name roi -p 127.0.0.1:8000:8000 --read-only --tmpfs /tmp \
+            --cap-drop ALL --security-opt no-new-privileges:true dora-roi-toolkit:ci
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8000/api/health && break; sleep 1; done
+          curl -fsS -o /dev/null -X POST -d variant=dirty http://127.0.0.1:8000/sample -w "%{http_code}\n" | grep 303
+          test "$(docker exec roi whoami)" = "roi"
+          docker logs roi

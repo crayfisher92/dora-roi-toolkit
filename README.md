@@ -32,6 +32,14 @@ It gives GRC consultants and ICT third-party risk teams:
 
 ## Quickstart
 
+**With Docker** (one command, no Python needed):
+
+```bash
+docker compose up --build          # → http://127.0.0.1:8000
+```
+
+**With Python:**
+
 ```bash
 pip install -e ".[web]"            # Python ≥ 3.11; add [dev] for tests and linters
 ```
