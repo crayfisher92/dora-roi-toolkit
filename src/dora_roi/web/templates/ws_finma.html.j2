@@ -28,6 +28,20 @@
   </dl>
 </section>
 
+<section class="card" aria-labelledby="h-scope">
+  <h3 id="h-scope">{{ t("scope.title") }}</h3>
+  <p class="small muted">{{ t("scope.lead") }}</p>
+  {% if scope_saved %}<p class="small" role="status">✓ {{ t("scope.saved") }}</p>{% endif %}
+  <form method="post" action="/w/{{ ws.id }}/scope">
+    <fieldset class="checks"><legend>{{ t("scope.legend") }}</legend>
+      {% for e in entities %}<label class="check"><input type="checkbox" name="out" value="{{ e.lei }}" {% if e.lei in ws.out_of_scope %}checked{% endif %} {% if e.lei == maintainer %}disabled{% endif %}>
+        {{ e.name }} <span class="small muted">({{ country_name(e.country) }}{% if e.lei == maintainer %} · {{ t("scope.maintainer") }}{% endif %})</span></label>{% else %}<span class="muted">—</span>{% endfor %}
+    </fieldset>
+    <p class="row"><button class="btn" type="submit">{{ t("scope.save") }}</button>
+      {% if scope_summary.total_removed %}<span class="small muted">{{ t("scope.summary", n=scope_summary.total_removed) }}</span>{% endif %}</p>
+  </form>
+</section>
+
 {% for circ, heading in circulars %}
 <section aria-labelledby="h-{{ loop.index }}">
 <h3 id="h-{{ loop.index }}">{{ heading }}</h3>

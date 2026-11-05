@@ -129,6 +129,9 @@ class Workspace:
         self.contracts = AssessmentBook()
         #: ICT-related incidents with their classification answers and reporting history.
         self.incidents = IncidentLog()
+        #: LEIs of entities kept in the dataset but outside the DORA reporting scope (e.g. the
+        #: Swiss bank of a group); left out of the xBRL-CSV package (``dora_roi.scope``).
+        self.out_of_scope: set[str] = set()
         #: Browser session that owns the workspace in the web app (``""`` elsewhere).
         self.owner: str = ""
         #: Called after every change (used for autosaving project files).
@@ -232,14 +235,28 @@ class Workspace:
             return self._portfolio
 
     def replace_programme(self, contracts: AssessmentBook | None = None,
-                          incidents: IncidentLog | None = None) -> None:
+                          incidents: IncidentLog | None = None,
+                          out_of_scope: set[str] | None = None) -> None:
         """Replace the programme data wholesale (sample loading, opening a project)."""
         with self.lock:
             if contracts is not None:
                 self.contracts = contracts
             if incidents is not None:
                 self.incidents = incidents
+            if out_of_scope is not None:
+                self.out_of_scope = set(out_of_scope)
             self._portfolio = None
+
+    def dora_register(self) -> RegisterOfInformation:
+        """The register restricted to the DORA reporting scope (for the xBRL-CSV package).
+
+        The maintaining entity is always in scope, even if it was marked before an edit made
+        it the maintainer."""
+        from dora_roi.scope import restrict_to_scope
+
+        register = self.register
+        maintainer = register.maintainer.lei if register.maintainer else None
+        return restrict_to_scope(register, self.out_of_scope - {maintainer or ""})[0]
 
     def programme_changed(self, kind: str, subject: str, summary: str,
                           user: str = DEFAULT_USER) -> None:

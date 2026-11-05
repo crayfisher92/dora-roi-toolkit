@@ -5,7 +5,7 @@
 <h2>{{ t("c30.title") }}</h2>
 <p class="lead">{{ t("c30.ui.lead") }}</p>
 {% if imported >= 0 %}
-<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("c30.ui.imported", n=imported) }}{% if problems %} {{ t("c30.ui.import_problems", n=problems) }}{% endif %}</div></div>
+<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("c30.ui.imported", n=imported) }}{% if updated %} {{ t("c30.ui.imported_updated", n=updated) }}{% endif %}{% if problems %} {{ t("c30.ui.import_problems", n=problems) }}{% endif %}</div></div>
 {% endif %}
 {% set counts = pf.counts() %}
 {% set pc = plan.counts() %}
@@ -24,6 +24,8 @@
   <section class="card entry-card" aria-labelledby="h-plan">
     <h3 id="h-plan">{{ t("c30.plan.title") }}</h3>
     <p class="muted small">{{ t("c30.ui.plan_text") }}</p>
+    {% if plan.items %}{% set pr = plan.progress_counts() %}{% set od = plan.overdue() %}
+    <p class="small">{{ t("c30.rem.summary", open=pr.open, planned=pr.planned, negotiating=pr.negotiating, agreed=pr.agreed) }}{% if od %} <strong>{{ t("c30.rem.overdue_n", n=od | length) }}</strong>{% endif %}</p>{% endif %}
     <div class="row"><a class="btn primary" href="/w/{{ ws.id }}/contracts/plan.html" target="_blank" rel="noopener">HTML</a>
       <a class="btn" href="/w/{{ ws.id }}/contracts/plan.xlsx">Excel</a>
       {% if pdf %}<a class="btn" href="/w/{{ ws.id }}/contracts/plan.pdf">PDF</a>{% endif %}</div>

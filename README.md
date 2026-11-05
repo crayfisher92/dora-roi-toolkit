@@ -24,10 +24,11 @@ It gives GRC consultants and ICT third-party risk teams:
 - a realistic **synthetic dataset** for a fictional Swiss/EU banking group with deliberately
   injected errors;
 - the wider **DORA programme** on the same data: an **Art. 30 contract gap analysis**
-  (22-item checklist, assessments linked to B_02.01, remediation plan, local PDF/DOCX
-  pre-assessment), **major-incident classification** with reporting countdowns, a
-  **Swiss/FINMA mapping** (Circ. 2018/3 and 2023/1) and a **DORA readiness dashboard and
-  CRO report**.
+  (22-item checklist, assessments linked to B_02.01, remediation plan with progress
+  tracking and time-bound exceptions, local PDF/DOCX pre-assessment),
+  **major-incident classification** with reporting countdowns, a **Swiss/FINMA mapping**
+  (Circ. 2018/3 and 2023/1, with a DORA reporting scope so one group dataset serves both)
+  and a **DORA readiness dashboard and CRO report** (HTML/PDF).
 
 > ⚠️ **Not an official EBA/ESA tool and not legal advice.** The toolkit was built from the
 > structure of the regulation and the ITS; template details, code lists, validation rules and
@@ -147,11 +148,11 @@ roi serve          # or: docker compose up   →  http://127.0.0.1:8000
 | | |
 |---|---|
 | ![DORA readiness dashboard](docs/screenshots/10-dashboard.png) | ![Art. 30 contract portfolio](docs/screenshots/11-contracts.png) |
-| **Readiness dashboard** – register, contracts, incidents, concentration and FINMA as traffic lights with the priority actions; printable CRO report | **Art. 30 contracts** – arrangements and providers by criticality, gaps, remediation plan (HTML/Excel), assessment import/export |
+| **Readiness dashboard** – register, contracts, incidents, concentration and FINMA as traffic lights with the priority actions; CRO report as HTML/PDF | **Art. 30 contracts** – arrangements and providers by criticality, gaps, remediation plan (HTML/PDF/Excel) with progress, owners and approved exceptions, assessment import/export |
 | ![Contract assessment with document suggestions](docs/screenshots/12-assessment.png) | ![Major incident with reporting countdown](docs/screenshots/13-incident.png) |
 | **Assess a contract** – present / partial / missing per provision with clause and evidence; upload the PDF/DOCX for local keyword suggestions to review | **Incidents** – guided classification with the RTS criteria, triggered thresholds, live reporting countdown, recurring incidents |
 | ![FINMA mapping](docs/screenshots/14-finma.png) | |
-| **Switzerland (FINMA)** – which RoI data covers Circ. 2018/3 and 2023/1 and what to maintain in addition | |
+| **Switzerland (FINMA)** – which RoI data covers Circ. 2018/3 and 2023/1 and what to maintain in addition; mark entities outside the DORA scope so they stay out of the xBRL-CSV package | |
 
 The modules link to the register by key: the Art. 30 status appears on B_02.01 rows and
 provider pages, incidents link to providers, arrangements and the functions they support.
@@ -171,7 +172,7 @@ story is in [`docs/DEMO.md`](docs/DEMO.md). Screenshots are regenerated with
 |---|---|---|
 | `roi validate INPUT` | Validate a register | `-f text\|json\|md\|html\|pdf`, `-o FILE`, `--fail-on error\|warning\|never`, `--disable RULE`, `--downgrade RULE`, `--reference-date`, `--code-map` |
 | `roi report INPUT -o FILE` | Executive summary (`.html` or `.pdf`) | `--client`, `--prepared-by`, `--validation-report FILE`, `--json FILE` |
-| `roi export INPUT -o OUT` | Export | `--format xbrl-csv\|excel\|csv`, `--unzipped`, `--strict`, `--level CON\|IND\|SUB`, `--entry-point`, `--code-map` |
+| `roi export INPUT -o OUT` | Export | `--format xbrl-csv\|excel\|csv`, `--unzipped`, `--strict`, `--level CON\|IND\|SUB`, `--entry-point`, `--code-map`, `--exclude-entity LEI` (xbrl-csv: entity outside the DORA scope, repeatable) |
 | `roi template FILE` | Blank Excel template | `--sample [--clean]` to pre-fill |
 | `roi rules` | List rules and provisions | `-f text\|md\|json` |
 | `roi sample OUT` | Generate the synthetic register | `--format xlsx\|csv`, `--clean`, `--previous-year`, `--inventory`, `--seed`, `--assessments FILE`, `--incidents FILE`, `--contract-document FILE` |

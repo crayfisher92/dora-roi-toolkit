@@ -86,6 +86,21 @@ CATALOGUE: dict[str, dict[str, str]] = {
                               "support the exit.",
         "c30.hint.no_audit": "The contract grants audit rights, but no audit is recorded in "
                              "B_07.01 c0070.",
+        "c30.ui.index": "Provisions on this page",
+        "c30.rem.title": "Remediation progress",
+        "c30.rem.progress": "Progress",
+        "c30.rem.owner": "Owner",
+        "c30.rem.due": "Agreed target date",
+        "c30.rem.due_help": "Empty: the plan proposes a date from the priority.",
+        "c30.rem.open": "Not started",
+        "c30.rem.planned": "Planned",
+        "c30.rem.negotiating": "In negotiation",
+        "c30.rem.agreed": "Agreed, awaiting signature",
+        "c30.rem.summary": "Progress: {agreed} agreed · {negotiating} in negotiation · "
+                           "{planned} planned · {open} not started.",
+        "c30.rem.overdue_n": "{n} past the agreed target date.",
+        "c30.rem.overdue": "overdue",
+        "c30.rem.proposed": "proposed",
         "c30.ui.ex.title": "Approve a time-bound exception",
         "c30.ui.ex.help": "DORA's contract provisions are mandatory: an exception does not make "
                           "the clause present. It documents a decision to accept the gap until a "
@@ -139,6 +154,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
                        "criticality.",
         "c30.ui.imported": "{n} assessment(s) imported.",
         "c30.ui.import_problems": "{n} row(s) could not be read and were skipped.",
+        "c30.ui.imported_updated": "{n} replaced an existing assessment; its history was kept.",
         "c30.ui.plan_text": "Prioritised actions per provider and arrangement, for the client.",
         "c30.ui.assessments": "Assessments",
         "c30.ui.assessments_text": "Work offline in Excel (one row per arrangement and "
@@ -350,6 +366,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.deadline_note": "Deadlines are computed from the time of becoming aware and of "
                                 "classification; later reports from the actual submission of "
                                 "the previous one. Weekend relief is not applied.",
+        "inc.ui.leverage": "Contractual support (Art. 30)",
+        "inc.ui.leverage_help": "What the arrangements with the affected providers say about "
+                                "incident assistance and the provider's reporting duties.",
+        "inc.ui.leverage_na": "n/a",
         "inc.ui.links": "Affected in the register",
         "inc.ui.not_in_register": "not in the register",
         "inc.ui.status_actions": "Status",
@@ -384,6 +404,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.h.affected": "Linked arrangements show the functions they support; a critical "
                              "function is a strong indication for the first criterion.",
         "inc.ui.h.multi": "Hold Ctrl (Windows) or Cmd (Mac) to select several.",
+        "inc.ui.h.group": "Several entities: the answers below are the combined figures and "
+                          "the incident is classified once (conservative; per-entity "
+                          "classification is not modelled, see A-INC-08).",
         "inc.ui.hint_critical": "The linked arrangements support critical or important "
                                 "functions.",
         "inc.ui.hint_states": "Countries of the affected entities and their branches: {states}.",
@@ -407,6 +430,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.resolved": "Resolved",
         "inc.ev.closed": "Closed",
         "inc.ev.reopened": "Reopened",
+        "inc.ev.imported": "Imported",
         "rd.name": "DORA readiness",
         "rd.title": "DORA readiness dashboard",
         "rd.report.title": "DORA readiness report",
@@ -458,6 +482,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
                          "covered by this dataset.",
         "rd.act.fix": "Fix {n} blocking validation error(s) in the register.",
         "rd.c30.exceptions": "{n} gap(s) under an approved, time-bound exception.",
+        "rd.c30.progress": "Of the {n} high-priority gaps, {negotiating} are in negotiation, "
+                           "{agreed} agreed and {open} not yet in negotiation.",
         "rd.c30.notice": "{n} notice deadline(s) of critical arrangements within 90 days or "
                          "passed.",
         "rd.act.c30_renegotiate": "Renegotiate {n} arrangement(s) with Art. 30 gaps before "
@@ -467,6 +493,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.act.c30_expiring": "Renew {n} expiring arrangement(s) supporting critical functions "
                                "on DORA-compliant terms.",
         "rd.act.c30_exc_expiring": "Review {n} contract exception(s) expiring within 90 days.",
+        "rd.act.c30_overdue": "Escalate {n} contract remediation(s) past the agreed target "
+                              "date.",
         "rd.conc.multi": "{n} provider group(s) support {k} or more critical functions "
                          "(incl. subcontracting).",
         "rd.conc.third": "{share} of spend with groups headquartered outside the EEA and "
@@ -517,6 +545,21 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.band.n/a": "n/a",
         "rd.col.errors": "Errors",
         "rd.col.warnings": "Warnings",
+        "audit.kind.scope": "DORA reporting scope",
+        "scope.title": "DORA reporting scope of this dataset",
+        "scope.lead": "Keep the Swiss bank (or other non-EU entities) in the same dataset for the "
+                      "FINMA view and mark it as outside the DORA scope: it is then left out of "
+                      "the xBRL-CSV package, together with the arrangements, functions and "
+                      "providers that only concern it. Validation, analysis, Excel and CSV keep "
+                      "the whole dataset.",
+        "scope.legend": "Outside the DORA reporting scope",
+        "scope.maintainer": "maintains the register",
+        "scope.save": "Save scope",
+        "scope.saved": "Scope saved.",
+        "scope.summary": "{n} record(s) are left out of the supervisory package.",
+        "scope.export_note": "{n} entit(y/ies) outside the DORA scope are left out of the "
+                             "xBRL-CSV package.",
+        "scope.manage": "Manage the scope",
         "fin.name": "Switzerland (FINMA)",
         "fin.title": "One dataset for DORA and FINMA",
         "fin.lead": "Which data of the Register of Information – together with the Art. 30 "
@@ -639,6 +682,21 @@ CATALOGUE: dict[str, dict[str, str]] = {
                               "Dienstleister, der zur Unterstützung nicht verpflichtet ist.",
         "c30.hint.no_audit": "Der Vertrag gewährt Prüfungsrechte, in B_07.01 c0070 ist aber "
                              "keine Prüfung erfasst.",
+        "c30.ui.index": "Anforderungen auf dieser Seite",
+        "c30.rem.title": "Fortschritt der Behebung",
+        "c30.rem.progress": "Fortschritt",
+        "c30.rem.owner": "Verantwortlich",
+        "c30.rem.due": "Vereinbarter Zieltermin",
+        "c30.rem.due_help": "Leer: Der Plan schlägt einen Termin anhand der Priorität vor.",
+        "c30.rem.open": "Nicht begonnen",
+        "c30.rem.planned": "Geplant",
+        "c30.rem.negotiating": "In Verhandlung",
+        "c30.rem.agreed": "Vereinbart, Unterschrift ausstehend",
+        "c30.rem.summary": "Fortschritt: {agreed} vereinbart · {negotiating} in Verhandlung · "
+                           "{planned} geplant · {open} nicht begonnen.",
+        "c30.rem.overdue_n": "{n} nach dem vereinbarten Zieltermin.",
+        "c30.rem.overdue": "überfällig",
+        "c30.rem.proposed": "Vorschlag",
         "c30.ui.ex.title": "Befristete Ausnahme genehmigen",
         "c30.ui.ex.help": "Die Vertragsbestimmungen nach DORA sind verpflichtend: Eine Ausnahme "
                           "macht die Klausel nicht vorhanden. Sie dokumentiert die Entscheidung, "
@@ -692,6 +750,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.ui.imported": "{n} Bewertung(en) importiert.",
         "c30.ui.import_problems": "{n} Zeile(n) konnten nicht gelesen werden und wurden "
                                   "übersprungen.",
+        "c30.ui.imported_updated": "{n} ersetzte(n) eine bestehende Bewertung; der Verlauf blieb "
+                                   "erhalten.",
         "c30.ui.plan_text": "Priorisierte Maßnahmen je Dienstleister und Vereinbarung, für den "
                             "Kunden.",
         "c30.ui.assessments": "Bewertungen",
@@ -915,6 +975,11 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.deadline_note": "Fristen ab Kenntnisnahme und Klassifizierung; spätere Berichte "
                                 "ab tatsächlicher Übermittlung des vorherigen. Ohne "
                                 "Wochenendregelung.",
+        "inc.ui.leverage": "Vertragliche Unterstützung (Art. 30)",
+        "inc.ui.leverage_help": "Was die Vereinbarungen mit den betroffenen Dienstleistern zu "
+                                "Unterstützung bei Vorfällen und Berichtspflichten des "
+                                "Dienstleisters enthalten.",
+        "inc.ui.leverage_na": "n. a.",
         "inc.ui.links": "Betroffen im Register",
         "inc.ui.not_in_register": "nicht im Register",
         "inc.ui.status_actions": "Status",
@@ -951,6 +1016,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
                              "eine kritische Funktion ist ein starkes Indiz für das erste "
                              "Kriterium.",
         "inc.ui.h.multi": "Strg (Windows) bzw. Cmd (Mac) gedrückt halten für Mehrfachauswahl.",
+        "inc.ui.h.group": "Mehrere Gesellschaften: Die Antworten unten sind die zusammengefassten "
+                          "Zahlen, der Vorfall wird einmal klassifiziert (konservativ; eine "
+                          "Klassifizierung je Gesellschaft ist nicht abgebildet, siehe A-INC-08).",
         "inc.ui.hint_critical": "Die verknüpften Vereinbarungen unterstützen kritische oder "
                                 "wichtige Funktionen.",
         "inc.ui.hint_states": "Länder der betroffenen Unternehmen und Zweigniederlassungen: "
@@ -976,6 +1044,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.resolved": "Behoben",
         "inc.ev.closed": "Abgeschlossen",
         "inc.ev.reopened": "Wieder geöffnet",
+        "inc.ev.imported": "Importiert",
         "rd.name": "DORA-Reifegrad",
         "rd.title": "DORA-Reifegrad im Überblick",
         "rd.report.title": "DORA-Statusbericht",
@@ -1031,6 +1100,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
                          "nicht durch diesen Datenbestand abgedeckt.",
         "rd.act.fix": "{n} blockierende Validierungsfehler im Register beheben.",
         "rd.c30.exceptions": "{n} Lücke(n) mit genehmigter, befristeter Ausnahme.",
+        "rd.c30.progress": "Von {n} Lücken hoher Priorität sind {negotiating} in Verhandlung, "
+                           "{agreed} vereinbart und {open} noch nicht in Verhandlung.",
         "rd.c30.notice": "{n} Kündigungsfrist(en) kritischer Vereinbarungen innerhalb von 90 "
                          "Tagen oder verstrichen.",
         "rd.act.c30_renegotiate": "{n} Vereinbarung(en) mit Art.-30-Lücken vor Ablauf der "
@@ -1040,9 +1111,11 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.act.c30_expiring": "{n} auslaufende Vereinbarung(en) für kritische Funktionen zu "
                                "DORA-konformen Bedingungen verlängern.",
         "rd.act.c30_exc_expiring": "{n} Vertragsausnahme(n) prüfen, die in 90 Tagen ablaufen.",
+        "rd.act.c30_overdue": "{n} Vertragsnachbesserung(en) nach vereinbartem Zieltermin "
+                              "eskalieren.",
         "rd.conc.multi": "{n} Dienstleistergruppe(n) unterstützen {k} oder mehr kritische "
                          "Funktionen (inkl. Unterauftragsvergabe).",
-        "rd.conc.third": "{share} der Kosten bei Gruppen mit Sitz ausserhalb von EWR und Schweiz.",
+        "rd.conc.third": "{share} der Kosten bei Gruppen mit Sitz außerhalb von EWR und Schweiz.",
         "rd.act.conc_multi": "Ersetzbarkeit und Ausstieg für die {n} Dienstleistergruppe(n) mit "
                              "{k}+ kritischen Funktionen bewerten ({names}).",
         "rd.act.conc_top": "{group} vereint {share} der IKT-Kosten – Konzentration bewerten "
@@ -1087,6 +1160,22 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.band.n/a": "k. A.",
         "rd.col.errors": "Fehler",
         "rd.col.warnings": "Warnungen",
+        "audit.kind.scope": "DORA-Meldeumfang",
+        "scope.title": "DORA-Meldeumfang dieses Datenbestands",
+        "scope.lead": "Führen Sie die Schweizer Bank (oder andere Nicht-EU-Gesellschaften) im "
+                      "selben Datenbestand für die FINMA-Sicht und markieren Sie sie als "
+                      "außerhalb des DORA-Umfangs: Sie wird dann – mit den Vereinbarungen, "
+                      "Funktionen und Dienstleistern, die nur sie betreffen – nicht in das "
+                      "xBRL-CSV-Paket übernommen. Validierung, Analyse, Excel und CSV behalten den "
+                      "ganzen Datenbestand.",
+        "scope.legend": "Ausserhalb des DORA-Meldeumfangs",
+        "scope.maintainer": "führt das Register",
+        "scope.save": "Umfang speichern",
+        "scope.saved": "Umfang gespeichert.",
+        "scope.summary": "{n} Datensätze werden nicht in das aufsichtliche Paket übernommen.",
+        "scope.export_note": "{n} Gesellschaft(en) außerhalb des DORA-Umfangs werden nicht in "
+                             "das xBRL-CSV-Paket übernommen.",
+        "scope.manage": "Umfang verwalten",
         "fin.name": "Schweiz (FINMA)",
         "fin.title": "Ein Datenbestand für DORA und FINMA",
         "fin.lead": "Welche Daten des Informationsregisters – zusammen mit den "
@@ -1124,7 +1213,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "fin.ctx.spend": "{pct} der jährlichen Kosten",
         "fin.ctx.law": "Vereinbarungen unter Schweizer Recht",
         "fin.ctx.data": "Vereinbarungen mit Datenspeicherung oder -verarbeitung in der Schweiz",
-        "fin.ctx.third": "Dienstleister in Drittstaaten (ausserhalb EWR und CH)",
+        "fin.ctx.third": "Dienstleister in Drittstaaten (außerhalb EWR und CH)",
         "fin.method": "Konzeptionelle Abdeckung: abgedeckt = das RoI enthält die von der FINMA "
                       "erwarteten Angaben; teilweise = es enthält verwandte Angaben oder die "
                       "Art.-30-Checkliste bzw. das Vorfallverzeichnis belegen sie; nicht "

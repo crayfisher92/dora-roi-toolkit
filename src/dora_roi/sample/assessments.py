@@ -12,7 +12,12 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 
-from dora_roi.contracts.model import AssessmentBook, ContractAssessment, ProvisionStatus
+from dora_roi.contracts.model import (
+    AssessmentBook,
+    ContractAssessment,
+    ProvisionStatus,
+    RemediationProgress,
+)
 from dora_roi.contracts.provisions import PROVISIONS, Scope
 from dora_roi.contracts.suggest import suggest
 from dora_roi.model import RegisterOfInformation
@@ -170,6 +175,20 @@ _SAMPLES: tuple[tuple[str, date, str, str, Spec], ...] = (
 )
 
 
+#: Remediation progress of a few high-priority gaps (P-16); the Ledgerline item is past its
+#: agreed target date to show the escalation in the readiness report.
+_REMEDIATION: dict[tuple[str, str], tuple[RemediationProgress, str, date]] = {
+    ("AR-DE-0022", "30.3.f.i"): (RemediationProgress.NEGOTIATING,
+                                 "Vendor management – core banking (sample)", date(2027, 3, 31)),
+    ("AR-DE-0022", "30.3.d"): (RemediationProgress.NEGOTIATING,
+                               "Vendor management – core banking (sample)", date(2027, 3, 31)),
+    ("MSA-DE-0010", "30.3.d"): (RemediationProgress.AGREED, "Cloud sourcing office (sample)",
+                                date(2026, 12, 31)),
+    ("AR-DE-0026", "30.2.a.2"): (RemediationProgress.PLANNED, "Vendor management (sample)",
+                                 date(2026, 9, 30)),
+}
+
+
 def sample_assessments(register: RegisterOfInformation | None = None) -> AssessmentBook:
     """The sample assessment book (only arrangements present in ``register`` if given)."""
     known = {c.contract_ref for c in register.b_02_01} if register is not None else None
@@ -198,6 +217,11 @@ def sample_assessments(register: RegisterOfInformation | None = None) -> Assessm
                                     "2027 renewal.",
                 "exception_approver": "Head of ICT Third-Party Risk (sample)",
                 "exception_until": date(2027, 6, 30)})
+        for (r_ref, pid), (progress, owner, due) in _REMEDIATION.items():
+            if r_ref == ref:
+                a.items[pid] = a.items[pid].model_copy(update={
+                    "remediation": progress, "remediation_owner": owner,
+                    "remediation_due": due})
         if ref == SAMPLE_CONTRACT_REF:  # reviewed keyword suggestions (audit trail)
             suggested = suggest(SAMPLE_CONTRACT_TEXT).by_id()
             for pid, item in a.items.items():

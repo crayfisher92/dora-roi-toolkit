@@ -4,6 +4,7 @@
 <h2>{{ t("ex.title") }}</h2>
 <p class="lead">{{ t("ex.lead") }}</p>
 {% if counts.error %}<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t("ex.blocked", n=counts.error) }} <a href="/w/{{ ws.id }}/fix">{{ t("ws.next.fix", n=counts.error) }}</a></div></div>{% endif %}
+{% if ws.out_of_scope %}<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t("scope.export_note", n=ws.out_of_scope | length) }} <a href="/w/{{ ws.id }}/finma#h-scope">{{ t("scope.manage") }}</a></div></div>{% endif %}
 <div class="grid entry">
   <section class="card entry-card"><h3>{{ t("ex.xbrl") }}</h3><p class="muted">{{ t("ex.xbrl.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/xbrl">{{ t("ex.download") }} (.zip)</a></section>
   <section class="card entry-card"><h3>{{ t("ex.excel") }}</h3><p class="muted">{{ t("ex.excel.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/xlsx">{{ t("ex.download") }} (.xlsx)</a></section>

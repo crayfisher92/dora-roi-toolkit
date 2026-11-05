@@ -64,13 +64,20 @@
     {% endif %}
   </div>
 
+  <nav class="card provision-index" aria-labelledby="h-index">
+    <h3 id="h-index">{{ t("c30.ui.index") }}</h3>
+    <ol class="plain index-list">{% for p in provisions %}{% set it = items[p.id] %}
+      <li><a href="#pv-{{ p.id | replace('.', '_') }}"><span class="mono small">{{ p.article }}</span> {{ p.title(lang) }}</a>
+        {{ pill("exception" if it.excepted else it.status.value, t("cs.exception") if it.excepted else t("st." ~ it.status.value)) }}</li>{% endfor %}</ol>
+  </nav>
+
   {% for para, heading in (("30(1)", "c30.ui.p1"), ("30(2)", "c30.ui.p2"), ("30(3)", "c30.ui.p3")) %}
   {% set group = provisions | selectattr("paragraph", "equalto", para) | list %}
   {% if group %}
   <h3>{{ t(heading) }}</h3>
   {% for p in group %}{% set it = items[p.id] %}{% set own = a.item(p.id) %}{% set sg = suggestions.get(p.id) %}
   {% set pid = p.id | replace(".", "_") %}
-  <fieldset class="card provision {% if it.is_gap %}gap{% endif %}" aria-describedby="req-{{ pid }}">
+  <fieldset class="card provision {% if it.is_gap %}gap{% endif %}" id="pv-{{ pid }}" aria-describedby="req-{{ pid }}">
     <legend><span class="mono small">{{ p.article }}</span> {{ p.title(lang) }}{% if p.key %} <span class="key-mark" title="{{ t('c30.ui.key') }}">★<span class="visually-hidden"> {{ t("c30.ui.key") }}</span></span>{% endif %}</legend>
     <p id="req-{{ pid }}" class="small muted req-text">{{ p.requirement(lang) }}</p>
     {% if sg %}<p class="suggestion small"><span class="pill provisional">{{ t("c30.ui.sg." ~ sg.suggestion.value) }}</span>
@@ -89,6 +96,19 @@
     </div>
     {% if it.excepted %}<p class="small exception-note">{{ pill("exception", t("c30.ui.ex.active", until=it.exception_until)) }} {{ it.exception_reason }}{% if it.exception_approver %} – {{ it.exception_approver }}{% endif %}{% if it.inherited_from %} ({{ t("c30.inherited", ref=it.inherited_from) }}){% endif %}</p>
     {% elif it.exception_expired %}<p class="small exception-note">{{ pill("missing", t("c30.ui.ex.expired", until=it.exception_until)) }} {{ it.exception_reason }}</p>{% endif %}
+    {% if own.status.value in ("missing", "partial") %}
+    <details class="exception-box remediation-box" {% if own.remediation or own.remediation_owner or own.remediation_due %}open{% endif %}>
+      <summary>{{ t("c30.rem.title") }}{% if own.remediation %}: {{ t("c30.rem." ~ own.remediation.value) }}{% endif %}</summary>
+      <div class="provision-fields exception-fields">
+        <div class="field"><label for="rp-{{ pid }}">{{ t("c30.rem.progress") }}</label>
+          <select id="rp-{{ pid }}" name="rp-{{ p.id }}"><option value="">{{ t("c30.rem.open") }}</option>
+            {% for r in progress_options %}<option value="{{ r.value }}" {% if own.remediation == r %}selected{% endif %}>{{ t("c30.rem." ~ r.value) }}</option>{% endfor %}</select></div>
+        <div class="field"><label for="ro-{{ pid }}">{{ t("c30.rem.owner") }}</label><input id="ro-{{ pid }}" name="ro-{{ p.id }}" value="{{ own.remediation_owner }}" maxlength="200"></div>
+        <div class="field"><label for="rd-{{ pid }}">{{ t("c30.rem.due") }}</label><input id="rd-{{ pid }}" name="rd-{{ p.id }}" type="date" value="{{ own.remediation_due or '' }}" aria-describedby="rd-help-{{ pid }}">
+          <span id="rd-help-{{ pid }}" class="small muted">{{ t("c30.rem.due_help") }}</span></div>
+      </div>
+    </details>
+    {% endif %}
     {% if own.status.value in ("missing", "partial") or own.exception_reason %}
     <details class="exception-box" {% if own.exception_reason %}open{% endif %}>
       <summary>{{ t("c30.ui.ex.title") }}</summary>

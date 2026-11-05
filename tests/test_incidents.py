@@ -277,7 +277,7 @@ def test_log_ids_history_json_and_timezone() -> None:
         IncidentLog.from_json("{}")
     other = IncidentLog()
     other.save(incident("X"), "created")
-    assert log.merge(other) == 1 and len(log) == 3
+    assert log.merge(other) == (1, 0) and len(log) == 3
     log.remove("X")
     log.remove("nope")
     assert log.get("X") is None

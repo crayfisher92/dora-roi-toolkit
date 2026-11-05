@@ -125,9 +125,11 @@ REQUIREMENTS: tuple[FinmaRequirement, ...] = (
       "Service recipient within the group", "Leistungsempfänger in der Gruppe",
       FULL, (F("B_02.02 c0020"), F("B_04.01 c0020"), F("B_01.02 c0010")),
       "Swiss group entities are outside the DORA scope: add them to B_01.02 for the group "
-      "view and exclude them from the supervisory xBRL-CSV export.",
-      "Schweizer Gruppengesellschaften liegen ausserhalb von DORA: für die Gruppensicht in "
-      "B_01.02 aufnehmen und vom aufsichtlichen xBRL-CSV-Export ausnehmen."),
+      "view and mark them as outside the DORA reporting scope (this page, or `roi export "
+      "--exclude-entity`) so the xBRL-CSV package leaves them out.",
+      "Schweizer Gruppengesellschaften liegen außerhalb von DORA: für die Gruppensicht in "
+      "B_01.02 aufnehmen und als außerhalb des DORA-Meldeumfangs markieren (diese Seite "
+      "oder `roi export --exclude-entity`), damit das xBRL-CSV-Paket sie auslässt."),
     R("FIN-OS-05", OUTSOURCING, "Inventory", "Inventar",
       "Responsible person or unit in the bank", "Verantwortliche Person oder Stelle in der Bank",
       NONE, (),

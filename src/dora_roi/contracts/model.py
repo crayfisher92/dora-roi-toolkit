@@ -58,6 +58,34 @@ class ProvisionStatus(StrEnum):
             raise ValueError(f"unknown status {raw!r} (use present, partial or missing)") from exc
 
 
+class RemediationProgress(StrEnum):
+    """How far the remediation of a gap has got (P-16). ``None`` on an item = not started."""
+
+    PLANNED = "planned"
+    NEGOTIATING = "negotiating"
+    #: Clause agreed with the provider, contract amendment awaiting signature.
+    AGREED = "agreed"
+
+    @classmethod
+    def parse(cls, raw: object) -> RemediationProgress | None:
+        """Accept codes and English/German words; empty/``open`` = not started."""
+        text = str(raw or "").strip().casefold().replace("-", "_").replace(" ", "_")
+        aliases: dict[str, RemediationProgress | None] = {
+            "": None, "open": None, "offen": None, "not_started": None,
+            "nicht_begonnen": None, "geplant": cls.PLANNED,
+            "in_negotiation": cls.NEGOTIATING, "negotiation": cls.NEGOTIATING,
+            "in_verhandlung": cls.NEGOTIATING, "verhandlung": cls.NEGOTIATING,
+            "vereinbart": cls.AGREED, "agreed_awaiting_signature": cls.AGREED,
+        }
+        if text in aliases:
+            return aliases[text]
+        try:
+            return cls(text)
+        except ValueError as exc:
+            raise ValueError(f"unknown remediation progress {raw!r} "
+                             "(use planned, negotiating or agreed)") from exc
+
+
 class ProvisionAssessment(BaseModel):
     """Assessment of one checklist item for one contract."""
 
@@ -75,6 +103,11 @@ class ProvisionAssessment(BaseModel):
     exception_reason: str = Field(default="", max_length=1000)
     exception_approver: str = Field(default="", max_length=200)
     exception_until: date | None = None
+    #: Remediation tracking for a gap (P-16): progress, owner and the agreed target date
+    #: (when empty, the plan proposes one from the priority).
+    remediation: RemediationProgress | None = None
+    remediation_owner: str = Field(default="", max_length=200)
+    remediation_due: date | None = None
 
     def exception_valid(self, on: date) -> bool:
         return (self.status in (ProvisionStatus.MISSING, ProvisionStatus.PARTIAL)
@@ -120,14 +153,18 @@ class ContractAssessment(BaseModel):
 
     def set(self, provision_id: str, status: ProvisionStatus | str, clause_ref: str = "",
             evidence: str = "", suggested: ProvisionStatus | None = None,
-            exception: tuple[str, str, date | None] | None = None) -> None:
+            exception: tuple[str, str, date | None] | None = None,
+            remediation: tuple[RemediationProgress | None, str, date | None] | None = None
+            ) -> None:
         reason, approver, until = exception or ("", "", None)
+        progress, owner, due = remediation or (None, "", None)
         self.items[provision_id] = ProvisionAssessment(
             provision_id=provision_id,
             status=status if isinstance(status, ProvisionStatus) else ProvisionStatus.parse(status),
             clause_ref=clause_ref.strip(), evidence=evidence.strip(), suggested_status=suggested,
             exception_reason=reason.strip(), exception_approver=approver.strip(),
-            exception_until=until)
+            exception_until=until, remediation=progress, remediation_owner=owner.strip(),
+            remediation_due=due)
 
     def assessed_items(self) -> dict[str, ProvisionAssessment]:
         return {k: v for k, v in self.items.items() if v.status is not ProvisionStatus.NOT_ASSESSED}
@@ -149,6 +186,13 @@ def describe_changes(old: ContractAssessment | None, new: ContractAssessment) ->
             changes.append(f"{pid}: exception until {b.exception_until} approved by "
                            f"{b.exception_approver or '?'}" if b.exception_reason
                            else f"{pid}: exception withdrawn")
+        if b.status in (ProvisionStatus.MISSING, ProvisionStatus.PARTIAL) and (
+                a.remediation, a.remediation_owner, a.remediation_due) != (
+                b.remediation, b.remediation_owner, b.remediation_due):
+            changes.append(f"{pid}: remediation "
+                           f"{b.remediation.value if b.remediation else 'not started'}"
+                           + (f" ({b.remediation_owner})" if b.remediation_owner else "")
+                           + (f", target {b.remediation_due}" if b.remediation_due else ""))
     for name in ("assessor", "assessed_on", "document", "notes", "inherit"):
         if getattr(old, name) != getattr(new, name):
             changes.append(f"{name} updated")
@@ -156,6 +200,19 @@ def describe_changes(old: ContractAssessment | None, new: ContractAssessment) ->
         return "Saved without changes"
     shown = "; ".join(changes[:6])
     return shown + (f" (+{len(changes) - 6} more)" if len(changes) > 6 else "")
+
+
+def merge_events(first: list[AssessmentEvent], second: list[AssessmentEvent]
+                 ) -> list[AssessmentEvent]:
+    """Union of two histories without duplicates, in time order."""
+    seen: set[tuple[datetime, str, str]] = set()
+    out: list[AssessmentEvent] = []
+    for e in sorted([*first, *second], key=lambda e: e.at):
+        key = (e.at, e.by, e.summary)
+        if key not in seen:
+            seen.add(key)
+            out.append(e)
+    return out
 
 
 class AssessmentBook(BaseModel):
@@ -187,11 +244,27 @@ class AssessmentBook(BaseModel):
     def remove(self, contract_ref: str) -> None:
         self.assessments.pop(contract_ref, None)
 
-    def merge(self, other: AssessmentBook) -> int:
-        """Add or replace assessments from ``other``; returns the number taken over."""
+    def merge(self, other: AssessmentBook, source: str = "", by: str = "",
+              at: datetime | None = None) -> tuple[int, int]:
+        """Take over the assessments of ``other`` (imported file); returns ``(new, updated)``.
+
+        For an arrangement already assessed, the imported content wins but the existing
+        history is kept: both histories are combined (duplicates dropped, in time order) and
+        an import entry is appended, so the audit trail survives a round trip via Excel.
+        """
+        new = updated = 0
+        when = at or datetime.now(UTC)
         for ref, a in other.assessments.items():
-            self.assessments[ref] = a
-        return len(other.assessments)
+            old = self.assessments.get(ref)
+            note = f"Imported{' from ' + source if source else ''}: {describe_changes(old, a)}"
+            history = merge_events(old.history if old else [], a.history)
+            history.append(AssessmentEvent(at=when, by=by, summary=note))
+            self.assessments[ref] = a.model_copy(update={"history": history})
+            if old is None:
+                new += 1
+            else:
+                updated += 1
+        return new, updated
 
     # ------------------------------------------------------------------ JSON
 
@@ -211,7 +284,8 @@ class AssessmentBook(BaseModel):
 SHEET = "Assessments"
 HEADERS = ("contract_ref", "provision_id", "article", "provision", "status", "clause_ref",
            "evidence", "assessor", "assessed_on", "document", "exception_reason",
-           "exception_approver", "exception_until")
+           "exception_approver", "exception_until", "remediation", "remediation_owner",
+           "remediation_due")
 
 
 def write_assessment_workbook(book: AssessmentBook, path: Path,
@@ -245,10 +319,16 @@ def write_assessment_workbook(book: AssessmentBook, path: Path,
                          item.exception_reason if item else "",
                          item.exception_approver if item else "",
                          item.exception_until.isoformat() if item and item.exception_until
+                         else "",
+                         item.remediation.value if item and item.remediation else "",
+                         item.remediation_owner if item else "",
+                         item.remediation_due.isoformat() if item and item.remediation_due
                          else ""])
     with SheetBook(path) as wb:
-        wb.sheet(SHEET, HEADERS, rows, (16, 12, 22, 60, 12, 16, 60, 18, 14, 30, 40, 20, 14),
-                 lists={4: ("present", "partial", "missing")}, freeze_cols=2)
+        wb.sheet(SHEET, HEADERS, rows,
+                 (16, 12, 22, 60, 12, 16, 60, 18, 14, 30, 40, 20, 14, 14, 20, 14),
+                 lists={4: ("present", "partial", "missing"),
+                        13: tuple(r.value for r in RemediationProgress)}, freeze_cols=2)
         wb.text_sheet("README", (
             "DORA Art. 30 contract assessment workbook",
             f"Generated by dora-roi-toolkit {__version__}.",
@@ -258,6 +338,8 @@ def write_assessment_workbook(book: AssessmentBook, path: Path,
             "evidence: short note or quotation supporting the status.",
             "exception_reason / exception_approver / exception_until (YYYY-MM-DD): an approved, "
             "time-bound exception for a missing or partial provision.",
+            "remediation: planned | negotiating | agreed (empty = not started); "
+            "remediation_owner; remediation_due (YYYY-MM-DD): progress of closing a gap.",
             "Re-import with `roi contracts assess REGISTER --assessments THIS_FILE` or in the "
             "workbench (Art. 30 contracts → Import assessments).",
         ))
@@ -272,6 +354,16 @@ def _cell_text(value: Any) -> str:
     if isinstance(value, date):
         return value.isoformat()
     return str(value).strip()
+
+
+def _date_cell(text: str, name: str, row: int, problems: list[str]) -> date | None:
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text[:10])
+    except ValueError:
+        problems.append(f"row {row}: {name} is not a date (YYYY-MM-DD)")
+        return None
 
 
 def read_assessment_workbook(path: Path) -> tuple[AssessmentBook, list[str]]:
@@ -323,15 +415,17 @@ def read_assessment_workbook(path: Path) -> tuple[AssessmentBook, list[str]]:
                                        assessed_on=assessed_on,
                                        document=get("document")[:300])
             book.assessments[ref] = found
-        until: date | None = None
-        if get("exception_until"):
-            try:
-                until = date.fromisoformat(get("exception_until")[:10])
-            except ValueError:
-                problems.append(f"row {number}: exception_until is not a date (YYYY-MM-DD)")
+        until = _date_cell(get("exception_until"), "exception_until", number, problems)
+        due = _date_cell(get("remediation_due"), "remediation_due", number, problems)
+        try:
+            progress = RemediationProgress.parse(get("remediation"))
+        except ValueError as exc:
+            problems.append(f"row {number}: {exc}")
+            progress = None
         found.set(pid, status, get("clause_ref")[:200], get("evidence")[:MAX_TEXT],
                   exception=(get("exception_reason")[:1000], get("exception_approver")[:200],
-                             until))
+                             until),
+                  remediation=(progress, get("remediation_owner")[:200], due))
     return book, problems
 
 

@@ -25,6 +25,7 @@ Unassessed applicable provisions are listed separately as "to assess".
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from decimal import Decimal
@@ -35,6 +36,7 @@ from dora_roi.contracts.model import (
     ContractAssessment,
     ProvisionAssessment,
     ProvisionStatus,
+    RemediationProgress,
 )
 from dora_roi.contracts.provisions import PROVISIONS, Provision, applicable
 from dora_roi.model import ContractType, RegisterOfInformation
@@ -176,6 +178,9 @@ class EffectiveItem:
     exception_until: date | None = None
     #: True when the gap is covered by an exception that has not expired on the as-of date.
     excepted: bool = False
+    remediation: RemediationProgress | None = None
+    remediation_owner: str = ""
+    remediation_due: date | None = None
 
     @property
     def is_gap(self) -> bool:
@@ -258,7 +263,8 @@ def _effective(p: Provision, a: ProvisionAssessment, on: date, inherited: str | 
     return EffectiveItem(p, a.status, a.clause_ref, a.evidence, inherited,
                          a.suggested_status if inherited is None else None,
                          a.exception_reason, a.exception_approver, a.exception_until,
-                         a.exception_valid(on))
+                         a.exception_valid(on), a.remediation, a.remediation_owner,
+                         a.remediation_due)
 
 
 def evaluate_contract(ctx: ContractContext, book: AssessmentBook,
@@ -402,9 +408,22 @@ class RemediationItem:
     contract_end: date | None
     #: Subsequent arrangements (call-offs) that rely on this clause of the arrangement.
     applies_to: tuple[str, ...] = ()
+    progress: RemediationProgress | None = None
+    owner: str = ""
+    #: Target date agreed for this gap; ``None`` = proposed from the priority (target_date).
+    due: date | None = None
 
     def action(self, lang: str = "en") -> str:
         return self.provision.remediation(lang)
+
+    @property
+    def progress_key(self) -> str:
+        return self.progress.value if self.progress else "open"
+
+    def overdue(self, on: date) -> bool:
+        """An agreed target date has passed and the clause is not yet agreed."""
+        return (self.due is not None and self.due < on
+                and self.progress is not RemediationProgress.AGREED)
 
 
 @dataclass(frozen=True)
@@ -435,6 +454,17 @@ class RemediationPlan:
             out[i.priority.value] += 1
         return out
 
+    def progress_counts(self, priority: Priority | None = None) -> dict[str, int]:
+        """Actions by remediation progress (``open`` = not started)."""
+        out = {"open": 0, **{p.value: 0 for p in RemediationProgress}}
+        for i in self.items:
+            if priority is None or i.priority is priority:
+                out[i.progress_key] += 1
+        return out
+
+    def overdue(self) -> list[RemediationItem]:
+        return [i for i in self.items if i.overdue(self.plan_date)]
+
 
 def _item(c: ContractCompliance, it: EffectiveItem, today: date, critical: bool,
           applies_to: tuple[str, ...] = ()) -> RemediationItem:
@@ -445,8 +475,9 @@ def _item(c: ContractCompliance, it: EffectiveItem, today: date, critical: bool,
         ", ".join(sorted(ctx.entities.values())) or "—",
         "; ".join(f"{f.function_id} {f.name}" for f in ctx.critical_functions),
         critical, it.provision, it.status, it.clause_ref, it.evidence, it.inherited_from,
-        today + timedelta(days=TARGET_DAYS[prio]), None if ctx.open_ended else ctx.end_date,
-        applies_to)
+        it.remediation_due or today + timedelta(days=TARGET_DAYS[prio]),
+        None if ctx.open_ended else ctx.end_date, applies_to, it.remediation,
+        it.remediation_owner, it.remediation_due)
 
 
 def remediation_plan(portfolio: Portfolio, plan_date: date | None = None) -> RemediationPlan:
@@ -496,6 +527,26 @@ def remediation_plan(portfolio: Portfolio, plan_date: date | None = None) -> Rem
                   for c in portfolio.contracts for it in c.exceptions if not it.inherited_from]
     exceptions.sort(key=lambda e: (e.until or date.max, e.contract_ref))
     return RemediationPlan(today, items, to_assess, portfolio, exceptions)
+
+
+#: Provisions that determine the provider's support during an ICT incident (P-17).
+INCIDENT_PROVISIONS = ("30.2.f", "30.3.b")
+
+
+def incident_arrangements(portfolio: Portfolio, contract_refs: Iterable[str],
+                          provider_codes: Iterable[str], limit: int = 8
+                          ) -> list[tuple[ContractCompliance, list[EffectiveItem | None]]]:
+    """Arrangements linked to an incident (directly or via its providers) with the status of
+    the incident-related provisions (``None`` = not applicable to that arrangement)."""
+    refs, codes = set(contract_refs), set(provider_codes)
+    found = [c for c in portfolio.contracts
+             if c.ref in refs or codes & set(c.context.providers)]
+    found.sort(key=lambda c: (c.ref not in refs, not c.context.critical, c.ref))
+    out: list[tuple[ContractCompliance, list[EffectiveItem | None]]] = []
+    for c in found[:limit]:
+        by_id = {i.provision.id: i for i in c.items}
+        out.append((c, [by_id.get(pid) for pid in INCIDENT_PROVISIONS]))
+    return out
 
 
 def gaps_by_provision(portfolio: Portfolio) -> list[tuple[Provision, int, int]]:

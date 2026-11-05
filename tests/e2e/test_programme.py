@@ -19,6 +19,7 @@ def open_sample(page: Any, label: str = "Sample with 25 deliberate errors") -> s
 
 
 PROGRAMME_PAGES = ["/contracts", "/contracts/checklist", "/contract/AR-DE-0057",
+                   "/contract/AR-DE-0026",
                    "/contract/CO-LU-0002", "/incidents", "/incidents/new",
                    "/incidents/INC-2025-006", "/finma", "/dashboard", ""]
 STANDALONE_REPORTS = ["/contracts/plan.html", "/incidents/summary.html", "/readiness.html"]
@@ -48,6 +49,40 @@ def test_contract_assessment_with_document_suggestions(page: Any) -> None:
     assert link.inner_text().startswith("Gaps")
     link.click()
     page.wait_for_url(re.compile(r"/contract/AR-DE-0057$"))
+
+
+def test_remediation_progress_via_provision_index(page: Any) -> None:
+    url = open_sample(page, "Clean sample")
+    page.goto(url + "/contract/AR-DE-0026")
+    index = page.get_by_role("navigation", name="Provisions on this page")
+    index.get_by_role("link", name=re.compile("TLPT|threat-led")).focus()
+    page.keyboard.press("Enter")
+    page.wait_for_url(re.compile(r"#pv-30_3_d$"))
+    box = page.locator("#pv-30_3_d details.remediation-box")
+    box.locator("summary").click()
+    page.select_option("#rp-30_3_d", "negotiating")
+    page.fill("#ro-30_3_d", "Procurement")
+    page.fill("#rd-30_3_d", "2027-02-28")
+    page.get_by_role("button", name="Save assessment").click()
+    page.wait_for_url(re.compile(r"saved=1"))
+    assert page.locator("#pv-30_3_d summary", has_text="Remediation progress: In negotiation"
+                        ).is_visible()
+    page.goto(url + "/contracts/plan.html")
+    row = page.locator("tr", has_text="AR-DE-0026").filter(has_text="Procurement")
+    assert row.get_by_text("In negotiation").is_visible()
+
+
+def test_dora_scope_on_finma_page(page: Any) -> None:
+    url = open_sample(page, "Clean sample")
+    page.goto(url + "/finma")
+    page.get_by_label(re.compile("Alpenrand Banque Privée")).check()
+    page.get_by_role("button", name="Save scope").click()
+    page.wait_for_url(re.compile(r"scope_saved=1"))
+    assert page.get_by_role("status").filter(has_text="Scope saved").is_visible()
+    assert page.get_by_text(re.compile(r"record\(s\) are left out")).is_visible()
+    assert page.get_by_label(re.compile("Alpenrand Bank \\(Europe\\)")).is_disabled()
+    page.goto(url + "/export")
+    assert page.get_by_text(re.compile("outside the DORA scope are left out")).is_visible()
 
 
 def test_contracts_filter_and_checklist(page: Any) -> None:

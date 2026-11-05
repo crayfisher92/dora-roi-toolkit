@@ -27,7 +27,7 @@ from markupsafe import Markup
 from dora_roi import __version__
 from dora_roi.analytics import AnalyticsConfig, ConcentrationAnalysis
 from dora_roi.analytics.renewals import NoticeItem, NoticeStatus, notice_schedule
-from dora_roi.contracts.analysis import Portfolio, RemediationPlan, gaps_by_provision
+from dora_roi.contracts.analysis import Portfolio, Priority, RemediationPlan, gaps_by_provision
 from dora_roi.finma import FinmaView
 from dora_roi.i18n import format_date, translator
 from dora_roi.incidents.deadlines import DeadlineState, humanise
@@ -129,6 +129,14 @@ def _contracts_pillar(t: Any, lang: str, pf: Portfolio, plan: RemediationPlan,
              t("rd.c30.gaps", n=counts["gaps"], missing=pf.total_missing,
                partial=pf.total_partial),
              t("rd.c30.actions", high=pc["high"], medium=pc["medium"], low=pc["low"])]
+    if pc["high"]:
+        hp = plan.progress_counts(Priority.HIGH)
+        lines.append(t("rd.c30.progress", n=pc["high"], negotiating=hp["negotiating"],
+                       agreed=hp["agreed"], open=hp["open"] + hp["planned"]))
+    overdue = plan.overdue()
+    if overdue:
+        actions.append(Action("high", "contracts", t("rd.act.c30_overdue", n=len(overdue)),
+                              "/contracts/plan.html"))
     if plan.exceptions:
         lines.append(t("rd.c30.exceptions", n=len(plan.exceptions)))
     top = gaps_by_provision(pf)

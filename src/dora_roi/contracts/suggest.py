@@ -212,5 +212,9 @@ def apply_suggestions(assessment: ContractAssessment, result: SuggestionResult,
                 update={"suggested_status": s.suggestion.status})
             continue
         draft.set(s.provision.id, s.suggestion.status, s.clause_ref, s.evidence(lang),
-                  suggested=s.suggestion.status)
+                  suggested=s.suggestion.status,
+                  exception=(current.exception_reason, current.exception_approver,
+                             current.exception_until) if current else None,
+                  remediation=(current.remediation, current.remediation_owner,
+                               current.remediation_due) if current else None)
     return draft

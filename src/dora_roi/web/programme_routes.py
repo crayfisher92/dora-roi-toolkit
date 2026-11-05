@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from dora_roi.contracts.analysis import remediation_plan
 from dora_roi.finma import OPRISK, OUTSOURCING, evaluate_finma
@@ -14,6 +14,7 @@ from dora_roi.incidents.report import overview
 from dora_roi.model.refdata import country_name
 from dora_roi.readiness import ReadinessView, build_readiness, render_readiness_html
 from dora_roi.reporting.pdf import html_to_pdf, pdf_available
+from dora_roi.scope import restrict_to_scope
 from dora_roi.web.context import Ui, download, stem
 from dora_roi.workspace import Workspace
 
@@ -44,11 +45,31 @@ def pdf_response(html: str, filename: str) -> Response:
 
 def register(app: FastAPI, ui: Ui) -> None:
     @app.get("/w/{wid}/finma", response_class=HTMLResponse)
-    def finma(request: Request, wid: str) -> HTMLResponse:
+    def finma(request: Request, wid: str, scope_saved: int = 0) -> HTMLResponse:
         ws = ui.ws_or_404(wid)
         view = evaluate_finma(ws.register, ws.portfolio, ws.incidents)
+        maintainer = ws.register.maintainer.lei if ws.register.maintainer else None
+        _, summary = restrict_to_scope(ws.register, ws.out_of_scope - {maintainer or ""})
         return ui.ws_page(request, ws, "ws_finma.html.j2", "programme", view=view,
-                          circulars=CIRCULARS, country_name=country_name)
+                          circulars=CIRCULARS, country_name=country_name,
+                          entities=ws.register.b_01_02, maintainer=maintainer,
+                          scope_summary=summary, scope_saved=scope_saved)
+
+    @app.post("/w/{wid}/scope")
+    async def scope(request: Request, wid: str) -> Response:
+        ws = ui.ws_or_404(wid)
+        form = await request.form()
+        known = {e.lei for e in ws.register.b_01_02 if e.lei}
+        chosen = {v for v in form.getlist("out") if isinstance(v, str) and v in known}
+        maintainer = ws.register.maintainer.lei if ws.register.maintainer else None
+        chosen.discard(maintainer or "")
+        if chosen != ws.out_of_scope:
+            with ws.lock:
+                ws.out_of_scope = chosen
+                ws.programme_changed("scope", "B_01.02", "Outside the DORA scope: "
+                                     + (", ".join(sorted(chosen)) or "none"),
+                                     ui.user_of(request))
+        return RedirectResponse(f"/w/{wid}/finma?scope_saved=1#h-scope", status_code=303)
 
     @app.get("/w/{wid}/dashboard", response_class=HTMLResponse)
     def dashboard(request: Request, wid: str) -> HTMLResponse:

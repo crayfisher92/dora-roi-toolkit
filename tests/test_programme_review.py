@@ -370,3 +370,275 @@ def test_p12_possible_recurring_incidents() -> None:
                            recurrence_key="k", answers=Answers(critical_services=False)),
                   "created")
     assert possible_recurrences(same, NOW) == []
+
+
+# =========================================================================== cycle 2
+
+
+def _docx(members: dict[str, bytes]) -> bytes:
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, data in members.items():
+            zf.writestr(name, data)
+    return buf.getvalue()
+
+
+def test_p13_malformed_docx_is_a_clean_error() -> None:
+    from dora_roi.contracts.extract import ExtractionError, extract_text
+
+    xml = (b'<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/'
+           b'main"><w:body><w:p><w:r><w:t>Audit rights</w:t></w:r></w:p></w:body></w:document>')
+    good = _docx({"word/document.xml": xml})
+    assert "Audit rights" in extract_text("c.docx", good).text
+    # corrupt the CRC of the member (local header and central directory)
+    bad = bytearray(good)
+    for sig in (b"PK\x03\x04", b"PK\x01\x02"):
+        pos = bad.find(sig)
+        crc_at = pos + (14 if sig == b"PK\x03\x04" else 16)
+        bad[crc_at:crc_at + 4] = b"\x00\x00\x00\x00"
+    with pytest.raises(ExtractionError, match="corrupt"):
+        extract_text("c.docx", bytes(bad))
+    # the web upload answers with a form error instead of a 500
+    client = TestClient(create_app())
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    r = client.post(url + "/contract/AR-DE-0013", data={"action": "suggest"},
+                    files={"file": ("c.docx", bytes(bad), "application/octet-stream")})
+    assert r.status_code == 400 and "corrupt" in r.text
+
+
+def test_p14_import_keeps_history() -> None:
+    book = AssessmentBook()
+    a = present_except("C-1")
+    book.save(a, by="Lena", at=NOW - timedelta(days=2))
+    a2 = present_except("C-1", **{"30_2_h": "missing"})
+    book.save(a2, by="Lena", at=NOW - timedelta(days=1))
+    exported = AssessmentBook.from_json(book.to_json())
+    exported.assessments["C-1"] = present_except("C-1", **{"30_2_h": "partial"})
+    assert book.merge(exported, source="client.xlsx", by="Max", at=NOW) == (0, 1)
+    hist = book.get("C-1").history  # type: ignore[union-attr]
+    assert [e.by for e in hist] == ["Lena", "Lena", "Max"]
+    assert "client.xlsx" in hist[-1].summary and "30.2.h: missing → partial" in hist[-1].summary
+    assert book.get("C-1").item("30.2.h").status is ProvisionStatus.PARTIAL  # type: ignore
+    # importing the same file twice does not duplicate the imported history
+    book2 = AssessmentBook.from_json(book.to_json())
+    book.merge(book2, at=NOW + timedelta(hours=1))
+    assert len(book.get("C-1").history) == 4  # type: ignore[union-attr]
+
+    log = IncidentLog()
+    inc = Incident(id="I-1", title="t", detected_at=NOW - timedelta(days=1))
+    log.save(inc, "created", by="Lena", at=NOW - timedelta(days=1))
+    log.save(inc.model_copy(update={"title": "t2"}), "updated", by="Lena", at=NOW)
+    other = IncidentLog.from_json(log.to_json())
+    other.incidents["I-1"] = other.incidents["I-1"].model_copy(update={"title": "t3",
+                                                                       "history": []})
+    assert log.merge(other, source="log.json", by="Max", at=NOW) == (0, 1)
+    assert [e.action for e in log.get("I-1").history] == [  # type: ignore[union-attr]
+        "created", "updated", "imported"]
+    assert log.get("I-1").title == "t3"  # type: ignore[union-attr]
+
+
+SWISS_LIKE = "6354ZX2X914MZGYMMB68"  # the sample's Luxembourg bank stands in for a Swiss one
+
+
+def test_p15_restrict_to_scope() -> None:
+    from dora_roi.scope import ScopeError, restrict_to_scope
+    from dora_roi.validation.engine import validate
+
+    reg = generate_sample(inject_errors=False).source_register
+    same, summary = restrict_to_scope(reg, set())
+    assert same is reg and summary.total_removed == 0
+    out, summary = restrict_to_scope(reg, {SWISS_LIKE})
+    assert SWISS_LIKE not in {e.lei for e in out.b_01_02}
+    assert all(s.entity_lei != SWISS_LIKE for s in out.b_02_02)
+    assert summary.removed["B_02.01"] > 0 and summary.removed["B_01.02"] == 1
+    # arrangements shared with in-scope entities stay
+    shared = {s.contract_ref for s in reg.b_02_02 if s.entity_lei == SWISS_LIKE} & {
+        s.contract_ref for s in reg.b_02_02 if s.entity_lei != SWISS_LIKE}
+    assert shared <= {c.contract_ref for c in out.b_02_01}
+    # the restricted register is still a valid submission
+    assert validate(out).errors == []
+    assert len(reg.b_01_02) == 3  # the original is untouched
+    with pytest.raises(ScopeError):
+        restrict_to_scope(reg, {reg.maintainer.lei})  # type: ignore[union-attr]
+
+
+def test_p15_scope_in_web_project_and_cli(tmp_path: Path) -> None:
+    import io
+    import zipfile
+
+    client = TestClient(create_app())
+    client.post("/user", data={"name": "Lena", "next": "/"})
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    page = client.get(url + "/finma").text
+    assert "DORA reporting scope" in page and 'value="' + SWISS_LIKE + '"' in page
+    full = zipfile.ZipFile(io.BytesIO(client.get(url + "/download/xbrl").content))
+    r = client.post(url + "/scope", data={"out": [SWISS_LIKE, "UNKNOWNLEI"]},
+                    follow_redirects=False)
+    assert r.status_code == 303
+    page = client.get(r.headers["location"]).text
+    assert "Scope saved" in page and "left out of the supervisory package" in page
+    assert "outside the DORA scope are left out" in client.get(url + "/export").text
+    part = zipfile.ZipFile(io.BytesIO(client.get(url + "/download/xbrl").content))
+
+    def b0102(z: zipfile.ZipFile) -> str:
+        name = next(n for n in z.namelist() if n.endswith("b_01.02.csv"))
+        return z.read(name).decode()
+
+    assert SWISS_LIKE in b0102(full) and SWISS_LIKE not in b0102(part)
+    assert "DORA reporting scope" in client.get(url + "/audit").text
+    # the maintainer cannot be excluded via the form either
+    maintainer = generate_sample().source_register.maintainer.lei  # type: ignore[union-attr]
+    client.post(url + "/scope", data={"out": [maintainer]})
+    page = client.get(url + "/finma").text
+    assert f'value="{maintainer}" checked' not in page and f'value="{SWISS_LIKE}" checked' \
+        not in page
+    # project round trip
+    ws = sample_ws()
+    ws.out_of_scope = {SWISS_LIKE}
+    again = load_project(save_project(ws, tmp_path / "s.roiproj"))
+    assert again.out_of_scope == {SWISS_LIKE}
+    assert SWISS_LIKE not in {e.lei for e in again.dora_register().b_01_02}
+    # CLI
+    src = tmp_path / "reg.xlsx"
+    write_workbook(generate_sample(inject_errors=False).source_register, src)
+    out = tmp_path / "pkg.zip"
+    res = CliRunner().invoke(main, ["export", str(src), "-o", str(out), "--format",
+                                    "xbrl-csv", "--exclude-entity", SWISS_LIKE.lower()])
+    assert res.exit_code == 0, res.output
+    assert "Outside the DORA scope" in res.output
+    assert SWISS_LIKE not in b0102(zipfile.ZipFile(out))
+    maint = generate_sample().source_register.maintainer.lei  # type: ignore[union-attr]
+    res = CliRunner().invoke(main, ["export", str(src), "-o", str(out), "--format",
+                                    "xbrl-csv", "--exclude-entity", maint])
+    assert res.exit_code != 0 and "maintaining" in res.output
+    res = CliRunner().invoke(main, ["export", str(src), "-o", str(tmp_path / "x.xlsx"),
+                                    "--format", "excel", "--exclude-entity", SWISS_LIKE])
+    assert res.exit_code == 0 and "only applies" in res.output
+
+
+def test_p15_invalid_scope_in_project_is_rejected(tmp_path: Path) -> None:
+    path = save_project(sample_ws(), tmp_path / "a.roiproj")
+    con = sqlite3.connect(path)
+    con.execute("UPDATE programme SET data = '{\"out_of_scope\": [1]}' WHERE key = 'scope'")
+    con.commit()
+    con.close()
+    with pytest.raises(ProjectError, match="programme"):
+        load_project(path)
+
+
+def test_p16_remediation_progress() -> None:
+    from dora_roi.contracts import RemediationProgress
+
+    assert RemediationProgress.parse("In Verhandlung") is RemediationProgress.NEGOTIATING
+    assert RemediationProgress.parse("") is None and RemediationProgress.parse("offen") is None
+    with pytest.raises(ValueError, match="remediation"):
+        RemediationProgress.parse("maybe")
+    ws = sample_ws()
+    plan = remediation_plan(ws.portfolio, date(2026, 11, 5))
+    pr = plan.progress_counts()
+    assert pr["negotiating"] == 2 and pr["agreed"] == 1 and pr["planned"] == 1
+    assert sum(pr.values()) == len(plan.items)
+    overdue = plan.overdue()
+    assert [(i.contract_ref, i.provision.id) for i in overdue] == [("AR-DE-0026", "30.2.a.2")]
+    item = next(i for i in plan.items if (i.contract_ref, i.provision.id)
+                == ("MSA-DE-0010", "30.3.d"))
+    assert item.target_date == date(2026, 12, 31) and item.owner
+    assert not item.overdue(date(2027, 6, 1))  # agreed items are never overdue
+    proposed = next(i for i in plan.items if i.progress is None)
+    assert proposed.due is None and proposed.target_date > plan.plan_date
+
+
+def test_p16_remediation_form_workbook_plan_and_readiness(tmp_path: Path) -> None:
+    client = TestClient(create_app())
+    client.post("/user", data={"name": "Lena", "next": "/"})
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    page = client.get(url + "/contract/AR-DE-0026").text
+    assert 'name="rp-30.2.a.2"' in page and "Provisions on this page" in page
+    assert 'href="#pv-30_2_a_2"' in page and 'id="pv-30_2_a_2"' in page
+    data = {"action": "save", "st-30.2.a.2": "missing", "rp-30.2.a.2": "negotiating",
+            "ro-30.2.a.2": "Max", "rd-30.2.a.2": "2027-01-31",
+            "st-30.1": "present", "rp-30.1": "agreed"}  # ignored: not a gap
+    r = client.post(url + "/contract/AR-DE-0026", data=data, follow_redirects=False)
+    assert r.status_code == 303
+    page = client.get(url + "/contract/AR-DE-0026").text
+    assert "Remediation progress: In negotiation" in page
+    plan_html = client.get(url + "/contracts/plan.html").text
+    assert "In negotiation" in plan_html and "Max" in plan_html and "proposed" in plan_html
+    assert "Progress:" in client.get(url + "/contracts").text
+    audit = client.get(url + "/audit").text
+    assert "remediation negotiating" in audit
+    # the assessment workbook carries the fields and reads them back
+    path = tmp_path / "a.xlsx"
+    path.write_bytes(client.get(url + "/contracts/assessments.xlsx").content)
+    book, problems = read_assessment_workbook(path)
+    assert problems == []
+    item = book.get("AR-DE-0026").item("30.2.a.2")  # type: ignore[union-attr]
+    assert (item.remediation.value if item.remediation else None,  # type: ignore[union-attr]
+            item.remediation_owner, item.remediation_due) == ("negotiating", "Max",
+                                                              date(2027, 1, 31))
+    assert book.get("AR-DE-0026").item("30.1").remediation is None  # type: ignore[union-attr]
+    # plan workbook shows owner and progress
+    plan_xlsx = tmp_path / "p.xlsx"
+    plan_xlsx.write_bytes(client.get(url + "/contracts/plan.xlsx").content)
+    ws = load_workbook(plan_xlsx).worksheets[0]
+    header = [c.value for c in ws[1]]
+    rows = [[c.value for c in row] for row in ws.iter_rows(min_row=2) if row[0].value]
+    pi, oi = header.index("Progress"), header.index("Owner")
+    assert any(r[pi] == "In negotiation" and r[oi] == "Max" for r in rows)
+    # bad workbook values are reported per row
+    wb = load_workbook(path)
+    sh = wb["Assessments"]
+    hdr = [c.value for c in sh[1]]
+    row = next(r for r in range(2, sh.max_row + 1)
+               if sh.cell(row=r, column=1).value == "AR-DE-0026"
+               and sh.cell(row=r, column=2).value == "30.2.a.2")
+    sh.cell(row=row, column=hdr.index("remediation") + 1, value="soon")
+    sh.cell(row=row, column=hdr.index("remediation_due") + 1, value="next year")
+    wb.save(path)
+    _, problems = read_assessment_workbook(path)
+    assert any("remediation progress" in p for p in problems)
+    assert any("remediation_due is not a date" in p for p in problems)
+
+
+def test_p16_readiness_counts_progress_and_overdue() -> None:
+    client = TestClient(create_app())
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    html = client.get(url + "/readiness.html").text
+    assert "high-priority gaps" in html and "not yet in negotiation" in html
+    # the sample's Ledgerline item is past its agreed date (30 Sep 2026) from October 2026
+    assert ("past the agreed target date" in html) is (date.today() > date(2026, 9, 30))
+
+
+def test_p17_incident_shows_contractual_support() -> None:
+    from dora_roi.contracts.analysis import incident_arrangements
+
+    ws = sample_ws()
+    inc = next(i for i in ws.incidents.ordered() if i.provider_codes)
+    rows = incident_arrangements(ws.portfolio, inc.contract_refs, inc.provider_codes)
+    assert rows and all(len(items) == 2 for _, items in rows)
+    assert incident_arrangements(ws.portfolio, [], []) == []
+    client = TestClient(create_app())
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    page = client.get(f"{url}/incidents/{inc.id}").text
+    assert "Contractual support (Art. 30)" in page and "30(2)(f)" in page
+    assert "classified once" in page  # P-19 note
+
+
+def test_p15_maintainer_marked_before_becoming_maintainer_is_kept() -> None:
+    ws = sample_ws()
+    maintainer = ws.register.maintainer.lei  # type: ignore[union-attr]
+    ws.out_of_scope = {maintainer or "", SWISS_LIKE}
+    leis = {e.lei for e in ws.dora_register().b_01_02}
+    assert maintainer in leis and SWISS_LIKE not in leis
+    client = TestClient(create_app())
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    assert client.get(url + "/finma").status_code == 200

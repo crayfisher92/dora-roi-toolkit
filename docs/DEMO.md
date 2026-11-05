@@ -77,8 +77,10 @@ critical functions; its two call-offs inherit the master agreement's assessment.
 **Go back**, **click** *HTML* under *Contract remediation plan* (opens in a new tab):
 
 > "This is the deliverable for the client: actions by priority, clause references,
-> recommended wording, target dates – also as an Excel workbook to work through with
-> procurement."
+> recommended wording, who owns each action and how far it is – planned, in negotiation,
+> agreed – with the agreed target date; Ledgerline's subcontracting clause is already
+> overdue. Hyperscaler audit rights sit under *Approved exceptions*, time-boxed until the
+> 2027 renewal. Also as PDF and as an Excel workbook to work through with procurement."
 
 ## 3:30 – Assess a contract from the document (60 s)
 
@@ -149,6 +151,15 @@ context*: six Swiss providers with 38 % of the spend.
 > needs on top – the responsible unit per outsourcing, scenario tests, FINMA named in the
 > audit clause – is listed requirement by requirement."
 
+**Scroll** to *DORA reporting scope of this dataset* (optional, 15 s):
+
+> "And if the Swiss bank's own outsourcings live in the same file, tick it here: it stays in
+> the FINMA view and the Excel export, but the xBRL-CSV package for the EU supervisor leaves
+> it – and every arrangement only it uses – out. Same on the command line with
+> `--exclude-entity`."
+
+(Untick it again before moving on – the sample's entities are all EU entities.)
+
 ## 8:00 – One page for the CRO (75 s)
 
 **Click** *DORA readiness*.
@@ -158,10 +169,11 @@ context*: six Swiss providers with 38 % of the spend.
 > unreported recurring series, concentration red. Below: the eight actions that matter,
 > each a link to where it is fixed."
 
-**Click** *Open the readiness report* and **press** Ctrl/Cmd + P:
+**Click** *Open the readiness report* (or *PDF*):
 
-> "The same as a printable report for the risk committee – A4, PDF from the browser, in
-> English or German."
+> "The same as a report for the risk committee – A4, as PDF directly or printed from the
+> browser, in English or German. Under contracts it says how many of the high-priority
+> gaps are actually in negotiation."
 
 ## 9:15 – Your language, your data (30 s)
 

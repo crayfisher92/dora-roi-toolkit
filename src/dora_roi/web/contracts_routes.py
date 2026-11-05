@@ -35,6 +35,7 @@ from dora_roi.contracts.model import (
     AssessmentBook,
     ContractAssessment,
     ProvisionStatus,
+    RemediationProgress,
     read_assessment_workbook,
     write_assessment_workbook,
 )
@@ -68,7 +69,8 @@ def _plan(ws: Workspace) -> Any:
 def register(app: FastAPI, ui: Ui) -> None:
     @app.get("/w/{wid}/contracts", response_class=HTMLResponse)
     def contracts(request: Request, wid: str, status: str = "all", critical: int = 0,
-                  q: str = "", imported: int = -1, problems: int = 0) -> HTMLResponse:
+                  q: str = "", imported: int = -1, problems: int = 0,
+                  updated: int = 0) -> HTMLResponse:
         ws = ui.ws_or_404(wid)
         pf = ws.portfolio
         status = status if status in STATUS_FILTERS else "all"
@@ -81,7 +83,8 @@ def register(app: FastAPI, ui: Ui) -> None:
         return ui.ws_page(request, ws, "ws_contracts.html.j2", "programme", pf=pf, rows=rows,
                           status_filter=status, critical=critical, q=q, plan=_plan(ws),
                           by_provision=gaps_by_provision(pf), filters=STATUS_FILTERS,
-                          imported=imported, problems=problems, contract_url=contract_url,
+                          imported=imported, problems=problems, updated=updated,
+                          contract_url=contract_url,
                           pdf=pdf_available_())
 
     @app.get("/w/{wid}/contracts/checklist", response_class=HTMLResponse)
@@ -152,12 +155,13 @@ def register(app: FastAPI, ui: Ui) -> None:
         except (ValueError, ValidationError, KeyError, OSError, zipfile.BadZipFile) as exc:
             raise HTTPException(status_code=400,
                                 detail=t("err.read", name=name, error=str(exc)[:300])) from exc
+        user = ui.user_of(request)
         with ws.lock:
-            n = ws.contracts.merge(book)
-            ws.programme_changed("art30", name[:200], f"Imported {n} assessment(s)",
-                                 ui.user_of(request))
-        return RedirectResponse(f"/w/{wid}/contracts?imported={n}&problems={len(problems)}",
-                                status_code=303)
+            new, updated = ws.contracts.merge(book, source=name, by=user)
+            ws.programme_changed("art30", name[:200], f"Imported {new} new and {updated} "
+                                 "updated assessment(s)", user)
+        return RedirectResponse(f"/w/{wid}/contracts?imported={new + updated}&updated={updated}"
+                                f"&problems={len(problems)}", status_code=303)
 
     # ------------------------------------------------------------------ one contract
 
@@ -187,6 +191,7 @@ def register(app: FastAPI, ui: Ui) -> None:
             draft=draft is not None, suggestions=suggestions.by_id() if suggestions else {},
             suggestion_counts=suggestions.counts() if suggestions else None,
             document=document, callofs=callofs, b0201=b0201, statuses=list(ProvisionStatus),
+            progress_options=list(RemediationProgress),
             pdf=pdf_supported(), sample_doc=ref == SAMPLE_CONTRACT_REF and ws.kind == "sample",
             action_url=contract_url(ws.id, ref), contract_url=contract_url, error=error,
             hints=consistency_hints(ws.register, compliance),
@@ -274,11 +279,17 @@ def _from_form(ref: str, form: Any) -> ContractAssessment | None:
             if reason and (until is None or status not in (ProvisionStatus.MISSING,
                                                            ProvisionStatus.PARTIAL)):
                 raise ValueError("an exception needs a gap and an end date")
+            remediation = None
+            if status in (ProvisionStatus.MISSING, ProvisionStatus.PARTIAL):
+                due_raw = form_text(form, f"rd-{p.id}")
+                remediation = (RemediationProgress.parse(form_text(form, f"rp-{p.id}")),
+                               form_text(form, f"ro-{p.id}", 200),
+                               date.fromisoformat(due_raw) if due_raw else None)
             a.set(p.id, status, form_text(form, f"cl-{p.id}", 200),
                   form_text(form, f"ev-{p.id}"),
                   suggested=ProvisionStatus.parse(sug) if sug else None,
                   exception=(reason, form_text(form, f"exa-{p.id}", 200), until)
-                  if reason else None)
+                  if reason else None, remediation=remediation)
     except (ValueError, ValidationError):
         return None
     return a

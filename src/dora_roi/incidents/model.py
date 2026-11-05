@@ -232,9 +232,29 @@ class IncidentLog(BaseModel):
     def remove(self, incident_id: str) -> None:
         self.incidents.pop(incident_id, None)
 
-    def merge(self, other: IncidentLog) -> int:
-        self.incidents.update(other.incidents)
-        return len(other.incidents)
+    def merge(self, other: IncidentLog, source: str = "", by: str = "",
+              at: datetime | None = None) -> tuple[int, int]:
+        """Take over the incidents of ``other``; returns ``(new, updated)``. Existing history is
+        kept and combined with the imported one, plus an import entry (as for assessments)."""
+        new = updated = 0
+        when = at or datetime.now(UTC)
+        for iid, inc in other.incidents.items():
+            old = self.incidents.get(iid)
+            seen: set[tuple[datetime, str, str, str]] = set()
+            history: list[IncidentEvent] = []
+            for e in sorted([*(old.history if old else []), *inc.history], key=lambda e: e.at):
+                key = (e.at, e.by, e.action, e.note)
+                if key not in seen:
+                    seen.add(key)
+                    history.append(e)
+            history.append(IncidentEvent(at=when, by=by, action="imported",
+                                         note=source[:200]))
+            self.incidents[iid] = inc.model_copy(update={"history": history})
+            if old is None:
+                new += 1
+            else:
+                updated += 1
+        return new, updated
 
     def to_json(self) -> str:
         return self.model_dump_json(by_alias=True, indent=2, exclude_none=True)

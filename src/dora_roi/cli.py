@@ -189,9 +189,12 @@ def report(input_path: Path, output: Path, client_name: str | None, prepared_by:
 @click.option("--level", type=click.Choice(["CON", "IND", "SUB"]), default="CON",
               show_default=True, help="xbrl-csv: consolidation level used in entityID/name.")
 @click.option("--entry-point", default=None, help="xbrl-csv: taxonomy entry point URL.")
+@click.option("--exclude-entity", "exclude", multiple=True, metavar="LEI",
+              help="xbrl-csv: leave an entity outside the DORA scope (e.g. the Swiss bank of "
+              "a group) and what only concerns it out of the package (repeatable).")
 @code_map_opt
 def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: bool, level: str,
-           entry_point: str | None, code_map: Path | None) -> None:
+           entry_point: str | None, exclude: tuple[str, ...], code_map: Path | None) -> None:
     """Export a register (xBRL-CSV package is BEST-EFFORT, see docs/ASSUMPTIONS.md)."""
     from dora_roi.io.csv_folder import write_csv_folder
     from dora_roi.io.excel import write_workbook
@@ -205,6 +208,8 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
             click.echo("Export refused (--strict): fix the validation errors first.", err=True)
             sys.exit(EXIT_FINDINGS)
         click.echo("Warning: exporting a register that does not pass validation.", err=True)
+    if exclude and fmt != "xbrl-csv":
+        click.echo("Note: --exclude-entity only applies to the xbrl-csv package.", err=True)
     if fmt == "excel":
         click.echo(f"Wrote {write_workbook(loaded.register, output)}", err=True)
         return
@@ -214,7 +219,17 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
     options = XbrlCsvOptions(reporting_level=level, code_map=cmap or {})
     if entry_point:
         options.entry_point = entry_point
-    result = export_xbrl_csv(loaded.register, output, options, unzipped=unzipped)
+    register = loaded.register
+    if exclude:
+        from dora_roi.scope import ScopeError, restrict_to_scope
+
+        try:
+            register, summary = restrict_to_scope(register, {e.upper() for e in exclude})
+        except ScopeError as exc:
+            raise click.BadParameter(str(exc), param_hint="--exclude-entity") from exc
+        click.echo(f"Outside the DORA scope: {', '.join(summary.excluded_entities)} "
+                   f"({summary.total_removed} record(s) left out)", err=True)
+    result = export_xbrl_csv(register, output, options, unzipped=unzipped)
     for w in result.warnings:
         click.echo(f"! {w}", err=True)
     click.echo(f"Wrote {result.path}", err=True)
@@ -496,6 +511,8 @@ def contracts_assess(input_path: Path, assessments_path: Path, output: Path | No
                          "article": i.provision.article, "status": i.status.value,
                          "clause_ref": i.clause_ref, "evidence": i.evidence,
                          "target_date": i.target_date.isoformat(),
+                         "target_agreed": i.due is not None, "progress": i.progress_key,
+                         "owner": i.owner, "overdue": i.overdue(plan.plan_date),
                          "applies_to": list(i.applies_to)} for i in plan.items],
             "exceptions": [{"contract_ref": e.contract_ref, "provision": e.provision.id,
                             "status": e.status.value, "reason": e.reason,

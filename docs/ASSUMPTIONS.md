@@ -134,6 +134,7 @@ Written without access to the official texts (`reference/eu/` absent). **All ope
 | A-INC-05 | Recurring incidents: individually non-major incidents with the same apparent root cause occurring at least twice within 6 months are assessed together; the toolkit aggregates them by adding counts, durations, downtime and costs, taking the largest denominator, OR-ing yes/no answers and uniting Member States. The RTS may prescribe a different aggregation; the monthly assessment cycle is not enforced. |
 | A-INC-06 | "Critical services affected" is answered by the user; the register only provides a hint (linked arrangements supporting critical or important functions). Financial services requiring authorisation are not derived from the register. |
 | A-INC-07 | Root-cause categories paraphrase those of the reporting templates and are used for information only. Significant cyber threats (voluntary notification) are out of scope. |
+| A-INC-08 | An incident affecting several financial entities of a group is classified once, on the combined answers (clients, transactions, Member States … of all affected entities). The RTS on classification are understood to require classification per financial entity, with aggregated reporting by a group only under conditions set out in the reporting ITS; per-entity classification and aggregated reporting are **not modelled** (D-076). Classifying on combined figures is conservative: it may classify as major earlier than per-entity figures would. |
 
 ## Swiss angle (FINMA)
 

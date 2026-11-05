@@ -49,16 +49,17 @@ def write_plan_workbook(plan: RemediationPlan, path: Path, *, lang: str = "en",
             rows.append([n, t(f"prio.{i.priority.value}"), i.providers, i.contract_ref,
                          i.entities, i.critical_functions or "—", i.provision.title(lang),
                          i.provision.article, t(f"st.{i.status.value}"), i.clause_ref,
-                         i.evidence, i.action(lang), i.target_date, i.contract_end, "", "",
-                         "; ".join(note)])
+                         i.evidence, i.action(lang), i.target_date, i.contract_end, i.owner,
+                         t(f"c30.rem.{i.progress_key}"), "; ".join(note)])
             formats[(n, 1)] = wb.fill(_PRIO_FILL[i.priority.value])
         wb.sheet("Maßnahmenplan" if de else "Remediation plan",
                  ["#", t("g.priority"), t("g.provider"), t("g.contract"), t("g.entity"),
                   t("c30.critical_functions"), t("c30.provision"), "Art.", t("g.status"),
                   t("c30.clause"), t("c30.evidence"), t("g.action"), t("g.target"),
-                  t("g.contract_end"), t("g.owner"), t("g.status") + " (client)", t("g.notes")],
+                  t("g.contract_end"), t("c30.rem.owner"), t("c30.rem.progress"), t("g.notes")],
                  rows, (5, 10, 30, 16, 28, 34, 40, 18, 11, 12, 48, 56, 12, 12, 18, 16, 30),
-                 lists={15: ("open", "in negotiation", "agreed", "signed", "accepted risk")},
+                 lists={15: tuple(t(f"c30.rem.{k}") for k in
+                                  ("open", "planned", "negotiating", "agreed"))},
                  cell_formats=formats, extra_rows=200)
         wb.sheet("Nach Dienstleister" if de else "By provider",
                  [t("g.provider"), t("c30.critical_functions"), t("g.contracts"),

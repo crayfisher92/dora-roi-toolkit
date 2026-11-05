@@ -691,8 +691,9 @@ def create_app(capacity: int = MAX_WORKSPACES,
             return _download(buf.getvalue(), f"{stem}-csv.zip", "application/zip")
         if kind == "xbrl":
             options = XbrlCsvOptions()
-            pkg = package_name(ws.register, options)
-            files, _ = build_package_files(ws.register, options)
+            dora = ws.dora_register()  # entities outside the DORA scope are left out (P-15)
+            pkg = package_name(dora, options)
+            files, _ = build_package_files(dora, options)
             buf = io.BytesIO()
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
                 for rel, text in files.items():

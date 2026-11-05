@@ -14,6 +14,7 @@ from __future__ import annotations
 import io
 import re
 import zipfile
+import zlib
 from dataclasses import dataclass
 from xml.etree import ElementTree
 
@@ -81,11 +82,22 @@ def _docx(name: str, data: bytes) -> ExtractedText:
             raise ExtractionError("not a Word document (word/document.xml missing)")
         if sum(i.file_size for i in parts) > MAX_UNCOMPRESSED_BYTES:
             raise ExtractionError("document is too large when uncompressed")
+        for info in parts:  # members that lie about their size (same guard as io.limits)
+            if info.compress_size and info.file_size / info.compress_size > 1000 \
+                    and info.file_size > 10**7:
+                raise ExtractionError("suspicious compression ratio in the document")
         order = {"document": 0, "header": 1, "footer": 2, "footnotes": 3, "endnotes": 4}
         parts.sort(key=lambda i: order.get(re.sub(r"\d+", "", i.filename[5:-4]), 9))
         chunks: list[str] = []
         for info in parts:
-            xml = zf.read(info)
+            try:
+                with zf.open(info) as member:
+                    xml = member.read(MAX_UNCOMPRESSED_BYTES + 1)
+            except (zipfile.BadZipFile, zlib.error, EOFError, NotImplementedError,
+                    RuntimeError) as exc:
+                raise ExtractionError("corrupt .docx file") from exc
+            if len(xml) > MAX_UNCOMPRESSED_BYTES:
+                raise ExtractionError("document is too large when uncompressed")
             if b"<!DOCTYPE" in xml[:4096] or b"<!ENTITY" in xml:
                 raise ExtractionError("document declares a DTD; refused for safety")
             chunks.append(_docx_xml_text(xml))

@@ -211,7 +211,9 @@ def _sample_assessments_section(register: RegisterOfInformation) -> list[str]:
         "(`roi sample … --assessments a.json`, loaded automatically by the workbench samples). "
         "They show the typical gaps of pre-DORA contracts; call-offs of the Nimbus and Cirrus "
         "master agreements inherit their assessment; the sample contract document "
-        "(`--contract-document`) belongs to `AR-DE-0057`.",
+        "(`--contract-document`) belongs to `AR-DE-0057`. Four high-priority gaps carry "
+        "remediation progress (one past its agreed target date from October 2026) and the "
+        "Nimbus master agreement has an approved, time-bound exception for audit rights.",
         "",
         "| Arrangement | Provider | Scope | Status | Gaps (missing / partial) |",
         "|---|---|---|---|---|",
@@ -219,9 +221,13 @@ def _sample_assessments_section(register: RegisterOfInformation) -> list[str]:
     for c in pf.contracts:
         if not c.assessed:
             continue
-        gaps = "; ".join(f"{i.provision.id} {i.status.value}" for i in c.gaps
-                         if not i.inherited_from) or ("inherited from " + c.inherited_from
-                                                       if c.inherited_from else "—")
+        own = [f"{i.provision.id} {i.status.value}"
+               + (f" ({i.remediation.value}, target {i.remediation_due})" if i.remediation
+                  else "") for i in c.gaps if not i.inherited_from]
+        own += [f"{i.provision.id} {i.status.value} (exception until {i.exception_until})"
+                for i in c.exceptions if not i.inherited_from]
+        gaps = "; ".join(own) or ("inherited from " + c.inherited_from
+                                  if c.inherited_from else "—")
         lines.append(f"| `{c.ref}` | {_cell(c.context.provider_names)} | "
                      f"{'30(2)+(3)' if c.context.critical else '30(2)'} | {c.status.value} | "
                      f"{_cell(gaps)} |")

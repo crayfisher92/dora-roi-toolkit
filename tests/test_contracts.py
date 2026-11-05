@@ -173,7 +173,7 @@ def test_assessment_book_history_json_and_merge() -> None:
         AssessmentBook.from_json(json.dumps({"assessments": {}}))
     other = AssessmentBook()
     other.save(ContractAssessment(contract_ref="C-002"))
-    assert book.merge(other) == 1 and len(book) == 2
+    assert book.merge(other) == (1, 0) and len(book) == 2
     book.remove("C-002")
     book.remove("missing-ref")
     assert book.get("C-002") is None
@@ -544,6 +544,9 @@ def test_cli_contracts(tmp_path: Path) -> None:
     data = json.loads((tmp_path / "plan.json").read_text())
     assert data["counts"]["high"] == 18 and data["plan_date"] == "2025-11-05"
     assert data["exceptions"][0]["provision"] == "30.3.e.i"
+    progress = {(a["contract_ref"], a["provision"]): a for a in data["actions"]}
+    led = progress[("AR-DE-0026", "30.2.a.2")]
+    assert (led["progress"], led["target_agreed"], led["overdue"]) == ("planned", True, False)
     r = runner.invoke(main, ["contracts", "assess", str(reg), "--assessments",
                              str(tmp_path / "a.json"), "--fail-on-gaps"])
     assert r.exit_code == 1

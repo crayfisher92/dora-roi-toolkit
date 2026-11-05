@@ -17,6 +17,8 @@ from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from pydantic import ValidationError
 
+from dora_roi.contracts.analysis import INCIDENT_PROVISIONS, incident_arrangements
+from dora_roi.contracts.provisions import PROVISIONS_BY_ID
 from dora_roi.incidents.classify import classify
 from dora_roi.incidents.criteria import DEFAULT_THRESHOLDS, Criterion, criteria
 from dora_roi.incidents.deadlines import humanise
@@ -244,11 +246,13 @@ def register(app: FastAPI, ui: Ui) -> None:
         except (ValueError, ValidationError) as exc:
             raise HTTPException(status_code=400,
                                 detail=t("err.read", name=name, error=str(exc)[:300])) from exc
+        user = ui.user_of(request)
         with ws.lock:
-            n = ws.incidents.merge(other)
-            ws.programme_changed("incident", name[:200], f"Imported {n} incident(s)",
-                                 ui.user_of(request))
-        return RedirectResponse(f"/w/{wid}/incidents?imported={n}", status_code=303)
+            new, updated = ws.incidents.merge(other, source=name, by=user)
+            ws.programme_changed("incident", name[:200], f"Imported {new} new and {updated} "
+                                 "updated incident(s)", user)
+        return RedirectResponse(f"/w/{wid}/incidents?imported={new + updated}",
+                                status_code=303)
 
     # ------------------------------------------------------------------ one incident
 
@@ -277,7 +281,11 @@ def register(app: FastAPI, ui: Ui) -> None:
             statuses=list(IncidentStatus), causes=list(RootCause), report_kinds=list(ReportKind),
             error=error, error_field=error_field,
             action_url=f"/w/{ws.id}/incidents/{'new' if new else incident.id}",
-            thresholds=DEFAULT_THRESHOLDS, **page_ctx(request, ws))
+            thresholds=DEFAULT_THRESHOLDS,
+            leverage=incident_arrangements(ws.portfolio, incident.contract_refs,
+                                           incident.provider_codes),
+            leverage_provisions=[PROVISIONS_BY_ID[p] for p in INCIDENT_PROVISIONS],
+            **page_ctx(request, ws))
 
     @app.get("/w/{wid}/incidents/new", response_class=HTMLResponse)
     def new_incident(request: Request, wid: str) -> HTMLResponse:
