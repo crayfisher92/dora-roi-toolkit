@@ -189,11 +189,20 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
 
 @main.command()
 @click.argument("output", type=click.Path(dir_okay=False, path_type=Path))
-def template(output: Path) -> None:
-    """Generate a blank Excel workbook for the register."""
-    from dora_roi.io.excel import write_blank_template
+@click.option("--sample", is_flag=True, help="Fill the workbook with the synthetic sample "
+              "register instead of leaving it blank.")
+@click.option("--clean", is_flag=True, help="With --sample: omit the deliberately injected "
+              "errors.")
+def template(output: Path, sample: bool, clean: bool) -> None:
+    """Generate a blank (or sample-filled) Excel workbook for the register."""
+    from dora_roi.io.excel import write_workbook
 
-    click.echo(f"Wrote {write_blank_template(output)}", err=True)
+    register = None
+    if sample:
+        from dora_roi.sample import generate_sample
+
+        register = generate_sample(inject_errors=not clean).source_register
+    click.echo(f"Wrote {write_workbook(register, output)}", err=True)
 
 
 @main.command()
@@ -216,6 +225,39 @@ def rules(fmt: str) -> None:
         return
     for r in cat:
         click.echo(f"{r.id:8} {r.severity.value:8} {r.title}  [{'; '.join(r.references)}]")
+
+
+@main.command()
+@click.argument("output", type=click.Path(path_type=Path))
+@click.option("--format", "fmt", type=click.Choice(["xlsx", "csv"]), default="xlsx",
+              show_default=True)
+@click.option("--clean", is_flag=True, help="Omit the deliberately injected errors.")
+@click.option("--seed", type=int, default=2554, show_default=True, help="Random seed.")
+def sample(output: Path, fmt: str, clean: bool, seed: int) -> None:
+    """Generate the synthetic sample register (fictional Swiss/EU banking group)."""
+    from dora_roi.io.csv_folder import write_csv_folder
+    from dora_roi.io.excel import write_workbook
+    from dora_roi.sample import generate_sample
+
+    result = generate_sample(seed=seed, inject_errors=not clean)
+    path = (write_workbook(result.source_register, output) if fmt == "xlsx"
+            else write_csv_folder(result.source_register, output))
+    click.echo(f"Wrote {path} ({len(result.injected)} injected error(s))", err=True)
+
+
+@main.command()
+@click.option("--host", default="127.0.0.1", show_default=True)
+@click.option("--port", default=8000, show_default=True, type=int)
+def serve(host: str, port: int) -> None:  # pragma: no cover - starts a server
+    """Start the web UI (requires the 'web' extra)."""
+    try:
+        import uvicorn
+
+        from dora_roi.web.app import create_app
+    except ImportError as exc:
+        raise click.ClickException(
+            "The web UI needs extra dependencies: pip install 'dora-roi-toolkit[web]'") from exc
+    uvicorn.run(create_app(), host=host, port=port)
 
 
 if __name__ == "__main__":  # pragma: no cover

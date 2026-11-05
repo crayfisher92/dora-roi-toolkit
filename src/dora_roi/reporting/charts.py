@@ -51,13 +51,13 @@ def _truncate(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
-def hbar_chart(bars: Sequence[Bar], *, title: str, label_width: int = 210,
-               width: int = 640, bar_height: int = 18, gap: int = 12) -> Markup:
+def hbar_chart(bars: Sequence[Bar], *, title: str, label_width: int = 190,
+               width: int = 500, bar_height: int = 16, gap: int = 10) -> Markup:
     """Ranked horizontal bar chart (largest first). Returns an accessible inline SVG."""
     if not bars:
         return Markup('<p class="muted small">No data.</p>')
     max_value = max(b.value for b in bars) or 1.0
-    value_space = 88
+    value_space = 56
     plot = width - label_width - value_space
     row = bar_height + gap
     height = row * len(bars) + 8
@@ -75,8 +75,9 @@ def hbar_chart(bars: Sequence[Bar], *, title: str, label_width: int = 210,
         parts.append(f'<g data-tip="{tip}"><title>{tip}</title>')
         parts.append(f'<rect x="0" y="{y - gap / 2:.1f}" width="{width}" height="{row}" '
                      'fill="transparent"/>')
+        label = escape(_truncate(b.label, max(12, label_width // 6)))
         parts.append(f'<text x="{label_width - 10}" y="{y + bar_height / 2 + 4:.1f}" '
-                     f'text-anchor="end">{escape(_truncate(b.label, 30))}</text>')
+                     f'text-anchor="end">{label}</text>')
         if w > 0:
             path = _bar_path(label_width + 1, y, w, bar_height)
             parts.append(f'<path class="{css}" d="{path}"/>')
@@ -87,7 +88,7 @@ def hbar_chart(bars: Sequence[Bar], *, title: str, label_width: int = 210,
     return Markup("".join(parts))
 
 
-def column_chart(bars: Sequence[Bar], *, title: str, width: int = 640, height: int = 220,
+def column_chart(bars: Sequence[Bar], *, title: str, width: int = 500, height: int = 200,
                  col_width: int = 24) -> Markup:
     """Column chart for a small number of ordered categories (e.g. chain depth)."""
     if not bars:

@@ -187,7 +187,8 @@ def check_unused_provider(ctx: ValidationContext) -> Iterator[Finding]:
     used: set[str] = {s.provider_code for s in ctx.register.b_02_02 if s.provider_code}
     for sc in ctx.register.b_05_02:
         used.update(c for c in (sc.provider_code, sc.recipient_code) if c)
-    used.update(p.ultimate_parent_code for p in ctx.register.b_05_01 if p.ultimate_parent_code)
+    used.update(p.ultimate_parent_code for p in ctx.register.b_05_01
+                if p.ultimate_parent_code and p.ultimate_parent_code != p.provider_code)
     for provider in ctx.register.b_05_01:
         if provider.provider_code and provider.provider_code not in used:
             yield ctx.finding("XRF-010", f"Provider '{provider.provider_code}' "

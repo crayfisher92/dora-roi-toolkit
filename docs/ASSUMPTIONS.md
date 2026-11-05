@@ -73,4 +73,4 @@ to it.
 | A-AN-02 | Concentration is measured on the **ultimate parent** of each provider (B_05.01 c0110), so that subsidiaries of the same hyperscaler are aggregated. |
 | A-AN-03 | HHI bands (1 500 / 2 500) are borrowed from competition analysis and used as a communication heuristic; DORA sets no numeric concentration threshold. |
 | A-AN-04 | The "hidden concentration" metric counts the arrangements in whose B_05.02 chain a provider appears at rank ≥ 2. |
-| A-AN-05 | Thresholds for key messages (single group ≥ 25 % of spend, ≥ 3 critical functions per group, ≥ 20 % spend with third-country groups, chain rank ≥ 3, expiry within 365 days) are configurable defaults (`AnalyticsConfig`). |
+| A-AN-05 | Thresholds for key messages (single group ≥ 25 % of spend, ≥ 5 critical functions per group, ≥ 20 % spend with third-country groups, chain rank ≥ 3, expiry within 365 days) are configurable defaults (`AnalyticsConfig`). |

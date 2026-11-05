@@ -107,7 +107,7 @@ def build_charts(a: ConcentrationAnalysis, top_n: int = 10) -> dict[str, Markup]
     charts["service_types"] = hbar_chart(
         [Bar(s.label, s.count, str(s.count), f"{s.label}: {s.count} service row(s) · "
              f"{money(s.spend, cur)}") for s in a.service_types[:top_n]],
-        title="ICT services by type", label_width=250)
+        title="ICT services by type", label_width=300, width=1040)
     return charts
 
 

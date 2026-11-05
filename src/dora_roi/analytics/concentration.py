@@ -44,7 +44,7 @@ class AnalyticsConfig:
 
     top_n: int = 10
     #: A provider group supporting at least this many critical functions is flagged.
-    multi_cif_threshold: int = 3
+    multi_cif_threshold: int = 5
     #: Spend share of a single provider group above which concentration is flagged.
     single_group_share_threshold: float = 0.25
     #: Herfindahl-Hirschman index (0-10 000) bands.
