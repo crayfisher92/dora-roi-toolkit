@@ -233,6 +233,7 @@ Uploads are limited to 25 MB. A register with 10 000 contracts imports in about 
 | [`docs/UX.md`](docs/UX.md) | Personas, jobs to be done, screen flow, accessibility principles |
 | [`docs/DEMO.md`](docs/DEMO.md) | 5-minute client demo with the Alpenrand sample |
 | [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) | Timings for a 10 000-contract register, what was optimised, memory |
+| [`CHANGELOG.md`](CHANGELOG.md) · [`docs/RELEASING.md`](docs/RELEASING.md) | Release history; how a version is tagged, built and published |
 
 ## Known limitations
 
