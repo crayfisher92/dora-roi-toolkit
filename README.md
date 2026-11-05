@@ -112,6 +112,7 @@ screen flow are in [`docs/UX.md`](docs/UX.md); a 5-minute client demo script is 
 | `roi rules` | List rules and provisions | `-f text\|md\|json` |
 | `roi sample OUT` | Generate the synthetic register | `--format xlsx\|csv`, `--clean`, `--previous-year`, `--inventory`, `--seed` |
 | `roi diff OLD NEW` | Compare two registers | `-f md\|json`, `-o FILE` |
+| `roi check-package REF` | Compare our xBRL-CSV export with a reference (e.g. official sample) package | `--ours PKG`, `-o FILE` |
 | `roi serve` | Start the web UI | `--host`, `--port` |
 
 `INPUT` may be an `.xlsx` workbook, a folder or `.zip` of CSV files (`b_02.02.csv` …), or an

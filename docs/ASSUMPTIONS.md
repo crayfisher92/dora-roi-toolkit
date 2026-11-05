@@ -11,6 +11,37 @@
 Each assumption has an ID so that code comments, tests and the regulatory mapping can refer
 to it.
 
+## Reconciliation status
+
+| Status | Count | Meaning |
+|---|---:|---|
+| ✅ Confirmed | 0 | Verified against an official EBA/ESA source in `reference/eba/` |
+| ✏️ Corrected | 0 | Changed in the code after comparison with an official source |
+| ⏳ Open | all | Not yet verified |
+
+**All assumptions below are still open.** The reconciliation against the official EBA
+material (data model, list of possible values, validation/business checks, xBRL-CSV sample
+package) has not been carried out yet: the folder `reference/eba/` it relies on is not in
+the repository, and the EBA and EUR-Lex websites could not be reached from the build
+environment. Nothing in this document should be read as confirmed.
+
+Once the material is available the reconciliation proceeds as follows:
+
+1. **Templates, columns, labels, M/C/O levels** (A-TPL-*) – compare the data model against
+   `dora_roi.model.templates` (also printed in `docs/DATA_DICTIONARY.md`); correct codes,
+   labels and requirement levels.
+2. **Code lists** (A-CL-*, A-XBRL-05) – take the taxonomy member for every value from the list
+   of possible values and ship it as the exporter's default code map, so that the xBRL-CSV
+   export no longer needs `--code-map` for standard values.
+3. **Validation rules** (A-VAL-*) – map every toolkit rule to the official check ID where
+   one exists (new `official_ids` field on `Rule`, shown in `docs/REGULATORY_MAPPING.md`) and
+   implement any official checks we are missing.
+4. **xBRL-CSV structure** (A-XBRL-*) – run `roi check-package reference/eba/<sample>.zip`,
+   which compares layout, `report.json`, parameters, filing indicators, table headers and
+   per-column value styles (e.g. `eba_GA:*`) with our export, then fix every ❌.
+5. Mark each assumption below as ✅ confirmed, ✏️ corrected (with the change) or ⏳ still
+   open, and update the counts above.
+
 ## Templates and columns
 
 | ID | Assumption |

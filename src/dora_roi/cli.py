@@ -277,6 +277,28 @@ def diff(old_path: Path, new_path: Path, fmt: str, output: Path | None) -> None:
         _write(render_diff_markdown(result), output)
 
 
+@main.command("check-package")
+@click.argument("reference", type=click.Path(exists=True, path_type=Path))
+@click.option("--ours", type=click.Path(exists=True, path_type=Path),
+              help="Our package to compare (default: export of the clean Alpenrand sample).")
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path))
+def check_package(reference: Path, ours: Path | None, output: Path | None) -> None:
+    """Compare an xBRL-CSV package with a reference (e.g. official EBA sample) package."""
+    import tempfile
+
+    from dora_roi.io.package_check import compare_packages
+
+    with tempfile.TemporaryDirectory() as tmp:
+        if ours is None:
+            from dora_roi.sample import generate_sample
+
+            ours = export_xbrl_csv(generate_sample(inject_errors=False).register,
+                                   Path(tmp)).path
+        result = compare_packages(reference, ours)
+    _write(result.to_markdown(), output)
+    sys.exit(EXIT_FINDINGS if result.failures else 0)
+
+
 @main.command()
 @click.option("--host", default="127.0.0.1", show_default=True)
 @click.option("--port", default=8000, show_default=True, type=int)
