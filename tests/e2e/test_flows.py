@@ -41,7 +41,10 @@ def test_inline_fix_revalidates_without_reload(page: Any) -> None:
     page.wait_for_selector("[data-finding].fixed")
     assert page.evaluate("window.__marker") == 1
     assert page.locator('[data-bind="errors"]').first.inner_text() == "26"
-    assert "26 error(s)" in page.locator("#live").inner_text()
+    # the live region is cleared and refilled after a short delay so that screen readers
+    # announce repeated messages; wait for the announcement instead of reading it at once
+    page.wait_for_function(
+        "document.getElementById('live').textContent.includes('26 error(s)')", timeout=5000)
 
 
 def test_register_search_and_row_edit(page: Any) -> None:
