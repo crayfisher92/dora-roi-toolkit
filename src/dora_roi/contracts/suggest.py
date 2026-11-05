@@ -5,7 +5,7 @@ wording the patterns do not know, and a keyword can appear in a sentence that sa
 opposite ("the provider shall *not* be obliged to …"). The result therefore uses its own
 vocabulary – *likely present*, *possibly partial*, *not found* – and the workbench shows
 every suggestion with the matched passage and its clause number so the reviewer can confirm
-or overrule it. No external service, AI model or network call is involved (D-038).
+or overrule it. No external service, AI model or network call is involved (D-051).
 
 Method, per provision (:class:`~dora_roi.contracts.provisions.Concept` = an idea the clause
 must express, as EN/DE patterns):

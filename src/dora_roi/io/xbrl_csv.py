@@ -25,6 +25,7 @@ from typing import Any
 
 from dora_roi import __version__
 from dora_roi.io.csv_folder import read_csv_files, register_to_csv_texts
+from dora_roi.io.limits import check_archive
 from dora_roi.io.raw import RawRegister
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RegisterOfInformation
 from dora_roi.model.types import Kind
@@ -267,6 +268,7 @@ def read_xbrl_csv(path: str | Path, code_map: CodeMap | None = None) -> RawRegis
             elif f.name.lower() not in skip:
                 files.append((f.name, text))
     else:
+        check_archive(p)
         with zipfile.ZipFile(p) as zf:
             for n in sorted(zf.namelist()):
                 base = n.rsplit("/", 1)[-1]

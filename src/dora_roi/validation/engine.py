@@ -34,6 +34,8 @@ class ValidationReport(BaseModel):
     record_counts: dict[str, int] = Field(default_factory=dict)
     rules_run: int = 0
     findings: list[Finding] = Field(default_factory=list)
+    #: Warning/info findings accepted with a justification (excluded from counts).
+    accepted: list[Finding] = Field(default_factory=list)
     rule_failures: list[RuleFailure] = Field(default_factory=list)
 
     # ---------------------------------------------------------------- summaries
@@ -99,7 +101,9 @@ class ValidationReport(BaseModel):
                     for r, n in self.by_rule()
                 ],
             },
-            "findings": [f.model_dump(mode="json") for f in self.sorted_findings()],
+            "findings": [f.model_dump(mode="json", exclude={"accepted_reason"})
+                         for f in self.sorted_findings()],
+            "accepted": [f.model_dump(mode="json") for f in self.accepted],
             "rule_failures": [rf.model_dump() for rf in self.rule_failures],
         }
 
@@ -138,7 +142,8 @@ def validate(
     failures: list[RuleFailure] = []
     rules = engine_rules(config)
     for r in rules:
-        assert r.check is not None
+        if r.check is None:  # pragma: no cover - engine_rules() only returns checkable rules
+            continue
         try:
             findings.extend(r.check(ctx))
         except Exception as exc:  # pragma: no cover - defensive: a buggy rule must not hide others

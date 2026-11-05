@@ -29,6 +29,8 @@ class Ui:
     lang_of: Callable[[Request], str]
     read_upload: Callable[[UploadFile, set[str]], Awaitable[tuple[str, bytes] | str]]
     workspaces: Callable[[], list[Workspace]]
+    #: Name entered for the audit trail (cookie), ``"local user"`` by default.
+    user_of: Callable[[Request], str]
 
     def t(self, request: Request) -> Callable[..., str]:
         return translator(self.lang_of(request))

@@ -39,6 +39,9 @@ SUBST_COLORS = {
 }
 
 
+#: rows of the provider-group table in the PDF (each page of a long table costs ~0.1 s)
+PDF_GROUP_LIMIT = 50
+
 def money(value: Decimal | float | int, currency: str | None = None) -> str:
     """Compact money format: ``EUR 12.4m``, ``CHF 850k``."""
     v = float(value)
@@ -63,17 +66,26 @@ def build_charts(a: ConcentrationAnalysis, top_n: int = 10) -> dict[str, Markup]
         "groups": hbar_chart(
             [Bar(g.group_name, g.spend_share, pct(g.spend_share),
                  f"{g.group_name}: {pct(g.spend_share)} of spend · {money(g.spend, cur)} · "
-                 f"{g.contracts} arrangement(s) · {g.critical_functions} critical function(s)")
+                 f"{g.contracts} arrangement(s) · {g.critical_functions_incl_indirect} critical "
+                 f"function(s), {g.critical_functions} directly")
              for g in groups],
             title="Share of annual ICT third-party spend by provider group"),
     }
-    cif = sorted((g for g in a.groups if g.critical_functions),
-                 key=lambda g: (-g.critical_functions, -g.spend))[:top_n]
+    # direct + indirect (through subcontracting), including pure fourth parties (B-25)
+    cif_rows: dict[str, tuple[int, int]] = {
+        g.group_name: (g.critical_functions_incl_indirect, g.critical_functions)
+        for g in a.groups if g.critical_functions_incl_indirect}
+    for s in a.subcontractors:
+        if s.group_name not in cif_rows and s.critical_functions:
+            cif_rows[s.group_name] = (s.critical_functions, 0)
+    cif = sorted(cif_rows.items(), key=lambda kv: (-kv[1][0], -kv[1][1], kv[0]))[:top_n]
     charts["cif"] = hbar_chart(
-        [Bar(g.group_name, g.critical_functions, str(g.critical_functions),
-             f"{g.group_name}: supports {g.critical_functions} critical function(s)")
-         for g in cif],
-        title="Critical or important functions supported, by provider group")
+        [Bar(name, total, str(total),
+             f"{name}: {total} critical function(s) depend on it, {direct} through a direct "
+             "contract")
+         for name, (total, direct) in cif],
+        title="Critical or important functions depending on each provider group, including "
+        "through subcontracting")
     regions = sorted(a.hq_regions, key=lambda r: REGION_ORDER.index(r.key)
                      if r.key in REGION_ORDER else 99)
     charts["regions"] = segmented_bar(
@@ -119,8 +131,9 @@ def render_executive_summary(
     config: AnalyticsConfig | None = None,
     client_name: str | None = None,
     prepared_by: str | None = None,
+    pdf: bool = False,
 ) -> str:
-    """Render the executive summary HTML page."""
+    """Render the executive summary HTML page (``pdf=True``: print variant for PDF)."""
     cfg = config or AnalyticsConfig()
     a = analysis or analyse(register, cfg)
     context: dict[str, Any] = {
@@ -136,5 +149,18 @@ def render_executive_summary(
         "pct": pct,
         "tooltip_script": TOOLTIP_SCRIPT,
         "single_cif": [f for f in a.critical_functions if f.single_provider],
+        "pdf": pdf,
+        "pdf_group_limit": PDF_GROUP_LIMIT,
     }
     return environment().get_template("executive.html.j2").render(**context)
+
+
+def render_executive_pdf(
+    register: RegisterOfInformation,
+    validation: ValidationReport | None = None,
+    **kwargs: Any,
+) -> bytes:
+    """PDF executive summary (needs the optional WeasyPrint dependency)."""
+    from dora_roi.reporting.pdf import html_to_pdf
+
+    return html_to_pdf(render_executive_summary(register, validation, pdf=True, **kwargs))

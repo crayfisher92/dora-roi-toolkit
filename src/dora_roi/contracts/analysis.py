@@ -7,9 +7,9 @@ assessment book only says *what the contract contains*.
 
 Subsequent arrangements (B_02.01 c0020 = subsequent/associated, c0030 = overarching
 reference) inherit the items of their overarching arrangement unless they are assessed
-themselves – call-offs under a master agreement usually rely on its terms (D-036).
+themselves – call-offs under a master agreement usually rely on its terms (D-049).
 
-Remediation priority (D-037):
+Remediation priority (D-050):
 
 ========================  ===============  ===============
 status                    supports a CIF   does not
@@ -58,7 +58,7 @@ class Priority(StrEnum):
         return {"high": 0, "medium": 1, "low": 2}[self.value]
 
 
-#: Days from the plan date to the suggested remediation target, per priority (D-037).
+#: Days from the plan date to the suggested remediation target, per priority (D-050).
 TARGET_DAYS = {Priority.HIGH: 90, Priority.MEDIUM: 180, Priority.LOW: 365}
 
 

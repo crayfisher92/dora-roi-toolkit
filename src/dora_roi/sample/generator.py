@@ -532,7 +532,8 @@ def generate_sample(
 
     The output is fully deterministic for a given ``seed``.
     """
-    ctx = _Ctx(rng=random.Random(seed), ref=reference_date, cat=catalogue or Catalogue())
+    # bandit B311: synthetic data, not security
+    ctx = _Ctx(rng=random.Random(seed), ref=reference_date, cat=catalogue or Catalogue())  # nosec B311
     _build_entities(ctx)
     _build_providers(ctx)
     _build_contracts(ctx)
@@ -553,7 +554,8 @@ def generate_previous_year(seed: int = DEFAULT_SEED) -> SampleResult:
     yet, the two arrangements that ended in 2025 were still running, a mainframe provider that
     has since been exited was still in place, and annual costs were about 8 % lower.
     """
-    ctx = _Ctx(rng=random.Random(seed), ref=PREVIOUS_REFERENCE_DATE, cat=Catalogue())
+    # bandit B311: synthetic data, not security
+    ctx = _Ctx(rng=random.Random(seed), ref=PREVIOUS_REFERENCE_DATE, cat=Catalogue())  # nosec B311
     _build_entities(ctx)
     _build_providers(ctx)
     _build_contracts(ctx)

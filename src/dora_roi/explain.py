@@ -311,6 +311,14 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "placeholder.",
                  "Verwenden Sie für unbefristete Verträge 9999-12-31 statt eines Platzhalters in "
                  "ferner Zukunft."),
+    "BUS-025": E("Möglicher doppelter Dienstleister",
+                 "Two providers have the same name but different codes – probably the same "
+                 "company reported twice (for example once with LEI and once with EUID). Merge "
+                 "them so that concentration is not understated.",
+                 "Zwei Dienstleister haben denselben Namen, aber unterschiedliche Codes – "
+                 "vermutlich dasselbe Unternehmen doppelt erfasst (z. B. einmal mit LEI und "
+                 "einmal mit EUID). Führen Sie sie zusammen, damit die Konzentration nicht "
+                 "unterschätzt wird."),
 }
 
 

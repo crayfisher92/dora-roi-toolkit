@@ -51,7 +51,7 @@ def test_contracts_portfolio_filters_and_downloads(client: TestClient) -> None:
     de = client.get(url + "/contracts?lang=de")
     assert "Lückenanalyse" in de.text and "Maßnahmenplan" in de.text
     assert "Maßnahmenplan" in client.get(url + "/contracts/plan.html").text  # cookie
-    client.cookies.clear()
+    client.cookies.delete("lang")
     plan = client.get(url + "/contracts/plan.html")
     assert plan.status_code == 200 and "Contract remediation plan" in plan.text
     xlsx = client.get(url + "/contracts/plan.xlsx")
@@ -113,7 +113,7 @@ def test_suggestions_from_uploaded_documents(client: TestClient, tmp_path: Path)
     r = client.post(url + "/contract/C-001?lang=de", data={"action": "suggest"},
                     files={"file": ("v.txt", SAMPLE_CONTRACT_TEXT.encode())})
     assert "[Vorschlag – prüfen]" in r.text
-    client.cookies.clear()
+    client.cookies.delete("lang")
     r = client.post(url + "/contract/C-001", data={"action": "suggest"},
                     files={"file": ("x.exe", b"MZ")})
     assert r.status_code == 400 and "Unsupported document type" in r.text
@@ -194,7 +194,7 @@ def test_incident_log_page_and_exports(client: TestClient) -> None:
     assert "incident-log.json" in log.headers["content-disposition"]
     de = client.get(url + "/incidents?lang=de")
     assert "Vorfallverzeichnis" in de.text and "Wiederkehrende Vorfälle" in de.text
-    client.cookies.clear()
+    client.cookies.delete("lang")
     r = client.post(url + "/incidents/settings", data={"timezone": "Europe/Zurich"},
                     follow_redirects=False)
     assert r.status_code == 303 and "Times in Europe/Zurich" in client.get(
@@ -293,7 +293,7 @@ def test_finma_page(client: TestClient, tmp_path: Path) -> None:
     assert "No Swiss entity in B_01.02" in page.text and "56%" in page.text
     de = client.get(url + "/finma?lang=de")
     assert "Ein Datenbestand für DORA und FINMA" in de.text
-    client.cookies.clear()
+    client.cookies.delete("lang")
     bare = _upload(client, tmp_path)
     assert "not assessed yet" in client.get(bare + "/finma").text
 

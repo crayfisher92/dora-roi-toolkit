@@ -116,8 +116,8 @@ the authors' knowledge of Regulation (EU) 2022/2554 and **all items below are op
 | A-A30-01 | The checklist covers Art. 30(1), the nine points (a)–(i) of Art. 30(2) and the six points (a)–(f) of Art. 30(3), with (2)(a), (2)(b), (3)(e) and (3)(f) split into their elements – 22 items in total (`docs/ART30_CHECKLIST.md`). Titles, requirement texts and remediation advice **paraphrase** the regulation in English and German; they are not quotations of the official language versions. |
 | A-A30-02 | Art. 30(3) applies when at least one B_02.02 row of the arrangement links it to a function assessed as critical or important in B_06.01 (c0050). An arrangement whose function is not (yet) assessed is treated as not critical. |
 | A-A30-03 | Art. 28(7) termination circumstances are checked as part of Art. 30(2)(h) (termination rights), not as a separate item. The RTS specifying the elements of Art. 30(2)(a) for subcontracting of ICT services supporting critical or important functions (mandate in Art. 30(5); believed to be Commission Delegated Regulation (EU) 2025/532 – **number to be verified**) is referenced but not broken down into items. |
-| A-A30-04 | Inheritance of an overarching arrangement's assessment by its subsequent arrangements (D-036) is a practical convention, not a regulatory rule; competent authorities may expect each arrangement to be documented. |
-| A-A30-05 | Priorities and target dates (D-037) are a methodology choice; DORA sets no remediation deadlines for contracts that pre-date its application. |
+| A-A30-04 | Inheritance of an overarching arrangement's assessment by its subsequent arrangements (D-049) is a practical convention, not a regulatory rule; competent authorities may expect each arrangement to be documented. |
+| A-A30-05 | Priorities and target dates (D-050) are a methodology choice; DORA sets no remediation deadlines for contracts that pre-date its application. |
 | A-A30-06 | Standard contractual clauses under Art. 30(4) are not assessed. |
 
 ## Major ICT-related incident classification

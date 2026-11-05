@@ -48,12 +48,20 @@ class Finding(BaseModel):
     record_key: str | None = None
     value: str | None = None
     source: str | None = None
+    #: Justification when a warning/info finding was accepted (workbench only).
+    accepted_reason: str | None = None
 
     @property
     def location(self) -> str:
         parts = [p for p in (self.template, f"row {self.row}" if self.row else None,
                              self.column) if p]
         return " / ".join(parts) if parts else "register"
+
+
+def finding_key(f: Finding) -> str:
+    """Stable identity of a finding across re-validations (rule, location, record)."""
+    return "|".join(str(x or "") for x in (f.rule_id, f.template, f.row, f.column,
+                                           f.record_key))
 
 
 CheckFn = Callable[["ValidationContext"], Iterable[Finding]]

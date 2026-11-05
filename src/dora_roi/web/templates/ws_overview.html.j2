@@ -14,6 +14,13 @@
   {% elif counts.warning %}<a class="btn primary" href="/w/{{ ws.id }}/fix">{{ t("ws.next.review", n=counts.warning) }}</a>
   {% else %}<a class="btn primary" href="/w/{{ ws.id }}/analyse">{{ t("ws.next.analyse") }}</a>{% endif %}
 </p>
+<form method="post" action="/user" class="row user-form">
+  <label for="user-name">{{ t("user.label") }}</label>
+  <input id="user-name" name="name" value="{{ user if user != 'local user' else '' }}" maxlength="80" autocomplete="name" aria-describedby="user-help">
+  <input type="hidden" name="next" value="{{ path }}">
+  <button class="btn" type="submit">{{ t("user.save") }}</button>
+  <span id="user-help" class="small muted">{{ t("user.help") }}</span>
+</form>
 <section class="card programme-teaser" aria-labelledby="h-prog">
   <h2 id="h-prog">{{ t("rd.title") }}</h2>
   <ul class="teaser-list" role="list">{% for p in readiness.pillars %}

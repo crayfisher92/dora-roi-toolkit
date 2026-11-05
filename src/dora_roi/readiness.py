@@ -1,7 +1,7 @@
 """DORA readiness of a client: register data quality, Art. 30 contract compliance, incident
 management and ICT concentration risk on one page (plus the Swiss/FINMA coverage).
 
-Each *pillar* gets a traffic light (D-051):
+Each *pillar* gets a traffic light (D-064):
 
 * **Register** (Art. 28(3)) – red with more than 10 validation errors, amber with 1–10;
 * **Contracts** (Art. 30) – red with high-priority gaps or fewer than half of the arrangements

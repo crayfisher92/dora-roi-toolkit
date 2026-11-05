@@ -11,7 +11,7 @@
       {% endfor %}
     </tr>{% endfor %}</tbody>
   </table></div>
-  <form action="/map/{{ wiz.id }}/import" method="post" class="row actions">
+  <form action="/map/{{ wiz.id }}/import" method="post" class="row actions" data-busy="{{ t('busy.import') }}">
     <a class="btn" href="/map/{{ wiz.id }}/entity">{{ t("wiz.back") }}</a>
     <button class="btn primary" type="submit">{{ t("wiz.preview.import") }}</button>
   </form>

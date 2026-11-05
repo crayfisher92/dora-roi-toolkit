@@ -9,6 +9,7 @@ from dora_roi.reporting.env import environment
 from dora_roi.validation import ValidationReport
 
 MAX_HTML_FINDINGS = 5000
+MAX_PDF_FINDINGS = 1000  # ~35 pages; rendering time grows with page count
 
 
 class ReportFormat(StrEnum):
@@ -75,6 +76,11 @@ def render_markdown(report: ValidationReport, max_findings: int = 1000) -> str:
                       "JSON report._"]
     else:
         lines.append("_No findings._")
+    if report.accepted:
+        lines += ["", "## Accepted findings", "",
+                  "| Rule | Location | Message | Justification |", "|---|---|---|---|"]
+        lines += [f"| `{f.rule_id}` | {f.location} | {_md_escape(f.message)} | "
+                  f"{_md_escape(f.accepted_reason or '')} |" for f in report.accepted]
     if report.rule_failures:
         lines += ["", "## Rule failures", ""]
         lines += [f"- `{rf.rule_id}`: {rf.error}" for rf in report.rule_failures]
@@ -82,14 +88,25 @@ def render_markdown(report: ValidationReport, max_findings: int = 1000) -> str:
     return "\n".join(lines)
 
 
-def render_html(report: ValidationReport) -> str:
+def render_html(report: ValidationReport, *, pdf: bool = False) -> str:
+    """HTML report; ``pdf=True`` renders the print variant (details open, no script, fewer
+    rows – the JSON report always has every finding)."""
     findings = report.sorted_findings()
+    limit = MAX_PDF_FINDINGS if pdf else MAX_HTML_FINDINGS
     template = environment().get_template("validation.html.j2")
     return template.render(
         report=report,
-        findings=findings[:MAX_HTML_FINDINGS],
-        truncated=len(findings) > MAX_HTML_FINDINGS,
+        findings=findings[:limit],
+        truncated=len(findings) > limit,
+        pdf=pdf,
     )
+
+
+def render_pdf(report: ValidationReport) -> bytes:
+    """PDF validation report (needs the optional WeasyPrint dependency)."""
+    from dora_roi.reporting.pdf import html_to_pdf
+
+    return html_to_pdf(render_html(report, pdf=True))
 
 
 def render_text(report: ValidationReport, max_findings: int = 50) -> str:

@@ -207,6 +207,62 @@ del { color: var(--text-muted); }
 }
 main > h2:first-child, main > h1:first-child, main > .doc:first-child, main > p:first-child + h2 { margin-top: 0; }
 main { padding-top: 24px; }
+#viz-tip { position: fixed; pointer-events: none; z-index: 10; background: var(--surface-1);
+  color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+  font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 320px; }
+#viz-tip[hidden] { display: none; }
+.accept { margin-top: 4px; }
+.accept summary { cursor: pointer; font-size: 13px; color: var(--text-secondary); min-height: 24px; }
+.cell-accept { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.cell-accept input[name="reason"] { flex: 1 1 260px; }
+.accepted { margin-top: 32px; }
+.user-form { margin: 0 0 20px; }
+.user-form input { min-width: 220px; }
+.ren { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
+.ren::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.ren-passed::before { background: var(--status-critical); }
+.ren-due_90::before { background: var(--status-serious); }
+.ren-due_365::before { background: var(--status-warning); }
+.ren-later::before { background: var(--series-muted); }
+.ok-mark { color: var(--ok-ink); font-weight: 600; }
+.no-mark { color: var(--danger); }
+.project-open { border-top: 1px solid var(--grid); padding-top: 12px; margin-top: 4px; }
+
+/* busy state while a slow form post (large import) is processed */
+form[aria-busy="true"] button[disabled] { cursor: progress; opacity: .75; }
+form[aria-busy="true"] button[disabled]::before {
+  content: ""; display: inline-block; width: .9em; height: .9em; margin-right: .5em;
+  vertical-align: -0.1em; border: 2px solid currentColor; border-right-color: transparent;
+  border-radius: 50%; animation: roi-spin .8s linear infinite;
+}
+@keyframes roi-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  form[aria-busy="true"] button[disabled]::before { animation: none; }
+}
+
+/* horizontally scrolling tables are focusable regions (see app.js) */
+.table-wrap[data-scroll-region]:focus-visible { outline: 3px solid var(--focus, #1c5cab); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ print
+   Workbench pages print as plain documents: no navigation, controls or tooltips, light
+   colours, full-width tables with repeated headers. (Reports have their own print layout.) */
+@media print {
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] { color-scheme: light; }
+  @page { size: A4; margin: 14mm 12mm 16mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff !important; color: #0b0b0b !important; font-size: 10pt; }
+  .skip-link, .topbar .tools, .stepper-nav, .subnav, .site-footer, #viz-tip, #live,
+  form, button, .btn, details.accept, .filter-row, .pager, .no-print { display: none !important; }
+  main, .inner { max-width: none !important; padding-left: 0 !important; padding-right: 0 !important; }
+  .card, .table-wrap { box-shadow: none !important; }
+  .card, tr, .finding, svg { break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; }
+  .table-wrap { overflow: visible !important; }
+  thead { display: table-header-group; }
+  th { position: static !important; }
+  a { color: inherit; text-decoration: none; }
+}
 
 /* programme modules (Art. 30, incidents, FINMA, readiness) */
 .subnav.programme { border-top: 1px solid var(--grid); }

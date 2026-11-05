@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from datetime import date
 from typing import Any, TypeVar
 
@@ -146,13 +146,26 @@ class RegisterOfInformation(BaseModel):
             if a.contract_ref
         }
 
+    def critical_checker(self) -> Callable[[ContractSpecific], bool]:
+        """A fast :meth:`supports_critical` for many rows (lookups are built once)."""
+        lookup = self.function_lookup()
+        critical_ids = {f.function_id for f in self.b_06_01 if f.is_critical and f.function_id}
+
+        def check(service: ContractSpecific) -> bool:
+            fn = lookup.get((service.function_id or "", service.entity_lei or ""))
+            if fn is not None:
+                return fn.is_critical
+            # fall back to function id only (another entity's function)
+            return (service.function_id or "") in critical_ids
+
+        return check
+
     def supports_critical(self, service: ContractSpecific) -> bool:
-        """True if a B_02.02 row supports a critical or important function."""
-        fn = self.function_lookup().get((service.function_id or "", service.entity_lei or ""))
-        if fn is not None:
-            return fn.is_critical
-        # fall back to function id only (another entity's function)
-        return any(f.is_critical for f in self.functions_by_id().get(service.function_id or "", []))
+        """True if a B_02.02 row supports a critical or important function.
+
+        Builds the function lookups on every call; use :meth:`critical_checker` in loops.
+        """
+        return self.critical_checker()(service)
 
     def summary(self) -> dict[str, Any]:
         """Lightweight description used in reports."""

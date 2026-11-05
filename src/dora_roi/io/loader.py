@@ -9,6 +9,7 @@ from pathlib import Path
 
 from dora_roi.io.csv_folder import read_csv_files, read_csv_folder, write_csv_folder
 from dora_roi.io.excel import read_workbook, write_workbook
+from dora_roi.io.limits import check_archive
 from dora_roi.io.parse import parse_raw
 from dora_roi.io.raw import RawRegister
 from dora_roi.io.xbrl_csv import CodeMap, is_xbrl_package, read_xbrl_csv
@@ -17,6 +18,7 @@ from dora_roi.validation import Finding
 
 
 class InputFormat(StrEnum):
+    PROJECT = "project"
     EXCEL = "excel"
     CSV = "csv"
     XBRL_CSV = "xbrl-csv"
@@ -41,6 +43,8 @@ def detect_format(path: str | Path) -> InputFormat:
     if p.is_dir():
         return InputFormat.XBRL_CSV if is_xbrl_package(p) else InputFormat.CSV
     suffix = p.suffix.lower()
+    if suffix == ".roiproj":
+        return InputFormat.PROJECT
     if suffix in {".xlsx", ".xlsm"}:
         return InputFormat.EXCEL
     if suffix == ".zip":
@@ -55,6 +59,7 @@ def detect_format(path: str | Path) -> InputFormat:
 
 
 def _read_csv_zip(path: Path) -> RawRegister:
+    check_archive(path)
     with zipfile.ZipFile(path) as zf:
         files = [
             (n.rsplit("/", 1)[-1], zf.read(n).decode("utf-8-sig"))
@@ -67,6 +72,10 @@ def _read_csv_zip(path: Path) -> RawRegister:
 def load_raw(path: str | Path, code_map: CodeMap | None = None) -> tuple[RawRegister, InputFormat]:
     p = Path(path)
     fmt = detect_format(p)
+    if fmt is InputFormat.PROJECT:
+        from dora_roi.project import load_project
+
+        return load_project(p).raw, fmt
     if fmt is InputFormat.EXCEL:
         return read_workbook(p), fmt
     if fmt is InputFormat.XBRL_CSV:

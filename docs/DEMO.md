@@ -48,11 +48,12 @@ starts at about 2 h 30 min.
 
 ## 1:30 – Concentration in 30 seconds (30 s)
 
-**Click** *Analyse*.
+**Click** *Analyse*, then **Nimbus Cloud Services EMEA Ltd** in the dependency graph.
 
-> "Four provider groups each support five or more critical functions; five critical
-> contracts expire within a year; a quarter of the spend sits with groups headquartered
-> outside the EEA and Switzerland."
+> "Eight provider groups each support five or more critical functions once subcontracting is
+> counted; two notice deadlines of critical contracts fall within 90 days. If Nimbus EMEA
+> fails, 13 critical or important functions in all three entities are affected – that is the
+> question the board risk committee asks."
 
 ## 2:00 – Contracts: Art. 30 gap analysis (90 s)
 

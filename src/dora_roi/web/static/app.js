@@ -20,6 +20,51 @@
     apply(current);
   }
 
+  /* ---------- keyboard access to horizontally scrolling tables (WCAG 2.1.1) */
+  function labelFor(wrap) {
+    var section = wrap.closest("[aria-labelledby]");
+    var heading = section && document.getElementById(section.getAttribute("aria-labelledby"));
+    var caption = wrap.querySelector("caption");
+    return (heading || caption || {}).textContent || "Table";
+  }
+  function scrollRegions() {
+    document.querySelectorAll(".table-wrap").forEach(function (wrap) {
+      var overflowing = wrap.scrollWidth > wrap.clientWidth + 1;
+      if (overflowing && !wrap.hasAttribute("tabindex")) {
+        wrap.setAttribute("tabindex", "0");
+        wrap.setAttribute("role", "region");
+        wrap.setAttribute("aria-label", labelFor(wrap).trim());
+        wrap.dataset.scrollRegion = "1";
+      } else if (!overflowing && wrap.dataset.scrollRegion) {
+        ["tabindex", "role", "aria-label", "data-scroll-region"].forEach(function (a) { wrap.removeAttribute(a); });
+      }
+    });
+  }
+  scrollRegions();
+  var resizeTimer;
+  window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(scrollRegions, 150); });
+
+  /* ---------- busy state for slow form posts (imports of large registers) */
+  document.querySelectorAll("form[data-busy]").forEach(function (form) {
+    form.addEventListener("submit", function () {
+      if (form.getAttribute("aria-busy") === "true") return;
+      form.setAttribute("aria-busy", "true");
+      announce(form.dataset.busy);
+      var btn = form.querySelector("button[type=submit], button:not([type])");
+      if (btn) {
+        // disable after the submit has been dispatched so the button value is still sent
+        setTimeout(function () { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = form.dataset.busy; }, 0);
+      }
+    });
+  });
+  window.addEventListener("pageshow", function () { // back/forward cache: reset
+    document.querySelectorAll("form[aria-busy=true]").forEach(function (form) {
+      form.removeAttribute("aria-busy");
+      var btn = form.querySelector("button[disabled]");
+      if (btn) { btn.disabled = false; if (btn.dataset.label) btn.textContent = btn.dataset.label; }
+    });
+  });
+
   /* ---------- "use suggestion" buttons */
   document.addEventListener("click", function (ev) {
     var btn = ev.target.closest && ev.target.closest("[data-suggest]");
@@ -83,6 +128,26 @@
       n.addEventListener("mouseleave", clear);
       n.addEventListener("blur", clear);
     });
+  });
+})();
+
+/* ---------- chart tooltips (data-tip attributes on SVG marks) */
+(function () {
+  "use strict";
+  var t = document.getElementById("viz-tip");
+  if (!t || !document.querySelector("[data-tip]")) return;
+  document.querySelectorAll("[data-tip] title").forEach(function (n) { n.remove(); });
+  document.querySelectorAll("[data-tip][title]").forEach(function (n) { n.removeAttribute("title"); });
+  document.addEventListener("mousemove", function (e) {
+    var n = e.target.closest && e.target.closest("[data-tip]");
+    if (!n) { t.hidden = true; return; }
+    t.textContent = n.getAttribute("data-tip");
+    t.hidden = false;
+    var x = e.clientX + 14, y = e.clientY + 14;
+    if (x + t.offsetWidth > innerWidth - 8) { x = e.clientX - t.offsetWidth - 14; }
+    if (y + t.offsetHeight > innerHeight - 8) { y = e.clientY - t.offsetHeight - 14; }
+    t.style.left = x + "px";
+    t.style.top = y + "px";
   });
 })();
 

@@ -47,6 +47,16 @@ def _col_path(x: float, y_base: float, width: float, height: float, radius: floa
             f"V{y_base:.1f} Z")
 
 
+# Presentation attributes make the SVG self-contained (PDF renderers, image viewers, e-mail
+# clients ignore the page's CSS). In browsers the CSS rules in _style.css.j2 / app.css take
+# precedence over presentation attributes, so the light/dark themes still apply.
+_BAR_FILL = "#2a78d6"
+_MUTED_FILL = "#c3c2b7"
+_LABEL = 'fill="#52514e" font-size="12"'
+_VALUE = 'fill="#0b0b0b" font-size="12"'
+_BASELINE = 'stroke="#c3c2b7" stroke-width="1"'
+
+
 def _truncate(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
@@ -65,7 +75,8 @@ def hbar_chart(bars: Sequence[Bar], *, title: str, label_width: int = 190,
         f'<svg class="chart" viewBox="0 0 {width} {height}" role="img" '
         f'aria-label="{escape(title)}" preserveAspectRatio="xMinYMin meet">',
         f"<title>{escape(title)}</title>",
-        f'<line class="baseline" x1="{label_width}" x2="{label_width}" y1="0" y2="{height - 4}"/>',
+        f'<line class="baseline" x1="{label_width}" x2="{label_width}" y1="0" y2="{height - 4}" '
+        f'{_BASELINE}/>',
     ]
     for i, b in enumerate(bars):
         y = 4 + i * row
@@ -75,17 +86,19 @@ def hbar_chart(bars: Sequence[Bar], *, title: str, label_width: int = 190,
         parts.append(f'<g data-tip="{tip}"><title>{tip}</title>')
         parts.append(f'<rect x="0" y="{y - gap / 2:.1f}" width="{width}" height="{row}" '
                      'fill="transparent"/>')
-        label = escape(_truncate(b.label, max(12, label_width // 6)))
-        parts.append(f'<text x="{label_width - 10}" y="{y + bar_height / 2 + 4:.1f}" '
+        label = escape(_truncate(b.label, max(12, label_width // 7)))
+        parts.append(f'<text x="{label_width - 10}" y="{y + bar_height / 2 + 4:.1f}" {_LABEL} '
                      f'text-anchor="end">{label}</text>')
         if w > 0:
             path = _bar_path(label_width + 1, y, w, bar_height)
-            parts.append(f'<path class="{css}" d="{path}"/>')
-        parts.append(f'<text class="value-label" x="{label_width + 1 + w + 8:.1f}" '
+            fill = _MUTED_FILL if b.muted else _BAR_FILL
+            parts.append(f'<path class="{css}" fill="{fill}" d="{path}"/>')
+        parts.append(f'<text class="value-label" {_VALUE} x="{label_width + 1 + w + 8:.1f}" '
                      f'y="{y + bar_height / 2 + 4:.1f}">{escape(b.display)}</text>')
         parts.append("</g>")
     parts.append("</svg>")
-    return Markup("".join(parts))
+    # bandit B704: every interpolated value is escaped (tests: test_xss_*)
+    return Markup("".join(parts))  # nosec B704
 
 
 def column_chart(bars: Sequence[Bar], *, title: str, width: int = 500, height: int = 200,
@@ -102,7 +115,7 @@ def column_chart(bars: Sequence[Bar], *, title: str, width: int = 500, height: i
         f'<svg class="chart" viewBox="0 0 {width} {height}" role="img" '
         f'aria-label="{escape(title)}">',
         f"<title>{escape(title)}</title>",
-        f'<line class="baseline" x1="0" x2="{width}" y1="{base}" y2="{base}"/>',
+        f'<line class="baseline" x1="0" x2="{width}" y1="{base}" y2="{base}" {_BASELINE}/>',
     ]
     for i, b in enumerate(bars):
         cx = slot * i + slot / 2
@@ -113,14 +126,15 @@ def column_chart(bars: Sequence[Bar], *, title: str, width: int = 500, height: i
                      'fill="transparent"/>')
         if h > 0:
             path = _col_path(cx - col_width / 2, base, col_width, h)
-            parts.append(f'<path class="bar" d="{path}"/>')
-        parts.append(f'<text class="value-label" x="{cx:.1f}" y="{base - h - 8:.1f}" '
+            parts.append(f'<path class="bar" fill="{_BAR_FILL}" d="{path}"/>')
+        parts.append(f'<text class="value-label" {_VALUE} x="{cx:.1f}" y="{base - h - 8:.1f}" '
                      f'text-anchor="middle">{escape(b.display)}</text>')
-        parts.append(f'<text x="{cx:.1f}" y="{base + 18}" text-anchor="middle">'
+        parts.append(f'<text x="{cx:.1f}" y="{base + 18}" {_LABEL} text-anchor="middle">'
                      f'{escape(_truncate(b.label, 22))}</text>')
         parts.append("</g>")
     parts.append("</svg>")
-    return Markup("".join(parts))
+    # bandit B704: every interpolated value is escaped (tests: test_xss_*)
+    return Markup("".join(parts))  # nosec B704
 
 
 @dataclass(frozen=True)
@@ -138,18 +152,20 @@ def segmented_bar(segments: Sequence[Segment], *, title: str) -> Markup:
     if not segs or total <= 0:
         return Markup('<p class="muted small">No data.</p>')
     bar = "".join(
-        f'<span style="flex:{s.value / total:.6f};background:var({s.color_var})" '
+        f'<span style="flex:{s.value / total:.6f};background:var({escape(s.color_var)})" '
         f'data-tip="{escape(s.label)}: {escape(s.display)}" '
         f'title="{escape(s.label)}: {escape(s.display)}"></span>'
         for s in segs
     )
     legend = "".join(
-        f'<span><i class="key" style="background:var({s.color_var})"></i>'
+        f'<span><i class="key" style="background:var({escape(s.color_var)})"></i>'
         f"{escape(s.label)} · <strong>{escape(s.display)}</strong></span>"
         for s in segs
     )
-    return Markup(f'<div role="img" aria-label="{escape(title)}"><div class="seg-bar">{bar}</div>'
-                  f'<div class="legend">{legend}</div></div>')
+    # bandit B704: every interpolated value is escaped (test_xss_*)
+    return Markup(  # nosec B704
+        f'<div role="img" aria-label="{escape(title)}"><div class="seg-bar">{bar}</div>'
+        f'<div class="legend">{legend}</div></div>')
 
 
 TOOLTIP_SCRIPT = Markup("""<div id="viz-tip" role="tooltip" style="position:fixed;

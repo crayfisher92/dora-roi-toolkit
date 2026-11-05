@@ -15,7 +15,7 @@
     <button class="btn" type="submit">{{ t("cmp.run") }}</button>
   </form>
 </div>
-<form method="post" action="/w/{{ ws.id }}/compare" enctype="multipart/form-data" class="row upload-row">
+<form method="post" action="/w/{{ ws.id }}/compare" enctype="multipart/form-data" class="row upload-row" data-busy="{{ t('busy.import') }}">
   <label for="cmp-file">{{ t("cmp.upload") }}</label><input id="cmp-file" name="file" type="file" accept=".xlsx,.xlsm,.zip" required>
   <button class="btn" type="submit">{{ t("cmp.run") }}</button>
 </form>
@@ -27,17 +27,21 @@
 </section>
 {% if result.is_empty %}<p>{{ t("cmp.none") }}</p>{% endif %}
 <div class="table-wrap"><table>
-  <thead><tr><th scope="col">Object</th><th scope="col" class="num">{{ t("cmp.added") }}</th><th scope="col" class="num">{{ t("cmp.removed") }}</th><th scope="col" class="num">{{ t("cmp.changed") }}</th></tr></thead>
+  <thead><tr><th scope="col">Object</th><th scope="col" class="num">{{ t("cmp.added") }}</th><th scope="col" class="num">{{ t("cmp.removed") }}</th><th scope="col" class="num">{{ t("cmp.changed") }}</th><th scope="col" class="num">{{ t("cmp.admin") }}</th></tr></thead>
   <tbody>{% for td in result.templates %}<tr><th scope="row"><a href="#d-{{ td.template | replace('.', '_') }}">{{ td.title }}</a> <span class="mono small muted">{{ td.template }}</span></th>
-    <td class="num">{{ td.added | length }}</td><td class="num">{{ td.removed | length }}</td><td class="num">{{ td.changed | length }}</td></tr>{% endfor %}</tbody></table></div>
-{% for td in result.templates if td.total %}
+    <td class="num">{{ td.added | length }}</td><td class="num">{{ td.removed | length }}</td><td class="num">{{ td.material_changed | length }}</td><td class="num muted">{{ (td.changed | length) - (td.material_changed | length) }}</td></tr>{% endfor %}</tbody></table></div>
+<p class="small muted">{{ t("cmp.admin.help") }}
+  {% if show_all %}<a href="?{% if other %}other={{ other }}{% else %}version={{ version }}{% endif %}">{{ t("cmp.admin.hide") }}</a>
+  {% else %}<a href="?{% if other %}other={{ other }}{% else %}version={{ version }}{% endif %}&amp;all=1">{{ t("cmp.admin.show") }}</a>{% endif %}</p>
+{% for td in result.templates if (td.total if show_all else td.material_total) %}
 <section id="d-{{ td.template | replace('.', '_') }}" aria-labelledby="h-d-{{ loop.index }}">
   <h3 id="h-d-{{ loop.index }}">{{ td.title }} <span class="mono small muted">{{ td.template }}</span></h3>
   {% if td.added %}<h4><span class="diff-tag added">+</span> {{ t("cmp.added") }}</h4><ul class="plain">{% for k, n in td.added[:100] %}<li>{{ n }} <span class="mono small muted">{{ k }}</span></li>{% endfor %}</ul>{% endif %}
   {% if td.removed %}<h4><span class="diff-tag removed">−</span> {{ t("cmp.removed") }}</h4><ul class="plain">{% for k, n in td.removed[:100] %}<li>{{ n }} <span class="mono small muted">{{ k }}</span></li>{% endfor %}</ul>{% endif %}
-  {% if td.changed %}<details><summary><span class="diff-tag changed">~</span> {{ t("cmp.changed") }} ({{ td.changed | length }})</summary>
+  {% set changed_list = td.changed if show_all else td.material_changed %}
+  {% if changed_list %}<details {% if not show_all %}open{% endif %}><summary><span class="diff-tag changed">~</span> {{ t("cmp.changed") }} ({{ changed_list | length }})</summary>
     <div class="table-wrap"><table><thead><tr><th scope="col">Record</th><th scope="col">{{ t("cmp.field") }}</th><th scope="col">{{ t("cmp.old") }}</th><th scope="col">{{ t("cmp.new") }}</th></tr></thead>
-    <tbody>{% for rc in td.changed[:200] %}{% for c in rc.changes %}<tr>{% if loop.first %}<td rowspan="{{ rc.changes | length }}">{{ rc.name }}</td>{% endif %}<td class="small">{{ c.label }}</td><td><del>{{ c.old or "—" }}</del></td><td><ins>{{ c.new or "—" }}</ins></td></tr>{% endfor %}{% endfor %}</tbody></table></div>
+    <tbody>{% for rc in changed_list[:200] %}{% for c in rc.changes %}<tr>{% if loop.first %}<td rowspan="{{ rc.changes | length }}">{{ rc.name }}</td>{% endif %}<td class="small">{{ c.label }}{% if not c.material %} <span class="muted">({{ t("cmp.admin.short") }})</span>{% endif %}</td><td><del>{{ c.old or "—" }}</del></td><td><ins>{{ c.new or "—" }}</ins></td></tr>{% endfor %}{% endfor %}</tbody></table></div>
   </details>{% endif %}
 </section>
 {% endfor %}

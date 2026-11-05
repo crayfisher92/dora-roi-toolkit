@@ -25,7 +25,7 @@
 
 ```
                     RegisterOfInformation (source of truth for providers, entities, functions)
-                                │ joined by key at evaluation time, never copied (D-035)
+                                │ joined by key at evaluation time, never copied (D-048)
         ┌───────────────────────┼─────────────────────────────┬─────────────────────────┐
         ▼                       ▼                             ▼                         ▼
  AssessmentBook          IncidentLog                   FINMA requirements        ConcentrationAnalysis
@@ -42,9 +42,9 @@
               Workbench screens (contracts, incidents, FINMA, dashboard) · CLI · HTML/Excel/JSON
 ```
 
-Assessments and incidents are workspace state (in memory, D-040) with their own JSON formats;
+Assessments and incidents are workspace state (in memory, D-053) with their own JSON formats;
 outcomes (compliance status, classification, deadlines, coverage, traffic lights) are always
-*derived* from them and the register, never stored (D-043).
+*derived* from them and the register, never stored (D-056).
 
 ## Packages
 
@@ -52,16 +52,19 @@ outcomes (compliance status, classification, deadlines, coverage, traffic lights
 |---|---|
 | `dora_roi.model` | `templates.py` – one Pydantic model per template (B_01.01 … B_07.01) with `Annotated[..., Col(code, label, requirement, kind, codelist)]` fields; `codelists.py` – `CodeEnum` code lists with label/alias lookup; `types.py` – annotated format types (LEI, country, currency, ISO date, boolean, amount); `refdata.py` – ISO 3166 / ISO 4217 / EU / EEA data; `register.py` – `RegisterOfInformation` container and cross-template indexes. |
 | `dora_roi.lei` | ISO 17442 LEI syntax and MOD 97-10 check digits. |
-| `dora_roi.io` | `raw.py` – untyped `RawRegister`; `tables.py` – sheet/file name recognition, header detection, annotation-row skipping; `excel.py`, `csv_folder.py`, `xbrl_csv.py` – readers and writers; `parse.py` – raw → typed with field findings; `loader.py` – format detection, `load()` / `save()`. |
+| `dora_roi.io` | `raw.py` – untyped `RawRegister`; `tables.py` – sheet/file name recognition, header detection, annotation-row skipping; `excel.py` (XlsxWriter), `xlsx_read.py` (python-calamine), `csv_folder.py`, `xbrl_csv.py` – readers and writers; `limits.py` – size and row limits; `parse.py` – raw → typed with field findings; `loader.py` – format detection, `load()` / `save()`. |
 | `dora_roi.validation` | `findings.py` – `Finding`, `Severity`, `Rule` and the rule registry/decorator; `context.py` – `ValidationConfig` and cached indexes; `field_rules.py`, `referential_rules.py`, `supply_chain_rules.py`, `business_rules.py` – the rules; `engine.py` – `validate()` and `ValidationReport`; `references.py` – regulatory reference labels. |
 | `dora_roi.analytics` | `concentration.py` – provider/group exposure, HHI, critical-function dependencies, geography, subcontracting, substitutability, expiries, key messages. |
-| `dora_roi.reporting` | Validation report renderers, executive summary, inline SVG charts, Jinja2 templates and shared CSS (light/dark). |
-| `dora_roi.sample` | Fictional *Alpenrand* group catalogue and deterministic generator with injected errors. |
+| `dora_roi.reporting` | Validation report renderers, executive summary, inline SVG charts, Jinja2 templates and shared CSS (light/dark, print/A4); `pdf.py` renders the print variant to PDF with WeasyPrint (optional, offline). |
+| `dora_roi.sample` | Fictional *Alpenrand* group catalogue and deterministic generator with injected errors; `large.py` – scale-test register (10 000 contracts / 1 000 providers by default). |
 | `dora_roi.cli` | `roi validate · report · export · template · rules · sample · serve`. |
 | `dora_roi.workspace` | Editable, versioned register (raw values as source of truth, instant re-validation). |
 | `dora_roi.fixes` / `dora_roi.explain` / `dora_roi.quality` | Fix suggestions and bulk groups; EN/DE plain-language rule explanations; data-quality score and readiness. |
 | `dora_roi.inventory` / `dora_roi.normalise` | Column-mapping import of arbitrary inventories; value normalisation (countries, dates, amounts, booleans, service types). |
-| `dora_roi.diff` / `dora_roi.graph` | Register comparison; layered dependency graph with SVG rendering. |
+| `dora_roi.diff` / `dora_roi.graph` | Register comparison (material vs administrative changes); layered dependency graph with SVG rendering. |
+| `dora_roi.analytics.impact` / `.renewals` | Failure impact of a provider (direct and through subcontracting); notice-deadline schedule. |
+| `dora_roi.io.limits` | Upload/archive size, compression-ratio and row-count limits. |
+| `dora_roi.web.security` | Security headers/CSP, same-origin (CSRF) check, browser-session isolation, safe redirects. |
 | `dora_roi.web` | Workbench: FastAPI routes (`app.py`), view models (`views.py`), EN/DE strings (`i18n.py`), Jinja2 templates, `static/app.css` + `app.js` (progressive enhancement), `devserver.py` for tests/screenshots. |
 | `dora_roi.contracts` | `provisions.py` – the 22-item Art. 30 checklist (EN/DE, article references, keyword concepts); `model.py` – `AssessmentBook`/`ContractAssessment` with history, JSON and Excel I/O; `analysis.py` – register contexts, inheritance from overarching arrangements, `Portfolio`, `RemediationPlan` and priorities; `extract.py` – local PDF (pypdf)/DOCX/TXT text extraction; `suggest.py` – clause-aware keyword suggestions; `report.py` – remediation plan HTML/Excel. |
 | `dora_roi.incidents` | `criteria.py` – criteria and `Thresholds`; `model.py` – `Incident`, `Answers`, `IncidentLog` (UTC, display time zone, history); `classify.py` – three-valued classification, recurring groups; `deadlines.py` – reporting timeline; `report.py` – views linked to the register, summary HTML/JSON/Markdown. |
@@ -151,5 +154,7 @@ The Excel assessment workbook (sheet `Assessments`: `contract_ref`, `provision_i
 ## Performance
 
 All rules are linear or near-linear in the number of rows using pre-computed indexes
-(`ValidationContext`). The ~1 000-row sample validates and is analysed in well under a second;
-registers with tens of thousands of B_02.02 rows remain interactive.
+(`ValidationContext`). The ~1 000-row sample validates and is analysed in well under a second.
+A register with 10 000 contracts and 1 000 providers (76 000 rows) imports in about 3 s,
+validates in about 1 s and every workbench page renders in under 0.5 s – see
+[`PERFORMANCE.md`](PERFORMANCE.md) and `scripts/profile_large.py` (also run in CI).

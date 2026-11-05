@@ -6,7 +6,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 
 > The references express *which obligation a rule helps evidence*; they are the authors' interpretation (see [ASSUMPTIONS.md](ASSUMPTIONS.md), in particular A-VAL-* and A-REG-01) and are not the official EBA validation rules.
 
-**62 rules.** Severity: *error* blocks a clean submission, *warning* needs review, *info* is for awareness.
+**63 rules.** Severity: *error* blocks a clean submission, *warning* needs review, *info* is for awareness.
 
 ## Import checks (IMP)
 
@@ -94,6 +94,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `BUS-022` | warning | **Provider supporting a critical function not audited recently** – Providers of ICT services supporting critical functions should be audited with a risk-based frequency; no audit date or an audit older than the configured threshold (default 3 years) is flagged. | B_07.01 | DORA Art. 28(6) |
 | `BUS-023` | warning | **Intra-group provider without B_03.03 entry** – When the provider of an arrangement is itself an entity of the group (its LEI is in B_01.02), the providing entity is expected in B_03.03. | B_03.03, B_02.02 | ITS Annex II |
 | `BUS-024` | info | **Indefinite arrangement reported with an unusual end date** – Arrangements without an end date are reported as 9999-12-31; end dates more than 30 years ahead are usually a placeholder that should be normalised. | B_02.02 | ITS Annex II |
+| `BUS-025` | warning | **Possible duplicate provider** – Two providers with the same name (ignoring case, accents and legal form) but different identification codes are probably the same provider reported twice, which splits its concentration figures. | B_05.01 | DORA Art. 28(3); DORA Art. 29; ITS Annex II |
 
 ## Provisions referenced
 
@@ -122,16 +123,16 @@ This document links every validation rule of the toolkit to the provision of Reg
 ## Coverage by provision
 
 - **DORA Art. 3(22)**: `XRF-004`, `BUS-015`, `BUS-016`
-- **DORA Art. 28(3)**: `IMP-002`, `FLD-001`, `FLD-011`, `FLD-012`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-003`, `XRF-004`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `XRF-015`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`
+- **DORA Art. 28(3)**: `IMP-002`, `FLD-001`, `FLD-011`, `FLD-012`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-003`, `XRF-004`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `XRF-015`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-025`
 - **DORA Art. 28(4)**: `BUS-015`, `BUS-016`, `BUS-017`
 - **DORA Art. 28(6)**: `BUS-022`
 - **DORA Art. 28(7)**: `BUS-002`
 - **DORA Art. 28(8)**: `SC-006`, `BUS-019`, `BUS-021`
-- **DORA Art. 29**: `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-020`
+- **DORA Art. 29**: `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-020`, `BUS-025`
 - **DORA Art. 30(2)**: `FLD-005`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-004`, `BUS-006`
 - **DORA Art. 30(3)**: `BUS-019`
 - **ITS Annex I**: `IMP-001`, `IMP-002`, `IMP-003`, `IMP-004`, `FLD-001`, `FLD-011`, `FLD-012`, `BUS-018`
-- **ITS Annex II**: `FLD-001`, `FLD-003`, `FLD-004`, `FLD-005`, `FLD-006`, `FLD-007`, `FLD-008`, `FLD-009`, `FLD-010`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-001`, `BUS-002`, `BUS-003`, `BUS-004`, `BUS-005`, `BUS-006`, `BUS-007`, `BUS-008`, `BUS-009`, `BUS-010`, `BUS-011`, `BUS-012`, `BUS-013`, `BUS-014`, `BUS-015`, `BUS-020`, `BUS-021`, `BUS-023`, `BUS-024`
+- **ITS Annex II**: `FLD-001`, `FLD-003`, `FLD-004`, `FLD-005`, `FLD-006`, `FLD-007`, `FLD-008`, `FLD-009`, `FLD-010`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-001`, `BUS-002`, `BUS-003`, `BUS-004`, `BUS-005`, `BUS-006`, `BUS-007`, `BUS-008`, `BUS-009`, `BUS-010`, `BUS-011`, `BUS-012`, `BUS-013`, `BUS-014`, `BUS-015`, `BUS-020`, `BUS-021`, `BUS-023`, `BUS-024`, `BUS-025`
 - **ITS Annex III**: `FLD-004`
 - **ITS Art. – identification**: `FLD-002`, `FLD-013`, `XRF-002`
 - **ITS Art. – consistency**: `FLD-010`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`

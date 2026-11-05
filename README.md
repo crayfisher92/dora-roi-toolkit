@@ -49,6 +49,10 @@ docker compose up --build          # → http://127.0.0.1:8000
 pip install -e ".[web]"            # Python ≥ 3.11; add [dev] for tests and linters
 ```
 
+PDF reports additionally need `pip install -e ".[web,pdf]"` (WeasyPrint, which uses the Pango
+library: preinstalled on most Linux desktops, `brew install pango` on macOS; on Windows use the
+Docker image or print the HTML report to PDF – it has the same print layout).
+
 ```bash
 roi sample alpenrand.xlsx          # synthetic register with 25 injected errors
 ```
@@ -63,6 +67,10 @@ roi validate alpenrand.xlsx -f html -o validation.html
 
 ```bash
 roi report alpenrand.xlsx -o executive-summary.html --client "Alpenrand Group"
+```
+
+```bash
+roi report alpenrand.xlsx -o executive-summary.pdf --validation-report validation.pdf
 ```
 
 ```bash
@@ -161,13 +169,14 @@ story is in [`docs/DEMO.md`](docs/DEMO.md). Screenshots are regenerated with
 
 | Command | Purpose | Notable options |
 |---|---|---|
-| `roi validate INPUT` | Validate a register | `-f text\|json\|md\|html`, `-o FILE`, `--fail-on error\|warning\|never`, `--disable RULE`, `--downgrade RULE`, `--reference-date`, `--code-map` |
-| `roi report INPUT -o FILE` | Executive summary (HTML) | `--client`, `--prepared-by`, `--validation-report FILE`, `--json FILE` |
+| `roi validate INPUT` | Validate a register | `-f text\|json\|md\|html\|pdf`, `-o FILE`, `--fail-on error\|warning\|never`, `--disable RULE`, `--downgrade RULE`, `--reference-date`, `--code-map` |
+| `roi report INPUT -o FILE` | Executive summary (`.html` or `.pdf`) | `--client`, `--prepared-by`, `--validation-report FILE`, `--json FILE` |
 | `roi export INPUT -o OUT` | Export | `--format xbrl-csv\|excel\|csv`, `--unzipped`, `--strict`, `--level CON\|IND\|SUB`, `--entry-point`, `--code-map` |
 | `roi template FILE` | Blank Excel template | `--sample [--clean]` to pre-fill |
 | `roi rules` | List rules and provisions | `-f text\|md\|json` |
 | `roi sample OUT` | Generate the synthetic register | `--format xlsx\|csv`, `--clean`, `--previous-year`, `--inventory`, `--seed`, `--assessments FILE`, `--incidents FILE`, `--contract-document FILE` |
 | `roi diff OLD NEW` | Compare two registers | `-f md\|json`, `-o FILE` |
+| `roi audit-log PROJECT` | Export the change history of a `.roiproj` project file as CSV | `-o FILE` |
 | `roi check-package REF` | Compare our xBRL-CSV export with a reference (e.g. official sample) package | `--ours PKG`, `-o FILE` |
 | `roi contracts checklist` | The DORA Art. 30 checklist | `-f text\|md\|json`, `--lang en\|de` |
 | `roi contracts assess INPUT` | Art. 30 compliance per arrangement and remediation plan | `--assessments FILE` (.json/.xlsx), `-o plan.html\|.xlsx\|.json`, `--client`, `--plan-date`, `--fail-on-gaps`, `--lang` |
@@ -177,9 +186,9 @@ story is in [`docs/DEMO.md`](docs/DEMO.md). Screenshots are regenerated with
 | `roi incidents summary LOG` | Classify an incident log; deadlines; recurring series | `--register INPUT`, `-o .html\|.json\|.md`, `--now`, `--fail-on-overdue`, `--lang` |
 | `roi finma INPUT` | RoI coverage of FINMA Circ. 2018/3 and 2023/1 | `--assessments`, `--incidents`, `-f text\|md\|json`, `--lang` |
 | `roi readiness INPUT -o FILE` | DORA readiness report (HTML, print/PDF) | `--assessments`, `--incidents`, `--client`, `--prepared-by`, `--json FILE`, `--no-finma`, `--now`, `--lang` |
-| `roi serve` | Start the web UI | `--host`, `--port` |
+| `roi serve` | Start the web UI | `--host`, `--port`, `--projects DIR` (autosave project files), `--access-log` |
 
-`INPUT` may be an `.xlsx` workbook, a folder or `.zip` of CSV files (`b_02.02.csv` …), or an
+`INPUT` may be a `.roiproj` project file, an `.xlsx` workbook, a folder or `.zip` of CSV files (`b_02.02.csv` …), or an
 xBRL-CSV package (zip or folder). Exit codes: `0` ok, `1` findings at/above `--fail-on`,
 `2` usage/input error.
 
@@ -267,6 +276,18 @@ RegisterOfInformation ─┬─ AssessmentBook (Art. 30, keyed by B_02.01 c0010)
 
 Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
+## Configuration
+
+| Environment variable | Default | Effect |
+|---|---|---|
+| `ROI_PROJECTS_DIR` | – | Folder for autosaved project files (same as `roi serve --projects`) |
+| `ROI_MAX_UNCOMPRESSED_MB` | `200` | Maximum uncompressed size of an uploaded workbook / zip / project file |
+| `ROI_MAX_ROWS_PER_TABLE` | `100000` | Maximum rows per template on import |
+| `ROI_MAX_STORE_ROWS` | `500000` | Rows the workbench keeps in memory across all workspaces (≈ 2 KB per row); least recently used workspaces are evicted first |
+
+Uploads are limited to 25 MB. A register with 10 000 contracts imports in about 3 seconds
+([`docs/PERFORMANCE.md`](docs/PERFORMANCE.md)).
+
 ## Documentation
 
 | Document | Content |
@@ -277,10 +298,12 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
 | [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md) | Regulatory details that must be verified |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Engineering decisions and their rationale |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Modules, data flow, report schema, extension guide |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model (STRIDE), security controls and residual risks; disclosure policy in [`SECURITY.md`](SECURITY.md) |
 | [`docs/UX.md`](docs/UX.md) | Personas, jobs to be done, screen flow, accessibility principles |
 | [`docs/ART30_CHECKLIST.md`](docs/ART30_CHECKLIST.md) | The 22 Art. 30 provisions with references (generated) |
 | [`docs/INCIDENT_CLASSIFICATION.md`](docs/INCIDENT_CLASSIFICATION.md) | Incident criteria, thresholds, deadlines (generated) |
 | [`docs/FINMA_MAPPING.md`](docs/FINMA_MAPPING.md) | RoI ↔ FINMA Circ. 2018/3 and 2023/1 (generated) |
+| [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) | Timings for a 10 000-contract register, what was optimised, memory |
 | [`docs/DEMO.md`](docs/DEMO.md) | 10-minute client demo of the full story with the Alpenrand sample |
 | [`docs/BACKLOG.md`](docs/BACKLOG.md) | Review findings, prioritised, and their status |
 

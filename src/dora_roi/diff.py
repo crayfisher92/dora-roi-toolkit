@@ -19,12 +19,26 @@ DIFF_TEMPLATES: dict[str, str] = {
 }
 
 
+#: Fields that change in every annual cycle without changing the risk picture (B-10).
+ADMINISTRATIVE_FIELDS: frozenset[tuple[str, str]] = frozenset({
+    ("B_01.02", "c0070"),  # date of last update
+    ("B_06.01", "c0070"),  # date of last criticality assessment
+    ("B_07.01", "c0070"),  # date of last audit
+})
+#: Relative change below which an amount change is considered immaterial.
+AMOUNT_TOLERANCE = 0.10
+AMOUNT_FIELDS: frozenset[tuple[str, str]] = frozenset({
+    ("B_01.02", "c0110"), ("B_02.01", "c0050"), ("B_05.01", "c0100"),
+})
+
+
 @dataclass(frozen=True)
 class FieldChange:
     column: str
     label: str
     old: str | None
     new: str | None
+    material: bool = True
 
 
 @dataclass
@@ -32,6 +46,10 @@ class RecordChange:
     key: str
     name: str
     changes: list[FieldChange]
+
+    @property
+    def material(self) -> bool:
+        return any(c.material for c in self.changes)
 
 
 @dataclass
@@ -45,6 +63,14 @@ class TemplateDiff:
     @property
     def total(self) -> int:
         return len(self.added) + len(self.removed) + len(self.changed)
+
+    @property
+    def material_changed(self) -> list[RecordChange]:
+        return [c for c in self.changed if c.material]
+
+    @property
+    def material_total(self) -> int:
+        return len(self.added) + len(self.removed) + len(self.material_changed)
 
 
 @dataclass
@@ -88,6 +114,19 @@ def _spend(reg: RegisterOfInformation) -> Decimal:
     return sum((c.annual_cost for c in reg.b_02_01 if c.annual_cost is not None), Decimal(0))
 
 
+def _is_material(template: str, column: str, old: str | None, new: str | None) -> bool:
+    if (template, column) in ADMINISTRATIVE_FIELDS:
+        return False
+    if (template, column) in AMOUNT_FIELDS and old and new:
+        try:
+            a, b = Decimal(old), Decimal(new)
+        except ArithmeticError:
+            return True
+        base = max(abs(a), abs(b))
+        return base == 0 or abs(a - b) / base >= Decimal(str(AMOUNT_TOLERANCE))
+    return True
+
+
 def diff_registers(old: RegisterOfInformation, new: RegisterOfInformation,
                    old_label: str = "previous", new_label: str = "current") -> RegisterDiff:
     """Compare two registers template by template using each template's primary key."""
@@ -105,7 +144,8 @@ def diff_registers(old: RegisterOfInformation, new: RegisterOfInformation,
                 ov = serialise_value(getattr(a[k], spec.attr))
                 nv = serialise_value(getattr(b[k], spec.attr))
                 if ov != nv:
-                    changes.append(FieldChange(spec.code, spec.label, ov, nv))
+                    changes.append(FieldChange(spec.code, spec.label, ov, nv,
+                                               _is_material(code, spec.code, ov, nv)))
             if changes:
                 td.changed.append(RecordChange(k, _name(b[k], names), changes))
         templates.append(td)
@@ -118,16 +158,18 @@ def render_diff_markdown(d: RegisterDiff) -> str:
              f"- Annual spend: {d.old_spend:,.0f} → {d.new_spend:,.0f}",
              f"- Critical or important functions: {d.old_critical_functions} → "
              f"{d.new_critical_functions}", "",
-             "| Object | Added | Removed | Changed |", "|---|---:|---:|---:|"]
+             "| Object | Added | Removed | Changed (material) | Changed (administrative) |",
+             "|---|---:|---:|---:|---:|"]
     lines += [f"| {t.title} ({t.template}) | {len(t.added)} | {len(t.removed)} | "
-              f"{len(t.changed)} |" for t in d.templates]
+              f"{len(t.material_changed)} | {len(t.changed) - len(t.material_changed)} |"
+              for t in d.templates]
     for t in d.templates:
         if not t.total:
             continue
         lines += ["", f"## {t.title} ({t.template})", ""]
         lines += [f"- **added** {name} (`{key}`)" for key, name in t.added]
         lines += [f"- **removed** {name} (`{key}`)" for key, name in t.removed]
-        for rc in t.changed:
+        for rc in t.material_changed:
             detail = "; ".join(f"{c.label}: {c.old or '—'} → {c.new or '—'}" for c in rc.changes)
             lines.append(f"- **changed** {rc.name} (`{rc.key}`): {detail}")
     lines.append("")

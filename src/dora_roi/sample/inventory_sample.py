@@ -12,8 +12,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from openpyxl import Workbook
-from openpyxl.styles import Font
+import xlsxwriter
 
 from dora_roi.model import IctServiceType, Substitutability
 from dora_roi.model.types import INDEFINITE_END_DATE
@@ -97,20 +96,21 @@ def inventory_rows(limit: int | None = None) -> list[list[object]]:
 
 def write_sample_inventory(path: str | Path, limit: int | None = None) -> Path:
     """Write the messy inventory workbook (title row, blank row, header, data)."""
-    wb = Workbook()
-    ws = wb.active
-    assert ws is not None
-    ws.title = "Vertragsinventar"
-    ws.append(["Vertragsinventar IKT-Dienstleister – Alpenrand Bank (Europe) AG – "
-               "Stand 31.12.2025"])
-    ws["A1"].font = Font(bold=True, size=13)
-    ws.append([])
-    ws.append(list(HEADERS))
-    for cell in ws[3]:
-        cell.font = Font(bold=True)
-    for r in inventory_rows(limit):
-        ws.append(r)
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(out)
+    wb = xlsxwriter.Workbook(str(out), {"in_memory": True, "strings_to_formulas": False,
+                                        "strings_to_numbers": False, "strings_to_urls": False})
+    ws = wb.add_worksheet("Vertragsinventar")
+    ws.write_string(0, 0, "Vertragsinventar IKT-Dienstleister – Alpenrand Bank (Europe) AG – "
+                    "Stand 31.12.2025", wb.add_format({"bold": True, "font_size": 13}))
+    bold = wb.add_format({"bold": True})
+    for c, header in enumerate(HEADERS):
+        ws.write_string(2, c, header, bold)
+    for r, values in enumerate(inventory_rows(limit), start=3):
+        for c, value in enumerate(values):
+            if isinstance(value, str):
+                ws.write_string(r, c, value)
+            elif value is not None:
+                ws.write(r, c, value)
+    wb.close()
     return out

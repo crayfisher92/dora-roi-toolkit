@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from collections import defaultdict
 from collections.abc import Iterator
 from datetime import date
 from decimal import Decimal
 
-from dora_roi.model import ContractType, Criticality, HierarchyInGroup, RoIRecord
+from dora_roi.model import (
+    ContractType,
+    Criticality,
+    HierarchyInGroup,
+    IctThirdPartyProvider,
+    RoIRecord,
+)
 from dora_roi.model.types import INDEFINITE_END_DATE
 from dora_roi.validation.context import ValidationContext
 from dora_roi.validation.findings import Category, Finding, Severity, rule
@@ -389,3 +397,41 @@ def check_placeholder_end_date(ctx: ValidationContext) -> Iterator[Finding]:
             yield ctx.finding("BUS-024", f"End date {s.end_date} looks like a placeholder; use "
                               "9999-12-31 for indefinite arrangements", s, "end_date",
                               value=s.end_date)
+
+
+_LEGAL_FORM_WORDS = sorted(
+    ("ag", "gmbh", "se", "sa", "s a", "sas", "sarl", "s a r l", "spa", "s p a", "srl", "bv",
+     "b v", "nv", "n v", "plc", "ltd", "limited", "inc", "llc", "corp", "corporation", "co",
+     "kft", "sp z o o", "ab", "as", "oy", "kg", "ohg", "mbh", "holding"),
+    key=len, reverse=True)  # longest first, so "s a r l" wins over "s a"
+_LEGAL_FORMS = re.compile(r"\b(" + "|".join(re.escape(w) for w in _LEGAL_FORM_WORDS) + r")\b")
+
+
+def _provider_name_key(name: str) -> str:
+    text = unicodedata.normalize("NFKD", name)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch)).casefold()
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", _LEGAL_FORMS.sub(" ", text)).strip()
+
+
+@rule("BUS-025", "Possible duplicate provider", severity=Severity.WARNING,
+      category=Category.BUSINESS, templates=("B_05.01",),
+      references=("DORA Art. 28(3)", "DORA Art. 29", "ITS Annex II"),
+      description="Two providers with the same name (ignoring case, accents and legal form) "
+      "but different identification codes are probably the same provider reported twice, "
+      "which splits its concentration figures.")
+def check_duplicate_providers(ctx: ValidationContext) -> Iterator[Finding]:
+    seen: dict[str, IctThirdPartyProvider] = {}
+    for p in ctx.register.b_05_01:
+        if not (p.legal_name and p.provider_code):
+            continue
+        key = _provider_name_key(p.legal_name)
+        if not key:
+            continue
+        first = seen.get(key)
+        if first is None:
+            seen[key] = p
+        elif first.provider_code != p.provider_code:
+            yield ctx.finding("BUS-025", f"'{p.legal_name}' ({p.provider_code}) looks like the "
+                              f"same provider as '{first.legal_name}' ({first.provider_code})",
+                              p, "legal_name", value=p.legal_name)

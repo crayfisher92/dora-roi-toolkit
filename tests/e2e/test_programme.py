@@ -127,8 +127,9 @@ def test_countdown_updates_without_reload(page: Any) -> None:
 @pytest.mark.parametrize("scheme", ["light", "dark"])
 def test_programme_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: Any,
                                            scheme: str) -> None:
+    # bypass_csp only so that axe-core can be injected; the app itself runs under its CSP
     ctx = browser.new_context(viewport={"width": 1280, "height": 900}, base_url=base_url,
-                              color_scheme=scheme)
+                              color_scheme=scheme, bypass_csp=True)
     pg = ctx.new_page()
     url = open_sample(pg)
     problems = []

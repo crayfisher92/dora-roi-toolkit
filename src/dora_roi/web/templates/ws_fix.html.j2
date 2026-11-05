@@ -76,6 +76,17 @@
             {% elif f.row and f.template %}
             <a class="small" href="/w/{{ ws.id }}/register/{{ f.template }}/{{ f.row }}">{{ t("fix.open_row") }} →</a>
             {% endif %}
+            {% if f.severity.value != "error" %}
+            <details class="accept"><summary>{{ t("fix.accept") }}</summary>
+              <form method="post" action="/w/{{ ws.id }}/accept" class="cell-accept">
+                <input type="hidden" name="key" value="{{ finding_key(f) }}">
+                <input type="hidden" name="next" value="{{ path }}?template={{ template }}">
+                <label for="acc-{{ loop.index }}-{{ rid }}">{{ t("fix.accept.reason") }}</label>
+                <input id="acc-{{ loop.index }}-{{ rid }}" name="reason" required maxlength="500">
+                <button class="btn" type="submit">{{ t("fix.accept.button") }}</button>
+              </form>
+            </details>
+            {% endif %}
           </li>
           {% endfor %}
         </ul>
@@ -88,5 +99,19 @@
     {% endfor %}
   </div>
 </div>
+{% endif %}
+{% if ws.report.accepted %}
+<section aria-labelledby="h-accepted" class="accepted">
+  <h3 id="h-accepted">{{ t("fix.accepted.title") }} ({{ ws.report.accepted | length }})</h3>
+  <p class="small muted">{{ t("fix.accepted.lead") }}</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">{{ t("fix.filter.rule") }}</th><th scope="col">{{ t("reg.row") }}</th><th scope="col">{{ t("fix.accept.reason") }}</th><th scope="col"><span class="visually-hidden">{{ t("fix.accepted.reopen") }}</span></th></tr></thead>
+    <tbody>{% for f in ws.report.accepted %}{% set acc = ws.acceptances[finding_key(f)] %}
+    <tr><td><span class="mono">{{ f.rule_id }}</span> {{ rule_title(f.rule_id) }}<div class="small muted">{{ f.message }}</div></td>
+      <td class="mono small">{{ f.template or "—" }}{% if f.row %} · {{ f.row }}{% endif %}</td>
+      <td>{{ f.accepted_reason }}<div class="small muted">{{ acc.user }} · {{ acc.at.strftime("%Y-%m-%d %H:%M UTC") }}</div></td>
+      <td><form method="post" action="/w/{{ ws.id }}/unaccept"><input type="hidden" name="key" value="{{ finding_key(f) }}"><input type="hidden" name="next" value="{{ path }}"><button class="btn" type="submit">{{ t("fix.accepted.reopen") }}</button></form></td></tr>
+    {% endfor %}</tbody></table></div>
+</section>
 {% endif %}
 {% endblock %}

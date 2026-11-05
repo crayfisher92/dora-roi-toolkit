@@ -3,7 +3,7 @@
 <section class="card" aria-labelledby="h-up">
   <h2 id="h-up">{{ t("wiz.step.upload") }}</h2>
   <p>{{ t("wiz.upload.lead") }}</p>
-  <form action="/map" method="post" enctype="multipart/form-data" class="stack">
+  <form action="/map" method="post" enctype="multipart/form-data" class="stack" data-busy="{{ t('busy.import') }}">
     <label for="inv-file">{{ t("home.file") }} <span class="muted small">(.xlsx, .csv)</span></label>
     <input id="inv-file" name="file" type="file" accept=".xlsx,.xlsm,.csv">
     <div class="row">

@@ -30,6 +30,13 @@ def test_overview_shows_score_and_stepper(page: Any) -> None:
 
 
 def test_inline_fix_revalidates_without_reload(page: Any) -> None:
+    # diagnostics for an intermittent failure seen once (not reproducible in 15 runs)
+    trace: list[str] = []
+    page.on("response", lambda r: trace.append(f"{r.request.method} {r.url} {r.status}")
+            if "/cell" in r.url else None)
+    page.on("console", lambda m: trace.append(f"console {m.type}: {m.text}"))
+    page.on("framenavigated", lambda f: trace.append(f"navigated {f.url}")
+            if f == page.main_frame else None)
     url = open_sample(page)
     page.goto(url + "/fix?template=B_02.02")
     item = page.locator("[data-finding]").filter(has=page.locator('input[value="UK"]'))
@@ -39,8 +46,8 @@ def test_inline_fix_revalidates_without_reload(page: Any) -> None:
     page.evaluate("window.__marker = 1")  # survives only if there is no reload
     item.get_by_role("button", name="Save").click()
     page.wait_for_selector("[data-finding].fixed")
-    assert page.evaluate("window.__marker") == 1
-    assert page.locator('[data-bind="errors"]').first.inner_text() == "26"
+    assert page.evaluate("window.__marker") == 1, trace
+    assert page.locator('[data-bind="errors"]').first.inner_text() == "26", trace
     # the live region is cleared and refilled after a short delay so that screen readers
     # announce repeated messages; wait for the announcement instead of reading it at once
     page.wait_for_function(
@@ -130,17 +137,22 @@ def test_responsive_no_horizontal_scroll(browser: Any, base_url: str) -> None:
     ctx.close()
 
 
-@pytest.mark.parametrize("scheme", ["light", "dark"])
-def test_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: Any, scheme: str) -> None:
-    ctx = browser.new_context(viewport={"width": 1280, "height": 900}, base_url=base_url,
-                              color_scheme=scheme)
+@pytest.mark.parametrize(("scheme", "width"), [("light", 1280), ("dark", 1280), ("light", 390)])
+def test_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: Any, scheme: str,
+                                 width: int) -> None:
+    # bypass_csp only so that axe-core can be injected; the app itself runs under its CSP
+    # in every other test. The narrow viewport makes wide tables overflow regardless of the
+    # fonts installed, so scroll containers are checked for keyboard access everywhere.
+    ctx = browser.new_context(viewport={"width": width, "height": 900}, base_url=base_url,
+                              color_scheme=scheme, bypass_csp=True)
     pg = ctx.new_page()
     url = open_sample(pg)
     pg.goto(url + "/register/B_05.01")
     code = re.search(r"/provider/([^\"]+)\"", pg.content())
     pages = ["/", url, url + "/fix?template=B_02.02", url + "/register/B_02.02",
              url + "/register/B_02.02/4", url + "/analyse", url + "/export",
-             url + "/compare?version=1", url + "/versions", "/map", "/?lang=de"]
+             url + "/compare?version=1", url + "/versions", url + "/audit", "/map",
+             "/?lang=de"]
     if code:
         pages.append(url + "/provider/" + code.group(1))
     problems = []
@@ -151,3 +163,30 @@ def test_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: Any, scheme:
             problems.append(f"{target}:\n{found}")
     ctx.close()
     assert not problems, "\n\n".join(problems)
+
+
+def test_no_csp_violations(page: Any) -> None:
+    violations: list[str] = []
+    page.on("console", lambda m: violations.append(m.text)
+            if "Content Security Policy" in m.text or "Refused to" in m.text else None)
+    url = open_sample(page)
+    for suffix in ("", "/fix?template=B_02.02", "/analyse", "/audit"):
+        page.goto(url + suffix)
+    assert not violations, violations
+
+
+def test_accept_finding_and_audit_trail(page: Any) -> None:
+    url = open_sample(page, "Clean sample")
+    page.goto(url)
+    page.fill("#user-name", "Lena Berger")
+    page.get_by_role("button", name="Save name").click()
+    page.goto(url + "/fix?template=B_01.02")
+    page.get_by_text("Accept with justification").first.click()
+    page.get_by_label("Justification").first.fill("Holding is outside the DORA scope")
+    page.get_by_role("button", name="Accept finding").first.click()
+    page.wait_for_url(re.compile("/fix"))
+    assert page.get_by_text("Holding is outside the DORA scope").is_visible()
+    assert page.locator("#score-meter").get_attribute("value") == "100"
+    page.goto(url + "/audit")
+    assert page.get_by_text("Finding accepted").is_visible()
+    assert page.get_by_role("cell", name="Lena Berger").first.is_visible()
