@@ -30,3 +30,15 @@ Status: ✅ done · 🔄 in progress · ⏳ open · ➖ won't do (with reason)
 | B-15 | Low | SE | Language switch drops the current query string (e.g. the selected template on the Fix page). | Manual check. | ⏳ |
 | B-16 | Low | TPR | Findings cannot be exported as a spreadsheet to send to business owners. | Only HTML / Markdown / JSON. | ⏳ |
 | B-17 | Low | TPR | Per-finding validator messages are English only (D-030). | — | ⏳ |
+
+## Cycle 2
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| B-18 | High | SE | **No session isolation.** Any browser lists every workspace on the home page and can open it – on a shared deployment one consultant sees another client's register. | Second TestClient saw and opened the first one's workspace (200). | ✅ `SessionMiddleware`: random HttpOnly/SameSite=Strict session cookie; workspaces and wizards owned by their session, 404 for others; 128-bit IDs |
+| B-19 | Medium | SE | **A crashing rule leaves the register "Ready".** Readiness only counts errors; `rule_failures` are not reflected in the score, status or UI. | Injected exception into BUS-001 → readiness `ready`. | ✅ readiness `not_ready` and a banner in the workbench and HTML report when any rule failed |
+| B-20 | Medium | SE | **Access logs record confidential data.** Uvicorn's access log prints every path and query string (workspace IDs, search terms such as provider names) to the container log. | `docker logs` output during the Part C smoke test. | ✅ `roi serve` runs with `access_log=False`, `server_header=False` (opt-in `--access-log`) |
+| B-21 | Medium | TPR | **No notice-deadline view.** The date by which notice must be given (end date − notice period) is what drives exit and renegotiation planning, and it is not shown anywhere. | Only "critical arrangements expiring within 365 days" in the CRO report. | ✅ `analytics/renewals.py` notice schedule, *Renewals* page (critical filter), key message for critical deadlines within 90 days |
+| B-22 | Low | TPR | Accepted findings and their justifications are missing from the Markdown/HTML validation reports (only JSON has them). | Rendered report. | ✅ accepted findings section in Markdown and HTML reports |
+| B-23 | Low | TPR | Failure-impact table does not show whether each affected service has an exit plan. | Provider page. | ✅ exit-plan column in the failure-impact table |
+| B-24 | Low | SE | An acceptance whose record is later edited (key changes) stays in the store as an orphan. | Code inspection. | ✅ acceptances whose finding disappeared are pruned with an audit entry |

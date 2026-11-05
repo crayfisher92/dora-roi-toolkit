@@ -8,6 +8,8 @@
 from __future__ import annotations
 
 import re
+import secrets
+from contextvars import ContextVar
 from urllib.parse import urlsplit
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -84,3 +86,33 @@ def safe_next(target: str | None, default: str) -> str:
     if _BAD_REDIRECT.search(target) or urlsplit(target).netloc:
         return default
     return target
+
+
+# --------------------------------------------------------------------------- sessions
+
+SESSION_COOKIE = "roi_session"
+_SESSION_RE = re.compile(r"^[A-Za-z0-9_\-]{43}$")
+CURRENT_SESSION: ContextVar[str] = ContextVar("roi_session", default="")
+
+
+class SessionMiddleware(BaseHTTPMiddleware):
+    """Give every browser an unguessable session id (HttpOnly, SameSite=Strict cookie).
+
+    Workspaces and wizards belong to the session that created them; other sessions get 404
+    (``BACKLOG`` B-18). There are no accounts – the session *is* the isolation boundary.
+    """
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        sid = request.cookies.get(SESSION_COOKIE, "")
+        new = not _SESSION_RE.match(sid)
+        if new:
+            sid = secrets.token_urlsafe(32)
+        token = CURRENT_SESSION.set(sid)
+        try:
+            response = await call_next(request)
+        finally:
+            CURRENT_SESSION.reset(token)
+        if new:
+            response.set_cookie(SESSION_COOKIE, sid, httponly=True, samesite="strict",
+                                secure=request.url.scheme == "https", path="/")
+        return response

@@ -57,7 +57,13 @@ from dora_roi.reporting.executive import build_charts, money, pct, render_execut
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
 from dora_roi.validation import RULES, Finding, finding_key
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
-from dora_roi.web.security import SameOriginMiddleware, SecurityHeadersMiddleware, safe_next
+from dora_roi.web.security import (
+    CURRENT_SESSION,
+    SameOriginMiddleware,
+    SecurityHeadersMiddleware,
+    SessionMiddleware,
+    safe_next,
+)
 from dora_roi.web.views import display, provider_profile, stepper
 from dora_roi.workspace import DEFAULT_USER, EditError, Workspace
 
@@ -104,6 +110,7 @@ class Wizard:
     sheet: InventorySheet
     mapping: dict[int, str]
     entity: EntityInfo | None = None
+    owner: str = ""
 
 
 def _env() -> Environment:
@@ -125,6 +132,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                   description="Prepare, fix and analyse a DORA register of information.")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.add_middleware(SameOriginMiddleware)
+    app.add_middleware(SessionMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     workspaces: LRUStore[Workspace] = LRUStore(capacity)
     wizards: LRUStore[Wizard] = LRUStore(capacity)
@@ -150,7 +158,25 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
         return response
 
     def ws_or_404(wid: str) -> Workspace:
-        return workspaces.get(wid)
+        ws = workspaces.get(wid)
+        if ws.owner != CURRENT_SESSION.get():
+            raise HTTPException(status_code=404, detail="not found")
+        return ws
+
+    def wiz_or_404(wid: str) -> Wizard:
+        wiz = wizards.get(wid)
+        if wiz.owner != CURRENT_SESSION.get():
+            raise HTTPException(status_code=404, detail="not found")
+        return wiz
+
+    def own(ws: Workspace) -> Workspace:
+        ws.owner = CURRENT_SESSION.get()
+        workspaces.add(ws.id, ws)
+        return ws
+
+    def my_workspaces() -> list[Workspace]:
+        sid = CURRENT_SESSION.get()
+        return [w for w in workspaces.values() if w.owner == sid]
 
     def ws_page(request: Request, ws: Workspace, page_template: str, step: str, **ctx: Any
                 ) -> HTMLResponse:
@@ -161,7 +187,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                       quality=ws.quality, counts=ws.report.severity_counts(), **ctx)
 
     def add_workspace(ws: Workspace) -> RedirectResponse:
-        workspaces.add(ws.id, ws)
+        own(ws)
         return RedirectResponse(f"/w/{ws.id}", status_code=303)
 
     async def read_upload(file: UploadFile, allowed: set[str]) -> tuple[str, bytes] | str:
@@ -185,7 +211,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
     # ------------------------------------------------------------------ home & basics
 
     def home_ctx() -> dict[str, Any]:
-        return {"recent": workspaces.values()}
+        return {"recent": my_workspaces()}
 
     @app.get("/", response_class=HTMLResponse)
     def home(request: Request) -> HTMLResponse:
@@ -230,8 +256,8 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                                kind="sample")
             new_ws = Workspace("Alpenrand 2025", register_to_raw(cur.source_register),
                                kind="sample")
-            workspaces.add(old_ws.id, old_ws)
-            workspaces.add(new_ws.id, new_ws)
+            own(old_ws)
+            own(new_ws)
             return RedirectResponse(f"/w/{new_ws.id}/compare?other={old_ws.id}", status_code=303)
         clean = variant == "clean"
         result = generate_sample(inject_errors=not clean)
@@ -272,21 +298,22 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                               error=t("err.read", name=name, error=str(exc) or
                                       type(exc).__name__))
         sheet.source = name
-        wiz = Wizard(uuid.uuid4().hex[:12], sheet,
+        wiz = Wizard(uuid.uuid4().hex, sheet,
                      {s.column: s.field for s in suggest_mapping(sheet) if s.field})
+        wiz.owner = CURRENT_SESSION.get()
         wizards.add(wiz.id, wiz)
         return RedirectResponse(f"/map/{wiz.id}", status_code=303)
 
     @app.get("/map/{wid}", response_class=HTMLResponse)
     def wizard_map(request: Request, wid: str) -> HTMLResponse:
-        wiz = wizards.get(wid)
+        wiz = wiz_or_404(wid)
         suggestions = {s.column: s for s in suggest_mapping(wiz.sheet)}
         return render(request, "wizard_map.html.j2", wstep=2, wiz=wiz, fields=FIELDS,
                       suggestions=suggestions)
 
     @app.post("/map/{wid}")
     async def wizard_map_save(request: Request, wid: str) -> Response:
-        wiz = wizards.get(wid)
+        wiz = wiz_or_404(wid)
         form = await request.form()
         mapping: dict[int, str] = {}
         for i in range(len(wiz.sheet.headers)):
@@ -302,14 +329,14 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
 
     @app.get("/map/{wid}/entity", response_class=HTMLResponse)
     def wizard_entity(request: Request, wid: str) -> HTMLResponse:
-        wiz = wizards.get(wid)
+        wiz = wiz_or_404(wid)
         return render(request, "wizard_entity.html.j2", wstep=3, wiz=wiz,
                       entity=entity_defaults(wiz), errors={}, entity_types=list(EntityType),
                       countries=COUNTRIES, currencies=sorted(CURRENCIES))
 
     @app.post("/map/{wid}/entity")
     async def wizard_entity_save(request: Request, wid: str) -> Response:
-        wiz = wizards.get(wid)
+        wiz = wiz_or_404(wid)
         form = await request.form()
         t = translator(lang_of(request))
 
@@ -341,7 +368,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
 
     @app.get("/map/{wid}/preview", response_class=HTMLResponse)
     def wizard_preview(request: Request, wid: str) -> Response:
-        wiz = wizards.get(wid)
+        wiz = wiz_or_404(wid)
         if wiz.entity is None:
             return RedirectResponse(f"/map/{wid}/entity", status_code=303)
         rows = preview(wiz.sheet, wiz.mapping, limit=8)
@@ -351,7 +378,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
 
     @app.post("/map/{wid}/import")
     def wizard_import(wid: str) -> Response:
-        wiz = wizards.get(wid)
+        wiz = wiz_or_404(wid)
         if wiz.entity is None:
             return RedirectResponse(f"/map/{wid}/entity", status_code=303)
         raw, notes = build_raw(wiz.sheet, wiz.mapping, wiz.entity)
@@ -518,6 +545,17 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                        charts=build_charts(ws.analysis), graph_svg=svg, color=color,
                        critical=critical, isolated=isolated, chains=chains_table(ws.register))
 
+    @app.get("/w/{wid}/renewals", response_class=HTMLResponse)
+    def renewals(request: Request, wid: str, critical: int = 0) -> HTMLResponse:
+        from dora_roi.analytics.renewals import notice_schedule
+
+        ws = ws_or_404(wid)
+        items = notice_schedule(ws.register)
+        if critical:
+            items = [i for i in items if i.critical]
+        return ws_page(request, ws, "ws_renewals.html.j2", "analyse", items=items,
+                       critical=critical)
+
     @app.get("/w/{wid}/export", response_class=HTMLResponse)
     def export_page(request: Request, wid: str) -> HTMLResponse:
         return ws_page(request, ws_or_404(wid), "ws_export.html.j2", "export")
@@ -579,7 +617,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                 raise HTTPException(status_code=404) from exc
             result = diff_registers(old, ws.register, f"v{version}", ws.name)
             label = f"v{version}"
-        others = [w for w in workspaces.values() if w.id != ws.id]
+        others = [w for w in my_workspaces() if w.id != ws.id]
         return ws_page(request, ws, "ws_compare.html.j2", "analyse", result=result, label=label,
                        others=others, other=other, version=version, show_all=bool(all))
 
@@ -604,7 +642,7 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
                 raise HTTPException(status_code=400, detail=type(exc).__name__) from exc
         raw.source = name
         other = Workspace(name, raw, source=name)
-        workspaces.add(other.id, other)
+        own(other)
         return RedirectResponse(f"/w/{wid}/compare?other={other.id}", status_code=303)
 
     @app.post("/user")

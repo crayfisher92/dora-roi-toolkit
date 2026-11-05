@@ -218,3 +218,12 @@ main { padding-top: 24px; }
 .accepted { margin-top: 32px; }
 .user-form { margin: 0 0 20px; }
 .user-form input { min-width: 220px; }
+.ren { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
+.ren::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.ren-passed::before { background: var(--status-critical); }
+.ren-due_90::before { background: var(--status-serious); }
+.ren-due_365::before { background: var(--status-warning); }
+.ren-later::before { background: var(--series-muted); }
+.ok-mark { color: var(--ok-ink); font-weight: 600; }
+.no-mark { color: var(--danger); }

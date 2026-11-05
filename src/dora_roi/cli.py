@@ -302,7 +302,9 @@ def check_package(reference: Path, ours: Path | None, output: Path | None) -> No
 @main.command()
 @click.option("--host", default="127.0.0.1", show_default=True)
 @click.option("--port", default=8000, show_default=True, type=int)
-def serve(host: str, port: int) -> None:  # pragma: no cover - starts a server
+@click.option("--access-log", is_flag=True,
+              help="Log every request line (off by default: URLs can contain client data).")
+def serve(host: str, port: int, access_log: bool) -> None:  # pragma: no cover - server
     """Start the web UI (requires the 'web' extra)."""
     try:
         import uvicorn
@@ -311,7 +313,8 @@ def serve(host: str, port: int) -> None:  # pragma: no cover - starts a server
     except ImportError as exc:
         raise click.ClickException(
             "The web UI needs extra dependencies: pip install 'dora-roi-toolkit[web]'") from exc
-    uvicorn.run(create_app(), host=host, port=port)
+    uvicorn.run(create_app(), host=host, port=port, access_log=access_log, server_header=False,
+                log_level="warning")
 
 
 if __name__ == "__main__":  # pragma: no cover

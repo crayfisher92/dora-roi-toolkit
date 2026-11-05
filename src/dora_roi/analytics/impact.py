@@ -21,6 +21,13 @@ class ImpactedFunction:
     direct_contracts: set[str] = field(default_factory=set)
     indirect_contracts: set[str] = field(default_factory=set)
     via: set[str] = field(default_factory=set)  # direct providers through which it depends
+    #: Exit plan status of the affected ICT services (True/False per assessed service).
+    exit_plans: list[bool] = field(default_factory=list)
+
+    @property
+    def exit_plan(self) -> bool | None:
+        """True when every assessed affected service has an exit plan, None if none assessed."""
+        return all(self.exit_plans) if self.exit_plans else None
 
     @property
     def is_direct(self) -> bool:
@@ -60,6 +67,7 @@ def failure_impact(register: RegisterOfInformation, provider_code: str) -> Failu
     for e in register.b_05_02:
         if e.provider_code == provider_code and (e.rank or 0) > 1 and e.contract_ref:
             via_contract[e.contract_ref].add(e.recipient_code or "")
+    assessments = register.assessments_by_key()
     impacted: dict[tuple[str, str], ImpactedFunction] = {}
     affected_entities: set[str] = set()
     for s in register.b_02_02:
@@ -79,6 +87,9 @@ def failure_impact(register: RegisterOfInformation, provider_code: str) -> Failu
             item = impacted[key] = ImpactedFunction(fn, (ent.name if ent and ent.name
                                                          else s.entity_lei))
         affected_entities.add(s.entity_lei)
+        assessment = assessments.get((s.contract_ref, s.provider_code, s.service_type))
+        if assessment is not None and assessment.exit_plan is not None:
+            item.exit_plans.append(assessment.exit_plan)
         if direct:
             item.direct_contracts.add(s.contract_ref)
         if indirect:

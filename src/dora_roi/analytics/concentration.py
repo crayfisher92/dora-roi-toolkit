@@ -169,6 +169,7 @@ class ConcentrationAnalysis(BaseModel):
     substitutability_critical: list[Share] = Field(default_factory=list)
     expiring_critical: list[ExpiringContract] = Field(default_factory=list)
     key_findings: list[KeyFinding] = Field(default_factory=list)
+    notice_due_critical: int = 0
 
 
 # --------------------------------------------------------------------------- helpers
@@ -531,6 +532,11 @@ def analyse(register: RegisterOfInformation,
         substitutability_critical=substitutability,
         expiring_critical=expiring_list,
     )
+    from dora_roi.analytics.renewals import NoticeStatus, notice_schedule
+
+    analysis.notice_due_critical = sum(
+        1 for i in notice_schedule(register, ref)
+        if i.critical and i.status in (NoticeStatus.PASSED, NoticeStatus.DUE_90))
     analysis.key_findings = key_findings(analysis, cfg)
     return analysis
 
@@ -611,6 +617,13 @@ def key_findings(a: ConcentrationAnalysis, cfg: AnalyticsConfig) -> list[KeyFind
             detail=f"{len(hidden)} subcontractor(s) appear in two or more chains supporting "
             "critical functions; their failure would propagate through several direct "
             "providers."))
+    if a.notice_due_critical:
+        out.append(KeyFinding(
+            level=Level.HIGH,
+            title=f"{a.notice_due_critical} notice deadline(s) for arrangements supporting "
+            "critical functions fall within 90 days or have passed",
+            detail="Give notice (or decide to renew) before the deadline, otherwise the exit "
+            "or renegotiation slips by a full contract term."))
     if a.expiring_critical:
         soon = a.expiring_critical[0]
         out.append(KeyFinding(

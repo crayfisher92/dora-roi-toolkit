@@ -75,6 +75,11 @@ def render_markdown(report: ValidationReport, max_findings: int = 1000) -> str:
                       "JSON report._"]
     else:
         lines.append("_No findings._")
+    if report.accepted:
+        lines += ["", "## Accepted findings", "",
+                  "| Rule | Location | Message | Justification |", "|---|---|---|---|"]
+        lines += [f"| `{f.rule_id}` | {f.location} | {_md_escape(f.message)} | "
+                  f"{_md_escape(f.accepted_reason or '')} |" for f in report.accepted]
     if report.rule_failures:
         lines += ["", "## Rule failures", ""]
         lines += [f"- `{rf.rule_id}`: {rf.error}" for rf in report.rule_failures]

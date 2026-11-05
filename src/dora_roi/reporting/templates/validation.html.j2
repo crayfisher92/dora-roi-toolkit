@@ -105,6 +105,20 @@
 </table></div>
 {% if truncated %}<p class="muted small">Showing the first {{ findings | length }} of {{ report.findings | length }} findings. The JSON report contains all of them.</p>{% endif %}
 
+{% if report.accepted %}
+<h2>Accepted findings</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Rule</th><th>Location</th><th>Message</th><th>Justification</th></tr></thead>
+  <tbody>{% for f in report.accepted %}
+  <tr><td class="mono">{{ f.rule_id }}</td><td class="mono small">{{ f.location }}</td><td>{{ f.message }}</td><td>{{ f.accepted_reason }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% endif %}
+{% if report.rule_failures %}
+<div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
+  <div><strong>Validation incomplete.</strong> {{ report.rule_failures | length }} rule(s) failed to run:
+  {% for rf in report.rule_failures %}<span class="mono">{{ rf.rule_id }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</div></div>
+{% endif %}
+
 <h2>Rule reference</h2>
 <details><summary>Show descriptions of the rules that produced findings</summary>
 <div class="table-wrap"><table>

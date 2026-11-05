@@ -120,6 +120,8 @@ class Workspace:
         self.acceptances: dict[str, Acceptance] = {}
         self.visited: set[str] = set()
         self.import_notes: list[str] | None = None
+        #: Browser session that owns the workspace in the web app (``""`` elsewhere).
+        self.owner: str = ""
         self.lock = threading.RLock()
         self._derived: _Derived | None = None
         self._analysis: ConcentrationAnalysis | None = None
@@ -161,13 +163,21 @@ class Workspace:
         if not self.acceptances:
             return
         open_: list[Finding] = []
+        matched: set[str] = set()
         for f in report.findings:
-            acc = self.acceptances.get(finding_key(f))
+            key = finding_key(f)
+            acc = self.acceptances.get(key)
             if acc is not None and f.severity is not Severity.ERROR:
                 report.accepted.append(f.model_copy(update={"accepted_reason": acc.reason}))
+                matched.add(key)
             else:
                 open_.append(f)
         report.findings = open_
+        for key in set(self.acceptances) - matched:  # finding resolved or record changed
+            acc = self.acceptances.pop(key)
+            self.changes.append(Change("unaccept", "register", 0, None, None, None,
+                                       user=acc.user, note=f"{acc.rule_id}: acceptance "
+                                       "expired – finding no longer present"))
 
     def _invalidate(self) -> None:
         self._derived = None

@@ -1,6 +1,11 @@
 {% extends "base.html.j2" %}
 {% from "_macros.html.j2" import readiness_badge %}
-{% block title %}{% block page_title %}{% endblock %} · {{ ws.name }} · {{ t("app.name") }}{% endblock %}
+{% block title %}{% block page_title %}{% endblock %} · {{ ws.name }} · {{ t("app.name") }}{% if ws.report.rule_failures %}
+<div class="inner"><div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
+  <div>{{ t("ready.incomplete", n=ws.report.rule_failures | length) }}
+  <span class="small mono">{{ ws.report.rule_failures | map(attribute="rule_id") | join(", ") }}</span></div></div></div>
+{% endif %}
+{% endblock %}
 {% block subheader %}
 <div class="ws-header">
   <div class="inner">
@@ -35,6 +40,7 @@
       <li><a href="/w/{{ ws.id }}/fix" {% if path.endswith("/fix") %}aria-current="page"{% endif %}>{{ t("step.fix") }}</a></li>
       <li><a href="/w/{{ ws.id }}/register" {% if "/register" in path %}aria-current="page"{% endif %}>{{ t("ws.register") }}</a></li>
       <li><a href="/w/{{ ws.id }}/analyse" {% if path.endswith("/analyse") %}aria-current="page"{% endif %}>{{ t("step.analyse") }}</a></li>
+      <li><a href="/w/{{ ws.id }}/renewals" {% if path.endswith("/renewals") %}aria-current="page"{% endif %}>{{ t("ws.renewals") }}</a></li>
       <li><a href="/w/{{ ws.id }}/compare" {% if path.endswith("/compare") %}aria-current="page"{% endif %}>{{ t("ws.compare") }}</a></li>
       <li><a href="/w/{{ ws.id }}/export" {% if path.endswith("/export") %}aria-current="page"{% endif %}>{{ t("step.export") }}</a></li>
       <li><a href="/w/{{ ws.id }}/versions" {% if path.endswith("/versions") %}aria-current="page"{% endif %}>{{ t("ws.versions") }}</a></li>

@@ -56,7 +56,9 @@ def quality_score(report: ValidationReport, almost_threshold: int = 10) -> Quali
     score = math.floor(100 * (records - err - 0.5 * warn) / records)
     if register_level_error:
         score = min(score, 50)
-    if counts["error"] == 0:
+    if report.rule_failures:
+        readiness = Readiness.NOT_READY  # validation incomplete (B-19)
+    elif counts["error"] == 0:
         readiness = Readiness.READY
     elif counts["error"] <= almost_threshold:
         readiness = Readiness.ALMOST

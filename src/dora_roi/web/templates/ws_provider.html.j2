@@ -23,13 +23,14 @@
 <section aria-labelledby="h-pf"><h3 id="h-pf">{{ t("prov.impact.title") }}</h3>
   <p class="small muted">{{ t("prov.impact.lead") }}</p>
   <div class="table-wrap"><table><thead><tr><th scope="col">{{ t("prov.col.function") }}</th><th scope="col">{{ t("col.entity") }}</th><th scope="col">{{ t("prov.col.criticality") }}</th>
-    <th scope="col">{{ t("prov.col.dependency") }}</th><th scope="col" class="num">RTO (h)</th></tr></thead>
+    <th scope="col">{{ t("prov.col.dependency") }}</th><th scope="col">{{ t("prov.col.exit") }}</th><th scope="col" class="num">RTO (h)</th></tr></thead>
   <tbody>{% for it in p.impact.functions %}<tr><td><span class="mono small">{{ it.function.function_id }}</span> {{ it.function.function_name }}</td>
     <td class="small">{{ it.entity_name }}</td>
     <td>{% if it.function.is_critical %}<strong>◆ {{ it.function.criticality.label }}</strong>{% else %}{{ it.function.criticality.label if it.function.criticality else "—" }}{% endif %}</td>
     <td class="small">{% if it.is_direct %}{{ t("prov.dep.direct") }}{% endif %}{% if it.is_direct and it.via %} · {% endif %}{% if it.via %}{{ t("prov.dep.via") }} {{ it.via | sort | join(", ") }}{% endif %}</td>
+    <td>{% if it.exit_plan is none %}<span class="muted">—</span>{% elif it.exit_plan %}<span class="ok-mark">✓ {{ t("common.yes") }}</span>{% else %}<strong class="no-mark">✕ {{ t("common.no") }}</strong>{% endif %}</td>
     <td class="num">{{ it.function.rto_hours if it.function.rto_hours is not none else "—" }}</td></tr>
-  {% else %}<tr><td colspan="5" class="muted">—</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<tr><td colspan="6" class="muted">—</td></tr>{% endfor %}</tbody></table></div>
 </section>
 </div>
 <section aria-labelledby="h-chain"><h3 id="h-chain">{{ t("prov.chain") }}</h3>
