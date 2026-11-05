@@ -97,7 +97,7 @@ class ProvisionAssessment(BaseModel):
     evidence: str = Field(default="", max_length=MAX_TEXT)
     #: What the keyword heuristic proposed (kept for the audit trail), if it was used.
     suggested_status: ProvisionStatus | None = None
-    #: Approved, time-bound exception for a missing/partial provision (D-071): why, by whom,
+    #: Approved, time-bound exception for a missing/partial provision (D-072): why, by whom,
     #: until when. It does not make the clause present; it takes the gap out of the action
     #: list until the date passes.
     exception_reason: str = Field(default="", max_length=1000)

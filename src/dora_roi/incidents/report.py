@@ -206,7 +206,7 @@ def summary_markdown(ov: IncidentOverview, lang: str = "en") -> str:
 
 
 def render_summary_html(ov: IncidentOverview, *, lang: str = "en", client: str | None = None,
-                        timezone: str = "UTC") -> str:
+                        timezone: str = "UTC", prepared_by: str | None = None) -> str:
     tz = zone(timezone)
     ctx: dict[str, Any] = {
         "ov": ov, "t": translator(lang), "lang": lang, "client": client or "",
@@ -214,5 +214,6 @@ def render_summary_html(ov: IncidentOverview, *, lang: str = "en", client: str |
         "counted": COUNTED, "Criterion": Criterion,
         "local": lambda d: d.astimezone(tz).strftime("%Y-%m-%d %H:%M") if d else "—",
         "tzname": timezone, "humanise": lambda d: humanise(d, lang),
+        "prepared_by": prepared_by,
     }
     return environment().get_template("incidents.html.j2").render(**ctx)

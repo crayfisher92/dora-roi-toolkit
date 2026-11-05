@@ -63,7 +63,8 @@ from dora_roi.project import SUFFIX as PROJECT_SUFFIX
 from dora_roi.project import ProjectError, list_projects, load_project, save_project
 from dora_roi.reporting import render_html, render_json, render_markdown
 from dora_roi.reporting.executive import build_charts, money, pct, render_executive_summary
-from dora_roi.reporting.pdf import html_to_pdf, pdf_available
+from dora_roi.reporting.pdf import PdfBusyError, html_to_pdf, pdf_available
+from dora_roi.reporting.validation_report import render_xlsx
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
 from dora_roi.sample.programme import load_sample_programme
 from dora_roi.validation import RULES, Finding, finding_key
@@ -80,6 +81,16 @@ from dora_roi.web.security import (
 from dora_roi.web.views import display, provider_profile, stepper
 from dora_roi.workspace import DEFAULT_USER, EditError, Workspace
 
+#: download kinds → how they appear in the audit trail
+EXPORT_LABELS = {
+    "project": "Project file", "xlsx": "Excel workbook", "csv": "CSV files",
+    "xbrl": "xBRL-CSV package", "validation.html": "Validation report (HTML)",
+    "validation.md": "Validation report (Markdown)", "validation.json": "Validation report (JSON)",
+    "validation.pdf": "Validation report (PDF)", "validation.xlsx": "Findings (Excel)",
+    "executive.html": "Executive summary (HTML)",
+    "executive.pdf": "Executive summary (PDF)", "analysis.json": "Concentration analysis (JSON)",
+    "audit.csv": "Audit log (CSV)",
+}
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 MAX_WORKSPACES = 20
 PAGE_SIZE = 50
@@ -674,8 +685,21 @@ def create_app(capacity: int = MAX_WORKSPACES,
                        package_errors=package_errors)
 
     @app.get("/w/{wid}/download/{kind}")
-    def download(wid: str, kind: str) -> Response:
+    def download(request: Request, wid: str, kind: str) -> Response:
         ws = ws_or_404(wid)
+        if kind not in EXPORT_LABELS:
+            raise HTTPException(status_code=404)
+        user = user_of(request)
+        response = render_download(ws, kind, user, lang_of(request))
+        if kind == "xbrl" and ws.out_of_scope:  # the package is the submission view (D-079)
+            ws.record_export(f"{EXPORT_LABELS[kind]} without {len(ws.out_of_scope)} "
+                             "entit(y/ies) outside the DORA scope", user=user,
+                             report=ws.dora_report())
+        else:
+            ws.record_export(EXPORT_LABELS[kind], user=user)  # audit trail: who exported what
+        return response
+
+    def render_download(ws: Workspace, kind: str, user: str, lang: str) -> Response:
         stem = Path(ws.name).stem.replace(" ", "_") or "register"
         if kind == "project":
             with tempfile.TemporaryDirectory() as tmp:
@@ -706,21 +730,29 @@ def create_app(capacity: int = MAX_WORKSPACES,
         if kind == "validation.md":
             return _download(render_markdown(ws.report).encode(), f"{stem}-validation.md",
                              "text/markdown")
+        if kind == "validation.xlsx":
+            return _download(render_xlsx(ws.report, lang), f"{stem}-findings.xlsx", XLSX)
         if kind == "validation.json":
             return Response(render_json(ws.report), media_type="application/json")
         if kind == "executive.html":
             return HTMLResponse(render_executive_summary(ws.register, ws.report,
-                                                         analysis=ws.analysis))
+                                                         analysis=ws.analysis,
+                                                         prepared_by=user))
         if kind in ("executive.pdf", "validation.pdf"):
             if not pdf_available():
                 raise HTTPException(status_code=404, detail="PDF export is not installed")
             if kind == "executive.pdf":
                 html = render_executive_summary(ws.register, ws.report, analysis=ws.analysis,
-                                                pdf=True)
+                                                prepared_by=user, pdf=True)
             else:
                 html = render_html(ws.report, pdf=True)
             name = f"{stem}-{kind.replace('.pdf', '')}.pdf"
-            return _download(html_to_pdf(html), name, "application/pdf")
+            try:
+                data = html_to_pdf(html)
+            except PdfBusyError as exc:
+                raise HTTPException(status_code=503, detail=str(exc),
+                                    headers={"Retry-After": "10"}) from exc
+            return _download(data, name, "application/pdf")
         if kind == "analysis.json":
             return JSONResponse(ws.analysis.model_dump(mode="json"))
         if kind == "audit.csv":
@@ -839,9 +871,13 @@ def create_app(capacity: int = MAX_WORKSPACES,
     async def http_error(request: Request, exc: HTTPException) -> Response:
         if request.url.path.startswith("/api/") or \
                 "application/json" in request.headers.get("accept", ""):
-            return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
-        return render(request, "error.html.j2", status=exc.status_code, code=exc.status_code,
-                      detail=exc.detail)
+            response: Response = JSONResponse({"detail": exc.detail},
+                                              status_code=exc.status_code)
+        else:
+            response = render(request, "error.html.j2", status=exc.status_code,
+                              code=exc.status_code, detail=exc.detail)
+        response.headers.update(exc.headers or {})  # e.g. Retry-After, Allow
+        return response
 
     return app
 

@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import dataclasses
 from datetime import date
+from pathlib import Path
 
+from click.testing import CliRunner
 from fastapi.testclient import TestClient
 
 from dora_roi.analytics import analyse
 from dora_roi.analytics.impact import failure_impact
 from dora_roi.analytics.renewals import NoticeStatus, notice_schedule
+from dora_roi.cli import main
+from dora_roi.io.excel import write_workbook
 from dora_roi.quality import Readiness
 from dora_roi.reporting import render_html, render_markdown
 from dora_roi.sample import generate_sample, register_to_raw
@@ -131,3 +135,33 @@ def test_language_switch_keeps_query() -> None:
     url = c.post("/sample", data={"variant": "clean"}, follow_redirects=False).headers["location"]
     page = c.get(url + "/fix?template=B_01.02&severity=info").text
     assert "template=B_01.02&amp;severity=info&amp;lang=de" in page
+
+
+def test_findings_workbook_for_business_owners(tmp_path: Path) -> None:
+    """B-16: findings as a spreadsheet with explanation, regulation and tracking columns."""
+    from openpyxl import load_workbook
+
+    from dora_roi.reporting.validation_report import FINDINGS_XLSX_HEADER, render_xlsx
+    from dora_roi.workspace import Workspace
+
+    ws = Workspace("x", register_to_raw(generate_sample().source_register))
+    info = next(f for f in ws.report.findings if f.rule_id == "XRF-014")
+    ws.accept(info, "Holding outside scope")
+    path = tmp_path / "f.xlsx"
+    path.write_bytes(render_xlsx(ws.report, "de"))
+    wb = load_workbook(path)
+    sheet = wb["Findings"]
+    assert tuple(c.value for c in sheet[1]) == FINDINGS_XLSX_HEADER
+    rows = list(sheet.iter_rows(min_row=2, values_only=True))
+    assert len(rows) == len(ws.report.findings)
+    fld005 = next(r for r in rows if r[1] == "FLD-005")
+    assert fld005[0] == "error" and fld005[10] and "3166" in str(fld005[11])
+    assert sheet.auto_filter.ref and sheet.freeze_panes == "A2"
+    accepted = list(wb["Accepted"].iter_rows(min_row=2, values_only=True))
+    assert accepted[0][1] == "XRF-014" and accepted[0][-1] == "Holding outside scope"
+    xlsx = tmp_path / "s.xlsx"
+    write_workbook(generate_sample().source_register, xlsx)
+    res = CliRunner().invoke(main, ["validate", str(xlsx), "-f", "xlsx", "-o",
+                                    str(tmp_path / "v.xlsx"), "--fail-on", "never"])
+    assert res.exit_code == 0 and (tmp_path / "v.xlsx").read_bytes()[:2] == b"PK"
+    assert CliRunner().invoke(main, ["validate", str(xlsx), "-f", "xlsx"]).exit_code == 2

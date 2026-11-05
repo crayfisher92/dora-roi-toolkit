@@ -199,3 +199,27 @@ def test_cli_audit_log(tmp_path: Path) -> None:
     bad = tmp_path / "bad.roiproj"
     bad.write_text("x")
     assert CliRunner().invoke(main, ["audit-log", str(bad)]).exit_code == 2
+
+
+def test_exports_are_recorded_in_the_audit_trail(tmp_path: Path) -> None:
+    client = TestClient(create_app())
+    client.post("/user", data={"name": "Mia Auditor", "next": "/"})
+    url = client.post("/sample", data={"variant": "dirty"}, follow_redirects=False
+                      ).headers["location"]
+    assert client.get(url + "/download/xbrl").status_code == 200
+    assert client.get(url + "/download/nonsense").status_code == 404
+    page = client.get(url + "/audit").text
+    assert "Exported" in page and "xBRL-CSV package" in page and "27 error(s)" in page
+    assert "Mia Auditor" in page
+    csv_text = client.get(url + "/download/audit.csv").text
+    assert ",Mia Auditor,export,register," in csv_text
+    summary = client.get(url + "/download/executive.html").text
+    assert "by Mia Auditor" in summary  # prepared-by in the report header
+    # exports are not data changes: overview count, versions and raw_at are unaffected
+    overview = client.get(url).text
+    assert "0 changes" in overview
+    ws = next(iter(client.app.state.workspaces.values()))  # type: ignore[attr-defined]
+    assert ws.data_change_count() == 0 and ws.register_at(1).model_dump() == \
+        ws.register.model_dump()
+    back = load_project(save_project(ws, tmp_path / "x.roiproj"))
+    assert [c.kind for c in back.changes].count("export") >= 3

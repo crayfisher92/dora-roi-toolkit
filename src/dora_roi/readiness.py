@@ -1,7 +1,7 @@
 """DORA readiness of a client: register data quality, Art. 30 contract compliance, incident
 management and ICT concentration risk on one page (plus the Swiss/FINMA coverage).
 
-Each *pillar* gets a traffic light (D-064):
+Each *pillar* gets a traffic light (D-065):
 
 * **Register** (Art. 28(3)) – red with more than 10 validation errors, amber with 1–10;
 * **Contracts** (Art. 30) – red with high-priority gaps or fewer than half of the arrangements
@@ -39,7 +39,7 @@ from dora_roi.reporting.executive import build_charts, money, pct
 from dora_roi.validation import ValidationReport
 
 #: Open Art. 30 gaps on arrangements whose notice deadline falls within this window are
-#: flagged for renegotiation now (D-072).
+#: flagged for renegotiation now (D-073).
 RENEGOTIATION_WINDOW_DAYS = 180
 
 
@@ -149,7 +149,7 @@ def _contracts_pillar(t: Any, lang: str, pf: Portfolio, plan: RemediationPlan,
         worst = max(top, key=lambda x: (x[1], x[2]))
         lines.append(t("rd.c30.top_gap", provision=worst[0].title(lang),
                        n=worst[1] + worst[2]))
-    # contract lifecycle: renegotiate gaps before the notice deadline (D-072)
+    # contract lifecycle: renegotiate gaps before the notice deadline (D-073)
     open_gaps = {c.ref for c in pf.contracts if c.gaps}
     due = [n for n in notices if n.critical and n.status in (NoticeStatus.PASSED,
                                                               NoticeStatus.DUE_90)]
@@ -228,7 +228,7 @@ def _incidents_pillar(t: Any, ov: IncidentOverview, lang: str,
 
 def _concentration_pillar(t: Any, a: ConcentrationAnalysis, cfg: AnalyticsConfig,
                           actions: list[Action]) -> Pillar:
-    """Traffic light from the concentration metrics themselves (D-072): spend concentration,
+    """Traffic light from the concentration metrics themselves (D-073): spend concentration,
     groups supporting many critical functions, single-provider dependencies, exit plans,
     third-country groups and hidden (fourth-party) concentration – not from contract expiry
     or notice deadlines, which belong to the contracts pillar."""

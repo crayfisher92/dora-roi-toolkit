@@ -35,6 +35,11 @@ class Ui:
     def t(self, request: Request) -> Callable[..., str]:
         return translator(self.lang_of(request))
 
+    def audit_export(self, request: Request, ws: Workspace, what: str) -> None:
+        """Log a programme report or data export in the audit trail (as the base's exports,
+        B-30): who produced what, from which state of the register."""
+        ws.record_export(what, user=self.user_of(request))
+
 
 def download(data: bytes, filename: str, media_type: str) -> Response:
     """Attachment response with a safe ASCII file name."""

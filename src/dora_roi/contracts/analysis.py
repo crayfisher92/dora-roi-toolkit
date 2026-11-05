@@ -7,9 +7,9 @@ assessment book only says *what the contract contains*.
 
 Subsequent arrangements (B_02.01 c0020 = subsequent/associated, c0030 = overarching
 reference) inherit the items of their overarching arrangement unless they are assessed
-themselves – call-offs under a master agreement usually rely on its terms (D-049).
+themselves – call-offs under a master agreement usually rely on its terms (D-050).
 
-Remediation priority (D-050):
+Remediation priority (D-051):
 
 ========================  ===============  ===============
 status                    supports a CIF   does not
@@ -46,7 +46,7 @@ from dora_roi.model.types import INDEFINITE_END_DATE
 class ComplianceStatus(StrEnum):
     COMPLIANT = "compliant"
     GAPS = "gaps"
-    #: Every gap is covered by an approved, unexpired exception (D-071) – not compliant.
+    #: Every gap is covered by an approved, unexpired exception (D-072) – not compliant.
     EXCEPTION = "exception"
     INCOMPLETE = "incomplete"
     NOT_ASSESSED = "not_assessed"
@@ -68,7 +68,7 @@ class Priority(StrEnum):
         return {"high": 0, "medium": 1, "low": 2}[self.value]
 
 
-#: Days from the plan date to the suggested remediation target, per priority (D-050).
+#: Days from the plan date to the suggested remediation target, per priority (D-051).
 TARGET_DAYS = {Priority.HIGH: 90, Priority.MEDIUM: 180, Priority.LOW: 365}
 
 

@@ -19,9 +19,14 @@ anyway).
 from __future__ import annotations
 
 import importlib.util
+import os
+import threading
 from typing import Any, NoReturn
 
-__all__ = ["PdfUnavailableError", "html_to_pdf", "pdf_available"]
+__all__ = ["PdfBusyError", "PdfUnavailableError", "html_to_pdf", "pdf_available"]
+
+#: Concurrent PDF renders (each takes seconds of CPU and ~100 MB): ``ROI_MAX_PDF_JOBS``.
+_JOBS = threading.BoundedSemaphore(max(1, int(os.environ.get("ROI_MAX_PDF_JOBS", "2") or 2)))
 
 INSTALL_HINT = ('PDF export needs WeasyPrint: pip install "dora-roi-toolkit[pdf]" (and the Pango '
                 "library, see https://doc.courtbouillon.org/weasyprint/stable/first_steps.html), "
@@ -30,6 +35,10 @@ INSTALL_HINT = ('PDF export needs WeasyPrint: pip install "dora-roi-toolkit[pdf]
 
 class PdfUnavailableError(RuntimeError):
     """WeasyPrint (or the system libraries it needs) is not installed."""
+
+
+class PdfBusyError(RuntimeError):
+    """Too many PDFs are being rendered at the same time; try again shortly."""
 
 
 def _refuse(url: str, *args: Any, **kwargs: Any) -> NoReturn:
@@ -68,9 +77,19 @@ def _no_fetch(weasyprint: Any) -> Any:
     return NoFetch(allowed_protocols=(), fail_on_errors=False)
 
 
-def html_to_pdf(html: str) -> bytes:
-    """Render a self-contained HTML report to PDF bytes (title taken from ``<title>``)."""
+def html_to_pdf(html: str, *, wait: float = 60.0) -> bytes:
+    """Render a self-contained HTML report to PDF bytes (title taken from ``<title>``).
+
+    At most ``ROI_MAX_PDF_JOBS`` renders run at once; a caller waits up to ``wait`` seconds
+    for a slot and then gets :class:`PdfBusyError`.
+    """
     weasyprint = _weasyprint()
-    document = weasyprint.HTML(string=html, url_fetcher=_no_fetch(weasyprint), base_url=None)
-    pdf: bytes = document.write_pdf(presentational_hints=True)
+    if not _JOBS.acquire(timeout=wait):
+        raise PdfBusyError("the server is busy rendering other PDFs; please try again")
+    try:
+        document = weasyprint.HTML(string=html, url_fetcher=_no_fetch(weasyprint),
+                                   base_url=None)
+        pdf: bytes = document.write_pdf(presentational_hints=True)
+    finally:
+        _JOBS.release()
     return pdf

@@ -7,6 +7,7 @@ from enum import StrEnum
 
 from dora_roi.reporting.env import environment
 from dora_roi.validation import ValidationReport
+from dora_roi.validation.findings import RULES, Finding
 
 MAX_HTML_FINDINGS = 5000
 MAX_PDF_FINDINGS = 1000  # ~35 pages; rendering time grows with page count
@@ -100,6 +101,68 @@ def render_html(report: ValidationReport, *, pdf: bool = False) -> str:
         truncated=len(findings) > limit,
         pdf=pdf,
     )
+
+
+FINDINGS_XLSX_HEADER = ("Severity", "Rule", "Title", "Template", "Row", "Column", "Column label",
+                        "Record", "Value", "Message", "Why it matters", "Regulation",
+                        "Owner", "Status", "Comment")
+
+
+def render_xlsx(report: ValidationReport, lang: str = "en") -> bytes:
+    """Findings as a workbook to hand to business owners (one row per finding, with
+    explanation and regulation reference, plus empty Owner/Status/Comment columns for
+    tracking). Accepted findings are on a second sheet with their justification."""
+    import io
+
+    import xlsxwriter
+
+    from dora_roi.explain import explain, rule_title
+    from dora_roi.model import TEMPLATES_BY_CODE
+
+    def column_label(template: str | None, column: str | None) -> str:
+        model = TEMPLATES_BY_CODE.get(template or "")
+        spec = model.column_by_code(column) if model and column else None
+        return spec.label if spec else (column or "")
+
+    buf = io.BytesIO()
+    wb = xlsxwriter.Workbook(buf, {"in_memory": True, "strings_to_formulas": False,
+                                   "strings_to_numbers": False, "strings_to_urls": False})
+    head = wb.add_format({"bold": True, "bg_color": "#1C5CAB", "font_color": "#FFFFFF",
+                          "text_wrap": True, "valign": "top"})
+    wrap = wb.add_format({"text_wrap": True, "valign": "top"})
+    quoted = wb.add_format({"text_wrap": True, "valign": "top", "quote_prefix": True})
+
+    def sheet(name: str, findings: list[Finding], extra: str | None) -> None:
+        ws = wb.add_worksheet(name)
+        header = (*FINDINGS_XLSX_HEADER[:12], extra) if extra else FINDINGS_XLSX_HEADER
+        for c, h in enumerate(header):
+            ws.write_string(0, c, h, head)
+        for r, f in enumerate(findings, start=1):
+            rule = RULES.get(f.rule_id)
+            values: list[object] = [
+                f.severity.value, f.rule_id, rule_title(f.rule_id, lang), f.template or "",
+                f.row, f.column or "", column_label(f.template, f.column), f.record_key or "",
+                f.value or "", f.message, explain(f.rule_id, lang),
+                "; ".join(rule.references) if rule else ""]
+            if extra:
+                values.append(f.accepted_reason or "")
+            for c, v in enumerate(values):
+                if isinstance(v, int):
+                    ws.write_number(r, c, v)
+                elif v:
+                    text = str(v)
+                    ws.write_string(r, c, text, quoted if text[:1] in "=+-@\t\r" else wrap)
+        widths = (9, 9, 34, 9, 6, 8, 28, 30, 18, 50, 50, 28, 16, 12, 30)
+        for c, w in enumerate(widths[:len(header)]):
+            ws.set_column(c, c, w)
+        ws.freeze_panes(1, 0)
+        ws.autofilter(0, 0, max(len(findings), 1), len(header) - 1)
+
+    sheet("Findings", report.sorted_findings(), None)
+    if report.accepted:
+        sheet("Accepted", report.accepted, "Justification")
+    wb.close()
+    return buf.getvalue()
 
 
 def render_pdf(report: ValidationReport) -> bytes:

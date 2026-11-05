@@ -754,3 +754,48 @@ def test_p26_readiness_cli_scope(tmp_path: Path) -> None:
     res = CliRunner().invoke(main, ["readiness", str(src), "-o", str(out), "--exclude-entity",
                                     "3912RO6DCAXX71K9W972"])
     assert res.exit_code != 0 and "maintaining" in res.output
+
+
+# =========================================================================== after merge
+
+
+def test_p29_programme_exports_are_audited_and_signed() -> None:
+    client = TestClient(create_app())
+    client.post("/user", data={"name": "Lena", "next": "/"})
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    assert "Lena" in client.get(url + "/readiness.html").text
+    assert "Lena" in client.get(url + "/contracts/plan.html").text
+    assert "Lena" in client.get(url + "/incidents/summary.html").text
+    for path in ("/contracts/plan.xlsx", "/contracts/assessments.json",
+                 "/contracts/assessments.xlsx", "/incidents/summary.json",
+                 "/incidents/log.json"):
+        assert client.get(url + path).status_code == 200
+    audit = client.get(url + "/download/audit.csv").text
+    for label in ("DORA readiness report (HTML)", "Art. 30 remediation plan (HTML)",
+                  "Art. 30 remediation plan (Excel)", "Art. 30 assessments (JSON)",
+                  "Art. 30 assessments (Excel)", "Incident summary (HTML)",
+                  "Incident summary (JSON)", "Incident log (JSON)"):
+        assert label in audit, label
+    # the xBRL package export records the submission view
+    client.post(url + "/scope", data={"out": [SWISS_LIKE]})
+    client.get(url + "/download/xbrl")
+    audit = client.get(url + "/download/audit.csv").text
+    assert "xBRL-CSV package without 1 entit(y/ies) outside the DORA scope" in audit
+
+
+def test_p30_programme_pdfs_respect_the_pdf_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    from dora_roi.reporting.pdf import PdfBusyError
+    from dora_roi.web import programme_routes
+
+    def busy(html: str, **_: object) -> bytes:
+        raise PdfBusyError("the server is busy rendering other PDFs; please try again")
+
+    monkeypatch.setattr(programme_routes, "html_to_pdf", busy)
+    monkeypatch.setattr(programme_routes, "pdf_available", lambda: True)
+    client = TestClient(create_app())
+    url = client.post("/sample", data={"variant": "clean"},
+                      follow_redirects=False).headers["location"]
+    for path in ("/readiness.pdf", "/contracts/plan.pdf", "/incidents/summary.pdf"):
+        r = client.get(url + path)
+        assert r.status_code == 503 and r.headers["retry-after"] == "10", path

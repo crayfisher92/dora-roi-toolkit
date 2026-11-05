@@ -25,7 +25,7 @@
 
 ```
                     RegisterOfInformation (source of truth for providers, entities, functions)
-                                │ joined by key at evaluation time, never copied (D-048)
+                                │ joined by key at evaluation time, never copied (D-049)
         ┌───────────────────────┼─────────────────────────────┬─────────────────────────┐
         ▼                       ▼                             ▼                         ▼
  AssessmentBook          IncidentLog                   FINMA requirements        ConcentrationAnalysis
@@ -42,9 +42,9 @@
               Workbench screens (contracts, incidents, FINMA, dashboard) · CLI · HTML/Excel/JSON
 ```
 
-Assessments and incidents are workspace state (in memory, D-053) with their own JSON formats;
+Assessments and incidents are workspace state (in memory, D-054) with their own JSON formats;
 outcomes (compliance status, classification, deadlines, coverage, traffic lights) are always
-*derived* from them and the register, never stored (D-056).
+*derived* from them and the register, never stored (D-057).
 
 ## Packages
 

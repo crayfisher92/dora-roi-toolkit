@@ -199,34 +199,40 @@ def register(app: FastAPI, ui: Ui) -> None:
                                      ui.user_of(request))
         return RedirectResponse(f"/w/{wid}/incidents", status_code=303)
 
+    def summary_page(request: Request, ws: Workspace) -> str:
+        ov = overview(ws.incidents, ws.register, _now())
+        return render_summary_html(ov, lang=ui.lang_of(request),
+                                   client=ws.report.maintainer_name or ws.name,
+                                   timezone=ws.incidents.timezone,
+                                   prepared_by=ui.user_of(request))
+
     @app.get("/w/{wid}/incidents/summary.html", response_class=HTMLResponse)
     def summary_html(request: Request, wid: str) -> HTMLResponse:
         ws = ui.ws_or_404(wid)
-        ov = overview(ws.incidents, ws.register, _now())
-        return HTMLResponse(render_summary_html(ov, lang=ui.lang_of(request),
-                                                client=ws.report.maintainer_name or ws.name,
-                                                timezone=ws.incidents.timezone))
+        response = HTMLResponse(summary_page(request, ws))
+        ui.audit_export(request, ws, "Incident summary (HTML)")
+        return response
 
     @app.get("/w/{wid}/incidents/summary.pdf")
     def summary_pdf(request: Request, wid: str) -> Response:
         from dora_roi.web.programme_routes import pdf_response
 
         ws = ui.ws_or_404(wid)
-        ov = overview(ws.incidents, ws.register, _now())
-        html = render_summary_html(ov, lang=ui.lang_of(request),
-                                   client=ws.report.maintainer_name or ws.name,
-                                   timezone=ws.incidents.timezone)
-        return pdf_response(html, f"{stem(ws)}-incident-summary.pdf")
+        response = pdf_response(summary_page(request, ws), f"{stem(ws)}-incident-summary.pdf")
+        ui.audit_export(request, ws, "Incident summary (PDF)")
+        return response
 
     @app.get("/w/{wid}/incidents/summary.json")
-    def summary_json(wid: str) -> JSONResponse:
+    def summary_json(request: Request, wid: str) -> JSONResponse:
         ws = ui.ws_or_404(wid)
         ov = overview(ws.incidents, ws.register, _now())
+        ui.audit_export(request, ws, "Incident summary (JSON)")
         return JSONResponse(summary_dict(ov, ws.incidents.timezone))
 
     @app.get("/w/{wid}/incidents/log.json")
-    def log_json(wid: str) -> Response:
+    def log_json(request: Request, wid: str) -> Response:
         ws = ui.ws_or_404(wid)
+        ui.audit_export(request, ws, "Incident log (JSON)")
         return download(ws.incidents.to_json().encode(), f"{stem(ws)}-incident-log.json",
                         "application/json")
 

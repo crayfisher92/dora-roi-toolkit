@@ -14,7 +14,7 @@
 <header class="doc">
   <p class="eyebrow">DORA · Art. 17–19 · {{ t("inc.page_title") }}</p>
   <h1>{{ t("inc.summary.title") }}{% if client %} – {{ client }}{% endif %}</h1>
-  <p class="meta">{{ local(ov.now) }} ({{ tzname }}) · {{ t("inc.summary.counts", **ov.counts()) }}</p>
+  <p class="meta">{{ local(ov.now) }} ({{ tzname }}){% if prepared_by %} {{ t("g.prepared_by", name=prepared_by) }}{% endif %} · {{ t("inc.summary.counts", **ov.counts()) }}</p>
 </header>
 
 <h2 id="h-log">{{ t("inc.name") }}</h2>

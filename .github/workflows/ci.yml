@@ -131,6 +131,28 @@ jobs:
           path: docs/screenshots/
           retention-days: 7
 
+  package:
+    name: Package (wheel + sdist, install check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Install the wheel in a clean venv and run it
+        run: |
+          python -m venv /tmp/pkg
+          /tmp/pkg/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/pkg/bin/roi --version
+          /tmp/pkg/bin/roi sample s.xlsx
+          /tmp/pkg/bin/roi validate s.xlsx --fail-on never
+      - name: Changelog has notes for this version
+        run: python scripts/release_notes.py "$(python -c 'import sys; sys.path.insert(0, "src"); import dora_roi; print(dora_roi.__version__)')" > /dev/null
+
   docker:
     name: Docker image
     runs-on: ubuntu-latest
@@ -139,15 +161,4 @@ jobs:
       - name: Build
         run: docker build -t dora-roi-toolkit:ci .
       - name: Smoke test (read-only, no capabilities, non-root)
-        run: |
-          docker run -d --name roi -p 127.0.0.1:8000:8000 --read-only --tmpfs /tmp \
-            --cap-drop ALL --security-opt no-new-privileges:true dora-roi-toolkit:ci
-          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8000/api/health && break; sleep 1; done
-          curl -fsS -o /dev/null -X POST -d variant=dirty http://127.0.0.1:8000/sample -w "%{http_code}\n" | grep 303
-          test "$(docker exec roi whoami)" = "roi"
-          # PDF export works on the read-only root filesystem
-          ws=$(curl -fsS -c jar -b jar -o /dev/null -w "%{redirect_url}" -X POST -d variant=dirty \
-               http://127.0.0.1:8000/sample)
-          curl -fsS -b jar "$ws/download/executive.pdf" -o executive.pdf
-          head -c 5 executive.pdf | grep -q "%PDF-"
-          docker logs roi
+        run: scripts/docker_smoke.sh dora-roi-toolkit:ci

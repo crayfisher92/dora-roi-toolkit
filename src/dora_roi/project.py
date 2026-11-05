@@ -159,7 +159,7 @@ def _write(con: sqlite3.Connection, ws: Workspace) -> None:
         (a.key, a.rule_id, a.reason, a.user, a.at.isoformat())
         for a in ws.acceptances.values()))
     # DORA programme data (Art. 30 assessments, incident log) as their own JSON formats;
-    # an optional table, so files stay readable by toolkit versions without it (D-068)
+    # an optional table, so files stay readable by toolkit versions without it (D-069)
     con.executemany("INSERT INTO programme VALUES (?, ?)", (
         ("contracts", ws.contracts.to_json()), ("incidents", ws.incidents.to_json()),
         ("scope", json.dumps({"out_of_scope": sorted(ws.out_of_scope)}))))

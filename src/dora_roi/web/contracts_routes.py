@@ -93,20 +93,26 @@ def register(app: FastAPI, ui: Ui) -> None:
         return ui.ws_page(request, ws, "ws_checklist.html.j2", "programme",
                           provisions=PROVISIONS, Scope=Scope)
 
+    def plan_page(request: Request, ws: Workspace) -> str:
+        return render_plan_html(_plan(ws), lang=ui.lang_of(request),
+                                client=ws.report.maintainer_name or ws.name,
+                                prepared_by=ui.user_of(request))
+
     @app.get("/w/{wid}/contracts/plan.html", response_class=HTMLResponse)
     def plan_html(request: Request, wid: str) -> HTMLResponse:
         ws = ui.ws_or_404(wid)
-        return HTMLResponse(render_plan_html(_plan(ws), lang=ui.lang_of(request),
-                                             client=ws.report.maintainer_name or ws.name))
+        response = HTMLResponse(plan_page(request, ws))
+        ui.audit_export(request, ws, "Art. 30 remediation plan (HTML)")
+        return response
 
     @app.get("/w/{wid}/contracts/plan.pdf")
     def plan_pdf(request: Request, wid: str) -> Response:
         from dora_roi.web.programme_routes import pdf_response
 
         ws = ui.ws_or_404(wid)
-        html = render_plan_html(_plan(ws), lang=ui.lang_of(request),
-                                client=ws.report.maintainer_name or ws.name)
-        return pdf_response(html, f"{stem(ws)}-art30-remediation-plan.pdf")
+        response = pdf_response(plan_page(request, ws), f"{stem(ws)}-art30-remediation-plan.pdf")
+        ui.audit_export(request, ws, "Art. 30 remediation plan (PDF)")
+        return response
 
     @app.get("/w/{wid}/contracts/plan.xlsx")
     def plan_xlsx(request: Request, wid: str) -> Response:
@@ -115,17 +121,20 @@ def register(app: FastAPI, ui: Ui) -> None:
             data = write_plan_workbook(_plan(ws), Path(tmp) / "plan.xlsx",
                                        lang=ui.lang_of(request),
                                        client=ws.report.maintainer_name).read_bytes()
+        ui.audit_export(request, ws, "Art. 30 remediation plan (Excel)")
         return download(data, f"{stem(ws)}-art30-remediation-plan.xlsx", XLSX)
 
     @app.get("/w/{wid}/contracts/assessments.json")
-    def assessments_json(wid: str) -> Response:
+    def assessments_json(request: Request, wid: str) -> Response:
         ws = ui.ws_or_404(wid)
+        ui.audit_export(request, ws, "Art. 30 assessments (JSON)")
         return download(ws.contracts.to_json().encode(), f"{stem(ws)}-art30-assessments.json",
                         "application/json")
 
     @app.get("/w/{wid}/contracts/assessments.xlsx")
     def assessments_xlsx(request: Request, wid: str) -> Response:
         ws = ui.ws_or_404(wid)
+        ui.audit_export(request, ws, "Art. 30 assessments (Excel)")
         refs = {r: c.critical for r, c in contract_contexts(ws.register).items()}
         with tempfile.TemporaryDirectory() as tmp:
             data = write_assessment_workbook(ws.contracts, Path(tmp) / "a.xlsx", refs,
