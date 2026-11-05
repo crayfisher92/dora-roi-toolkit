@@ -1,0 +1,20 @@
+{% extends "ws_base.html.j2" %}
+{% block page_title %}{{ t("audit.title") }}{% endblock %}
+{% block content %}
+<h2>{{ t("audit.title") }}</h2>
+<p class="lead">{{ t("audit.lead") }}</p>
+<p><a class="btn" href="/w/{{ ws.id }}/download/audit.csv">{{ t("audit.export") }} (.csv)</a></p>
+{% if entries %}
+<div class="table-wrap"><table>
+  <caption class="visually-hidden">{{ t("audit.title") }}</caption>
+  <thead><tr><th scope="col">{{ t("audit.when") }}</th><th scope="col">{{ t("audit.who") }}</th><th scope="col">{{ t("audit.what") }}</th>
+    <th scope="col">{{ t("audit.where") }}</th><th scope="col">{{ t("cmp.old") }}</th><th scope="col">{{ t("cmp.new") }}</th></tr></thead>
+  <tbody>{% for ch in entries %}
+  <tr><td class="small mono">{{ ch.at.strftime("%Y-%m-%d %H:%M:%S") }}</td><td>{{ ch.user }}</td>
+    <td>{{ t("audit.kind." ~ ch.kind) }}{% if ch.note %}<div class="small muted">{{ ch.note }}</div>{% endif %}</td>
+    <td class="small"><span class="mono">{{ ch.template }}{% if ch.row %} · {{ ch.row }}{% endif %}{% if ch.column %} · {{ ch.column }}{% endif %}</span>
+      {% if ch.column %}<div class="muted">{{ column_label(ch.template, ch.column) }}</div>{% endif %}</td>
+    <td><del>{{ display(ch.old) or "—" }}</del></td><td><ins>{{ display(ch.new) or "—" }}</ins></td></tr>
+  {% endfor %}</tbody></table></div>
+{% else %}<p class="muted">{{ t("audit.none") }}</p>{% endif %}
+{% endblock %}

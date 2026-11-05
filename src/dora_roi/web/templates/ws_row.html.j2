@@ -1,0 +1,26 @@
+{% extends "ws_base.html.j2" %}
+{% from "_macros.html.j2" import field_input, severity_badge %}
+{% block page_title %}{{ template }} {{ t("reg.row") }} {{ raw_row.row }}{% endblock %}
+{% block content %}
+<p><a href="/w/{{ ws.id }}/register/{{ template }}">← {{ t("reg.back") }}</a></p>
+<h2>{{ template }} · {{ t("reg.row") }} {{ raw_row.row }} <span class="muted">{{ model.TITLE }}</span></h2>
+{% if request.query_params.get("saved") %}<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("fix.saved", errors=counts.error, warnings=counts.warning) }}</div></div>{% endif %}
+{% if findings %}
+<section class="card" aria-labelledby="h-rf"><h3 id="h-rf">{{ t("reg.issues") }}</h3>
+  <ul class="plain">{% for f in findings %}<li>{{ severity_badge(f.severity.value, t) }} <span class="mono small">{{ f.rule_id }}</span> {{ f.message }}<div class="small muted">{{ explain(f.rule_id) }}</div></li>{% endfor %}</ul>
+</section>
+{% endif %}
+<form method="post" class="form-grid row-form">
+  {% for spec in model.columns() %}{% set fid = "f-" ~ spec.code %}{% set f = by_column.get(spec.code) %}
+  <div class="field {% if f %}has-error{% endif %}">
+    <label for="{{ fid }}"><span class="mono small">{{ spec.code }}</span> {{ spec.label }}{% if spec.col.requirement.value == "M" %} <span class="req" aria-label="{{ t('reg.required') }}">*</span>{% endif %}</label>
+    {{ field_input(spec.code, display(raw_row.values.get(spec.code)), spec.label, fid, spec.col.kind.value, spec.col.codelist, describedby=(fid ~ "-e") if f or spec.col.condition else None) }}
+    {% if f or spec.col.condition %}<p id="{{ fid }}-e" class="small {{ 'field-error' if f else 'muted' }}">{% if f %}{{ f.message }}{% set sug = suggest(f) %}{% if sug %} – {{ t("fix.suggested") }}: <span class="mono">{{ sug.value }}</span>{% endif %}{% else %}{{ spec.col.condition }}{% endif %}</p>{% endif %}
+  </div>
+  {% endfor %}
+  <div class="row actions full"><button class="btn primary" type="submit">{{ t("reg.save_row") }}</button></div>
+</form>
+<details class="danger-zone"><summary>{{ t("reg.delete") }}</summary>
+  <form method="post"><p>{{ t("reg.delete.confirm") }}</p><button class="btn danger" type="submit" name="delete" value="1">{{ t("reg.delete") }}</button></form>
+</details>
+{% endblock %}

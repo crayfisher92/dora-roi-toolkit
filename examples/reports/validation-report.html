@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoI Validation Report</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #6f6d68;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --ord-1: #86b6ef;
+  --ord-2: #3987e5;
+  --ord-3: #1c5cab;
+  --ord-4: #0d366b;
+  --series-muted: #c3c2b7;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --accent-ink: #1c5cab;
+  --good-ink: #006300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --surface-2: #232321;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #a3a29b;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --ord-1: #184f95;
+    --ord-2: #2a78d6;
+    --ord-3: #5598e7;
+    --ord-4: #9ec5f4;
+    --series-muted: #4a4a46;
+    --accent-ink: #86b6ef;
+    --good-ink: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --surface-2: #232321;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted: #a3a29b;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --ord-1: #184f95;
+  --ord-2: #2a78d6;
+  --ord-3: #5598e7;
+  --ord-4: #9ec5f4;
+  --series-muted: #4a4a46;
+  --accent-ink: #86b6ef;
+  --good-ink: #0ca30c;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text-primary);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+header.doc { margin-bottom: 24px; }
+header.doc .eyebrow { color: var(--text-muted); font-size: 13px; text-transform: uppercase;
+  letter-spacing: .06em; margin: 0 0 4px; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; font-weight: 650; }
+h2 { font-size: 20px; margin: 40px 0 12px; font-weight: 620; }
+h3 { font-size: 16px; margin: 24px 0 8px; font-weight: 600; }
+p { margin: 0 0 12px; }
+.meta { color: var(--text-secondary); font-size: 14px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; }
+.grid { display: grid; gap: 16px; }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.tile .label { color: var(--text-secondary); font-size: 13px; }
+.tile .value { font-size: 30px; font-weight: 650; line-height: 1.15; margin-top: 4px; }
+.tile .sub { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+.banner { display: flex; gap: 12px; align-items: flex-start; border-radius: 10px; padding: 14px 18px;
+  border: 1px solid var(--border); background: var(--surface-1); margin: 16px 0; }
+.banner .icon { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+.banner.fail .icon { background: var(--status-critical); }
+.banner.pass .icon { background: var(--status-good); }
+.banner.warn .icon { background: var(--status-warning); color: #0b0b0b; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+  padding: 2px 8px 2px 6px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); white-space: nowrap; }
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.badge.error::before { background: var(--status-critical); }
+.badge.warning::before { background: var(--status-warning); }
+.badge.info::before { background: var(--series-muted); }
+.badge.error::after { content: ""; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-1); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--grid);
+  vertical-align: top; }
+th { color: var(--text-secondary); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0; }
+tr:last-child td { border-bottom: none; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.mono { white-space: nowrap; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px; }
+.muted { color: var(--text-muted); }
+.small { font-size: 13px; }
+details { margin: 8px 0; }
+details > summary { cursor: pointer; color: var(--text-secondary); font-size: 14px; }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--text-secondary); font-size: 12px; }
+.chart .value-label { fill: var(--text-primary); font-variant-numeric: tabular-nums; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .baseline { stroke: var(--axis); stroke-width: 1; }
+.chart .bar { fill: var(--series-1); }
+.chart .bar.alt { fill: var(--series-2); }
+.chart .bar.muted { fill: var(--series-muted); }
+.chart .hit:hover + .bar, .chart .bar:hover { opacity: .8; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px;
+  color: var(--text-secondary); margin: 4px 0 8px; }
+.legend .key { display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  margin-right: 6px; vertical-align: -1px; }
+.seg-bar { display: flex; gap: 2px; height: 22px; border-radius: 6px; overflow: hidden;
+  margin: 8px 0; }
+.seg-bar > span { display: block; height: 100%; min-width: 2px; }
+.callouts li { margin-bottom: 8px; }
+footer { margin-top: 48px; color: var(--text-muted); font-size: 12.5px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+.filter-row input, .filter-row select { font: inherit; font-size: 14px; padding: 6px 10px;
+  border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-primary); }
+@media print {
+  body { background: #fff; }
+  .card, .table-wrap { break-inside: avoid; }
+  .filter-row { display: none; }
+}</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA Register of Information · Validation report</p>
+  <h1>Alpenrand Bank (Europe) AG</h1>
+  <p class="meta">
+LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12-31 ·
+    Source alpenrand-sample.xlsx ·
+    Generated 2026-11-05 02:29 UTC ·
+    62 rules
+  </p>
+</header>
+
+<div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
+  <div><strong>Not ready for submission.</strong> 27 errors
+  must be resolved; 5 warnings should be reviewed.</div></div>
+
+<section class="grid tiles" aria-label="Summary">
+  <div class="card tile"><div class="label"><span class="badge error">Errors</span></div>
+    <div class="value">27</div><div class="sub">block submission</div></div>
+  <div class="card tile"><div class="label"><span class="badge warning">Warnings</span></div>
+    <div class="value">5</div><div class="sub">review recommended</div></div>
+  <div class="card tile"><div class="label"><span class="badge info">Info</span></div>
+    <div class="value">1</div><div class="sub">for awareness</div></div>
+  <div class="card tile"><div class="label">Records checked</div>
+    <div class="value">1,009</div>
+    <div class="sub">across 14 templates</div></div>
+</section>
+
+<h2>Findings by rule</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Rule</th><th>Severity</th><th>Title</th><th class="num">Findings</th><th>Supports</th></tr></thead>
+  <tbody>
+  <tr><td class="mono">BUS-002</td><td><span class="badge error">error</span></td>
+      <td>Termination reason missing for an ended arrangement</td><td class="num">2</td>
+      <td class="small muted">ITS Annex II; DORA Art. 28(7)</td></tr>
+  <tr><td class="mono">BUS-019</td><td><span class="badge error">error</span></td>
+      <td>No exit plan for an ICT service supporting a critical function</td><td class="num">2</td>
+      <td class="small muted">DORA Art. 28(8); DORA Art. 30(3)</td></tr>
+  <tr><td class="mono">SC-003</td><td><span class="badge error">error</span></td>
+      <td>Subcontracting chain does not resolve</td><td class="num">2</td>
+      <td class="small muted">DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II</td></tr>
+  <tr><td class="mono">XRF-003</td><td><span class="badge error">error</span></td>
+      <td>ICT third-party service provider not listed in B_05.01</td><td class="num">2</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3); DORA Art. 28(3)</td></tr>
+  <tr><td class="mono">XRF-013</td><td><span class="badge error">error</span></td>
+      <td>Assessment does not match any ICT service in B_02.02</td><td class="num">2</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3)</td></tr>
+  <tr><td class="mono">BUS-001</td><td><span class="badge error">error</span></td>
+      <td>End date before start date</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II</td></tr>
+  <tr><td class="mono">BUS-004</td><td><span class="badge error">error</span></td>
+      <td>Data storage location missing</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II; DORA Art. 30(2)</td></tr>
+  <tr><td class="mono">BUS-015</td><td><span class="badge error">error</span></td>
+      <td>Critical function lacks justification or recovery objectives</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II; DORA Art. 3(22); DORA Art. 28(4)</td></tr>
+  <tr><td class="mono">BUS-018</td><td><span class="badge error">error</span></td>
+      <td>ICT service supporting a critical function not assessed in B_07.01</td><td class="num">1</td>
+      <td class="small muted">DORA Art. 28(3); DORA Art. 29; ITS Annex I</td></tr>
+  <tr><td class="mono">BUS-020</td><td><span class="badge error">error</span></td>
+      <td>Reason for non-substitutability missing</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II; DORA Art. 29</td></tr>
+  <tr><td class="mono">FLD-001</td><td><span class="badge error">error</span></td>
+      <td>Mandatory value missing</td><td class="num">1</td>
+      <td class="small muted">DORA Art. 28(3); ITS Annex I; ITS Annex II</td></tr>
+  <tr><td class="mono">FLD-002</td><td><span class="badge error">error</span></td>
+      <td>Invalid LEI</td><td class="num">1</td>
+      <td class="small muted">ISO 17442; ITS Art. – identification</td></tr>
+  <tr><td class="mono">FLD-003</td><td><span class="badge error">error</span></td>
+      <td>Invalid date</td><td class="num">1</td>
+      <td class="small muted">ISO 8601; ITS Annex II</td></tr>
+  <tr><td class="mono">FLD-004</td><td><span class="badge error">error</span></td>
+      <td>Value not in code list</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II; ITS Annex III</td></tr>
+  <tr><td class="mono">FLD-005</td><td><span class="badge error">error</span></td>
+      <td>Invalid country code</td><td class="num">1</td>
+      <td class="small muted">ISO 3166-1; ITS Annex II; DORA Art. 30(2)</td></tr>
+  <tr><td class="mono">FLD-006</td><td><span class="badge error">error</span></td>
+      <td>Invalid currency code</td><td class="num">1</td>
+      <td class="small muted">ISO 4217; ITS Annex II</td></tr>
+  <tr><td class="mono">FLD-010</td><td><span class="badge error">error</span></td>
+      <td>Duplicate record key</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II; ITS Art. – consistency</td></tr>
+  <tr><td class="mono">FLD-013</td><td><span class="badge error">error</span></td>
+      <td>Provider code inconsistent with its code type</td><td class="num">1</td>
+      <td class="small muted">ISO 17442; ITS Art. – identification</td></tr>
+  <tr><td class="mono">SC-001</td><td><span class="badge error">error</span></td>
+      <td>Rank 1 provider is not the direct provider of the arrangement</td><td class="num">1</td>
+      <td class="small muted">DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II</td></tr>
+  <tr><td class="mono">XRF-001</td><td><span class="badge error">error</span></td>
+      <td>Contractual arrangement not defined in B_02.01</td><td class="num">1</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3)</td></tr>
+  <tr><td class="mono">XRF-004</td><td><span class="badge error">error</span></td>
+      <td>Function not identified in B_06.01</td><td class="num">1</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3); DORA Art. 28(3); DORA Art. 3(22)</td></tr>
+  <tr><td class="mono">XRF-006</td><td><span class="badge error">error</span></td>
+      <td>Contractual arrangement without specific information</td><td class="num">1</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3)</td></tr>
+  <tr><td class="mono">XRF-008</td><td><span class="badge warning">warning</span></td>
+      <td>Provider in B_02.02 not reported as signatory in B_03.02</td><td class="num">2</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3)</td></tr>
+  <tr><td class="mono">BUS-008</td><td><span class="badge warning">warning</span></td>
+      <td>Currency differs from the reporting currency</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II</td></tr>
+  <tr><td class="mono">BUS-016</td><td><span class="badge warning">warning</span></td>
+      <td>Criticality assessment not performed</td><td class="num">1</td>
+      <td class="small muted">DORA Art. 28(4); DORA Art. 3(22)</td></tr>
+  <tr><td class="mono">XRF-010</td><td><span class="badge warning">warning</span></td>
+      <td>Provider not used by any arrangement</td><td class="num">1</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3)</td></tr>
+  <tr><td class="mono">XRF-014</td><td><span class="badge info">info</span></td>
+      <td>Parent undertaking outside the register scope</td><td class="num">1</td>
+      <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3)</td></tr>
+  </tbody>
+</table></div>
+
+<h2>Findings by template</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Template</th><th class="num">Records</th><th class="num">Errors</th><th class="num">Warnings</th><th class="num">Info</th></tr></thead>
+  <tbody>
+  <tr><td class="mono">B_01.01</td><td class="num">1</td>
+      <td class="num">0</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_01.02</td><td class="num">3</td>
+      <td class="num">0</td><td class="num">0</td>
+      <td class="num">1</td></tr>
+  <tr><td class="mono">B_01.03</td><td class="num">2</td>
+      <td class="num">0</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_02.01</td><td class="num">121</td>
+      <td class="num">3</td><td class="num">1</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_02.02</td><td class="num">151</td>
+      <td class="num">13</td><td class="num">2</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_02.03</td><td class="num">0</td>
+      <td class="num">0</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_03.01</td><td class="num">120</td>
+      <td class="num">1</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_03.02</td><td class="num">118</td>
+      <td class="num">0</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_03.03</td><td class="num">0</td>
+      <td class="num">0</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_04.01</td><td class="num">144</td>
+      <td class="num">1</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_05.01</td><td class="num">46</td>
+      <td class="num">0</td><td class="num">1</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_05.02</td><td class="num">166</td>
+      <td class="num">3</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_06.01</td><td class="num">31</td>
+      <td class="num">1</td><td class="num">1</td>
+      <td class="num">0</td></tr>
+  <tr><td class="mono">B_07.01</td><td class="num">106</td>
+      <td class="num">5</td><td class="num">0</td>
+      <td class="num">0</td></tr>
+  </tbody>
+</table></div>
+
+<h2>All findings</h2>
+<div class="filter-row" id="filters" hidden>
+  <select id="sev" aria-label="Filter by severity">
+    <option value="">All severities</option><option value="error">Errors</option>
+    <option value="warning">Warnings</option><option value="info">Info</option>
+  </select>
+  <input id="q" type="search" placeholder="Filter by text, rule, template…" aria-label="Filter findings">
+  <span class="muted small" id="shown"></span>
+</div>
+<div class="table-wrap"><table id="findings">
+  <thead><tr><th>Severity</th><th>Rule</th><th>Location</th><th>Record</th><th>Message</th></tr></thead>
+  <tbody>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-006</td>
+    <td class="mono small">B_02.01 · r23 · c0040</td>
+    <td class="small">AR-LU-0020</td>
+    <td>c0040 &#39;Currency of the amount reported&#39;: &#39;EURO&#39; is not an active ISO 4217 currency code</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-010</td>
+    <td class="mono small">B_02.01 · r123</td>
+    <td class="small">CO-AT-0006</td>
+    <td>Duplicate key (contract_ref) = &#39;CO-AT-0006&#39; already reported in row 9</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">XRF-006</td>
+    <td class="mono small">B_02.01 · r124 · c0010</td>
+    <td class="small">AR-LU-9002</td>
+    <td>Contractual arrangement &#39;AR-LU-9002&#39; has no row in B_02.02</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-004</td>
+    <td class="mono small">B_02.02 · r4 · c0150</td>
+    <td class="small">MSA-DE-0001 | 3912RO6DCAXX71K9W972 | 5299XGE5RGK9SNVGG353 | F-DE-02 | S17</td>
+    <td>Data is stored but the location of data at rest is not reported</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">XRF-004</td>
+    <td class="mono small">B_02.02 · r7 · c0050</td>
+    <td class="small">CO-LU-0002 | 6354ZX2X914MZGYMMB68 | 5299XGE5RGK9SNVGG353 | F-LU-1 | S17</td>
+    <td>Function &#39;F-LU-1&#39; is not identified in B_06.01</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-018</td>
+    <td class="mono small">B_02.02 · r18 · c0010</td>
+    <td class="small">MSA-DE-0007 | 3912RO6DCAXX71K9W972 | 2138C2U0YRY1CYEQVJ54 | F-DE-06 | S17</td>
+    <td>&#39;MSA-DE-0007&#39; supports critical function &#39;F-DE-06&#39; but has no assessment in B_07.01</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-013</td>
+    <td class="mono small">B_02.02 · r38 · c0030</td>
+    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03</td>
+    <td>&#39;21381VQL0Y482P2BV900&#39; is typed as LEI but LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 56</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">XRF-003</td>
+    <td class="mono small">B_02.02 · r38 · c0030</td>
+    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03</td>
+    <td>Provider &#39;21381VQL0Y482P2BV900&#39; is not listed in B_05.01</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-003</td>
+    <td class="mono small">B_02.02 · r40 · c0080</td>
+    <td class="small">AR-AT-0021 | 8156AYQ5YUFTZEC92R45 | 21381VQL0Y482P2BV956 | F-AT-07 | S03</td>
+    <td>c0080 &#39;End date of the contractual arrangement&#39;: &#39;31/12/2027&#39; is not a valid ISO 8601 date (YYYY-MM-DD)</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-005</td>
+    <td class="mono small">B_02.02 · r54 · c0120</td>
+    <td class="small">AR-DE-0034 | 3912RO6DCAXX71K9W972 | 63540HLDS88ODR38X136 | F-DE-05 | S19</td>
+    <td>c0120 &#39;Country of the governing law of the contractual arrangement&#39;: &#39;UK&#39; is not an ISO 3166-1 alpha-2 country code (did you mean &#39;GB&#39;?)</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-004</td>
+    <td class="mono small">B_02.02 · r71 · c0060</td>
+    <td class="small">AR-LU-0050 | 6354ZX2X914MZGYMMB68 | 8945J54J0JEU0CJ1E554 | F-LU-07 | </td>
+    <td>c0060 &#39;Type of ICT services&#39;: &#39;S20&#39; is not a valid IctServiceType code (allowed: S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19)</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-001</td>
+    <td class="mono small">B_02.02 · r77 · c0120</td>
+    <td class="small">AR-AT-0056 | 8156AYQ5YUFTZEC92R45 | 7245TLYA2OZHE7KGQP74 | F-AT-05 | S19</td>
+    <td>Mandatory column c0120 &#39;Country of the governing law of the contractual arrangement&#39; is empty</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-001</td>
+    <td class="mono small">B_02.02 · r84 · c0080</td>
+    <td class="small">AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19</td>
+    <td>End date 2023-04-30 is before start date 2024-05-01</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-002</td>
+    <td class="mono small">B_02.02 · r84 · c0090</td>
+    <td class="small">AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19</td>
+    <td>Arrangement ended on 2023-04-30 but no termination reason is reported</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-002</td>
+    <td class="mono small">B_02.02 · r86 · c0090</td>
+    <td class="small">AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19</td>
+    <td>Arrangement ended on 2025-10-31 but no termination reason is reported</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">XRF-003</td>
+    <td class="mono small">B_02.02 · r154 · c0030</td>
+    <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10</td>
+    <td>Provider &#39;8156YII8DXJIQ6LZZ583&#39; is not listed in B_05.01</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">FLD-002</td>
+    <td class="mono small">B_03.01 · r11 · c0020</td>
+    <td class="small">CO-LU-0008 | </td>
+    <td>c0020 &#39;LEI of the entity signing the contractual arrangement&#39;: &#39;6354ZX2X914MZGYMMB99&#39; is not a valid LEI: LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 68</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">XRF-001</td>
+    <td class="mono small">B_04.01 · r147 · c0010</td>
+    <td class="small">AR-AT-0000 | 8156AYQ5YUFTZEC92R45 | </td>
+    <td>Contractual arrangement &#39;AR-AT-0000&#39; is not reported in B_02.01</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">SC-003</td>
+    <td class="mono small">B_05.02 · r6 · c0060</td>
+    <td class="small">MSA-DE-0001 | S17 | 5299KSAC8PGOY2WZG688 | 3 | 7245LHPDBFHF0V7L0532</td>
+    <td>In &#39;MSA-DE-0001&#39;, recipient &#39;7245LHPDBFHF0V7L0532&#39; of rank 3 subcontractor &#39;5299KSAC8PGOY2WZG688&#39; is not reported at rank 2</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">SC-001</td>
+    <td class="mono small">B_05.02 · r7 · c0030</td>
+    <td class="small">CO-LU-0002 | S17 | 6354222DLTFK714K9K18 | 1 | </td>
+    <td>Rank 1 provider &#39;6354222DLTFK714K9K18&#39; is not a direct provider of &#39;CO-LU-0002&#39; (expected one of: 5299XGE5RGK9SNVGG353)</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">SC-003</td>
+    <td class="mono small">B_05.02 · r8 · c0060</td>
+    <td class="small">CO-LU-0002 | S17 | 3912HE4IZZF3ZD1EDH65 | 2 | 5299XGE5RGK9SNVGG353</td>
+    <td>In &#39;CO-LU-0002&#39;, recipient &#39;5299XGE5RGK9SNVGG353&#39; of rank 2 subcontractor &#39;3912HE4IZZF3ZD1EDH65&#39; is not reported at rank 1</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-015</td>
+    <td class="mono small">B_06.01 · r22 · c0080</td>
+    <td class="small">F-LU-05 | 6354ZX2X914MZGYMMB68</td>
+    <td>Critical function &#39;F-LU-05&#39; is missing Recovery time objective of the function (hours)</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-019</td>
+    <td class="mono small">B_07.01 · r6 · c0080</td>
+    <td class="small">CO-AT-0003 | 5299XGE5RGK9SNVGG353 | S17</td>
+    <td>&#39;CO-AT-0003&#39; supports critical function &#39;F-AT-01&#39; but has no exit plan</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-019</td>
+    <td class="mono small">B_07.01 · r7 · c0080</td>
+    <td class="small">MSA-DE-0004 | 5299XGE5RGK9SNVGG353 | S18</td>
+    <td>&#39;MSA-DE-0004&#39; supports critical function &#39;F-DE-03&#39; but has no exit plan</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">XRF-013</td>
+    <td class="mono small">B_07.01 · r20 · c0010</td>
+    <td class="small">AR-DE-0019 | 21381VQL0Y482P2BV956 | S03</td>
+    <td>No B_02.02 row for arrangement &#39;AR-DE-0019&#39;, provider &#39;21381VQL0Y482P2BV956&#39;, service S03</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">BUS-020</td>
+    <td class="mono small">B_07.01 · r22 · c0060</td>
+    <td class="small">AR-DE-0022 | 81567Y1C50614Y00S578 | S13</td>
+    <td>Substitutability is &#39;Not substitutable&#39; but no reason is given</td>
+  </tr>
+  <tr data-sev="error">
+    <td><span class="badge error">error</span></td>
+    <td class="mono">XRF-013</td>
+    <td class="mono small">B_07.01 · r50 · c0010</td>
+    <td class="small">AR-LU-0050 | 8945J54J0JEU0CJ1E554 | S19</td>
+    <td>No B_02.02 row for arrangement &#39;AR-LU-0050&#39;, provider &#39;8945J54J0JEU0CJ1E554&#39;, service S19</td>
+  </tr>
+  <tr data-sev="warning">
+    <td><span class="badge warning">warning</span></td>
+    <td class="mono">BUS-008</td>
+    <td class="mono small">B_02.01 · r19 · c0040</td>
+    <td class="small">AR-LU-0016</td>
+    <td>Amount reported in CHF, reporting currency is EUR</td>
+  </tr>
+  <tr data-sev="warning">
+    <td><span class="badge warning">warning</span></td>
+    <td class="mono">XRF-008</td>
+    <td class="mono small">B_02.02 · r38 · c0030</td>
+    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03</td>
+    <td>Provider &#39;21381VQL0Y482P2BV900&#39; of &#39;AR-DE-0019&#39; is not reported in B_03.02</td>
+  </tr>
+  <tr data-sev="warning">
+    <td><span class="badge warning">warning</span></td>
+    <td class="mono">XRF-008</td>
+    <td class="mono small">B_02.02 · r154 · c0030</td>
+    <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10</td>
+    <td>Provider &#39;8156YII8DXJIQ6LZZ583&#39; of &#39;AR-DE-9001&#39; is not reported in B_03.02</td>
+  </tr>
+  <tr data-sev="warning">
+    <td><span class="badge warning">warning</span></td>
+    <td class="mono">XRF-010</td>
+    <td class="mono small">B_05.01 · r49 · c0010</td>
+    <td class="small">2138QO7IUC1RRV1FDZ58</td>
+    <td>Provider &#39;2138QO7IUC1RRV1FDZ58&#39; (Legacy Mainframe Services GmbH) is not referenced by any arrangement or supply chain</td>
+  </tr>
+  <tr data-sev="warning">
+    <td><span class="badge warning">warning</span></td>
+    <td class="mono">BUS-016</td>
+    <td class="mono small">B_06.01 · r33 · c0050</td>
+    <td class="small">F-AT-06 | 8156AYQ5YUFTZEC92R45</td>
+    <td>Function &#39;F-AT-06&#39; has not been assessed</td>
+  </tr>
+  <tr data-sev="info">
+    <td><span class="badge info">info</span></td>
+    <td class="mono">XRF-014</td>
+    <td class="mono small">B_01.02 · r4 · c0060</td>
+    <td class="small">3912RO6DCAXX71K9W972</td>
+    <td>Parent &#39;5299NRPC2H5F3BPYBP79&#39; of Alpenrand Bank (Europe) AG is not listed in B_01.02</td>
+  </tr>
+  </tbody>
+</table></div>
+
+<h2>Rule reference</h2>
+<details><summary>Show descriptions of the rules that produced findings</summary>
+<div class="table-wrap"><table>
+  <thead><tr><th>Rule</th><th>Description</th></tr></thead>
+  <tbody>
+  <tr><td class="mono">BUS-002</td><td>When the arrangement ended on or before the reference date, the reason of termination or ending (c0090) must be reported.</td></tr>
+  <tr><td class="mono">BUS-019</td><td>Financial entities must have exit strategies for ICT services supporting critical or important functions; B_07.01 c0080 must be true.</td></tr>
+  <tr><td class="mono">SC-003</td><td>The recipient of a rank n subcontractor must appear as provider at rank n-1 of the same arrangement and service type; otherwise the chain is broken (missing link).</td></tr>
+  <tr><td class="mono">XRF-003</td><td>Every provider (direct provider, signatory, subcontractor or recipient of subcontracted services) must be described in B_05.01.</td></tr>
+  <tr><td class="mono">XRF-013</td><td>Each B_07.01 row (arrangement, provider, service type) must correspond to an ICT service reported in B_02.02.</td></tr>
+  <tr><td class="mono">BUS-001</td><td>The end date of a contractual arrangement cannot precede its start date.</td></tr>
+  <tr><td class="mono">BUS-004</td><td>When the ICT service includes storage of data (c0140 = true), the country of the data at rest (c0150) must be reported.</td></tr>
+  <tr><td class="mono">BUS-015</td><td>For critical or important functions the reasons for criticality (c0060), RTO (c0080) and RPO (c0090) must be reported.</td></tr>
+  <tr><td class="mono">BUS-018</td><td>Each ICT service supporting a critical or important function must have an assessment (substitutability, exit plan, reintegration) in B_07.01.</td></tr>
+  <tr><td class="mono">BUS-020</td><td>When the provider is not substitutable or highly complex to substitute, the reason (c0060) must be given.</td></tr>
+  <tr><td class="mono">FLD-001</td><td>Every column flagged mandatory (M) in the ITS must be reported for each row.</td></tr>
+  <tr><td class="mono">FLD-002</td><td>LEI must be 20 alphanumeric characters with valid MOD 97-10 check digits.</td></tr>
+  <tr><td class="mono">FLD-003</td><td>Dates must be valid calendar dates in ISO 8601 format YYYY-MM-DD.</td></tr>
+  <tr><td class="mono">FLD-004</td><td>Closed-list columns only accept the values defined by the ITS.</td></tr>
+  <tr><td class="mono">FLD-005</td><td>Countries must be ISO 3166-1 alpha-2 codes (e.g. GB, not UK).</td></tr>
+  <tr><td class="mono">FLD-006</td><td>Currencies must be active ISO 4217 alphabetic codes.</td></tr>
+  <tr><td class="mono">FLD-010</td><td>Each template has a primary key (e.g. the contractual arrangement reference number in B_02.01); the same key must not be reported twice.</td></tr>
+  <tr><td class="mono">FLD-013</td><td>When the type of code is LEI the identification code must be a valid LEI; when it is EUID it must start with an ISO country code followed by the register identifier.</td></tr>
+  <tr><td class="mono">SC-001</td><td>The rank 1 entry of a supply chain must be the ICT third-party service provider that provides the service under the arrangement (as reported in B_02.02).</td></tr>
+  <tr><td class="mono">XRF-001</td><td>Every contractual arrangement reference number used in another template must be reported in B_02.01.</td></tr>
+  <tr><td class="mono">XRF-004</td><td>Each function supported by an ICT service in B_02.02 must be identified and assessed for criticality in B_06.01.</td></tr>
+  <tr><td class="mono">XRF-006</td><td>Every arrangement in B_02.01 must be described by at least one row in B_02.02 (entity, provider, function and service type).</td></tr>
+  <tr><td class="mono">XRF-008</td><td>The ICT third-party service provider of an arrangement is expected to be reported as signatory of that arrangement in B_03.02.</td></tr>
+  <tr><td class="mono">BUS-008</td><td>Amounts are expected in the reporting currency of the entity maintaining the register so that they can be aggregated.</td></tr>
+  <tr><td class="mono">BUS-016</td><td>Every function supported by ICT third-party services should be assessed for criticality or importance.</td></tr>
+  <tr><td class="mono">XRF-010</td><td>A provider in B_05.01 that is neither a direct provider (B_02.02) nor part of a supply chain (B_05.02) or ultimate parent is probably stale.</td></tr>
+  <tr><td class="mono">XRF-014</td><td>The direct parent LEI is not itself listed in B_01.02. This is legitimate when the parent is outside the scope (e.g. a third-country holding) but should be confirmed.</td></tr>
+  </tbody>
+</table></div>
+</details>
+
+<footer>
+  Generated by dora-roi-toolkit 0.1.0. Not an official EBA/ESA tool and not
+  legal advice; rule interpretations are documented in docs/ASSUMPTIONS.md.
+</footer>
+</main>
+<script>
+(function () {
+  var f = document.getElementById("filters"); f.hidden = false;
+  var sev = document.getElementById("sev"), q = document.getElementById("q");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#findings tbody tr"));
+  var shown = document.getElementById("shown");
+  function apply() {
+    var s = sev.value, t = q.value.toLowerCase(), n = 0;
+    rows.forEach(function (r) {
+      var ok = (!s || r.dataset.sev === s) && (!t || r.textContent.toLowerCase().indexOf(t) >= 0);
+      r.hidden = !ok; if (ok) n++;
+    });
+    shown.textContent = n + " of " + rows.length + " shown";
+  }
+  sev.addEventListener("change", apply); q.addEventListener("input", apply); apply();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "ws_base.html.j2" %}
+{% block page_title %}{{ t("ren.title") }}{% endblock %}
+{% block content %}
+<h2>{{ t("ren.title") }}</h2>
+<p class="lead">{{ t("ren.lead") }}</p>
+<form method="get" class="filter-row">
+  <label class="check"><input type="checkbox" name="critical" value="1" {% if critical %}checked{% endif %}> {{ t("ren.critical_only") }}</label>
+  <button class="btn" type="submit">{{ t("fix.filter.apply") }}</button>
+  <span class="muted small" aria-live="polite">{{ t("reg.rows", n=items | length) }}</span>
+</form>
+{% if items %}
+<div class="table-wrap"><table>
+  <caption class="visually-hidden">{{ t("ren.title") }}</caption>
+  <thead><tr><th scope="col">{{ t("ren.deadline") }}</th><th scope="col">{{ t("ren.status") }}</th><th scope="col">{{ t("an.arrangement") }}</th>
+    <th scope="col">{{ t("prov.title") }}</th><th scope="col">{{ t("ren.end") }}</th><th scope="col" class="num">{{ t("ren.notice") }}</th><th scope="col">{{ t("prov.col.function") }}</th></tr></thead>
+  <tbody>{% for i in items %}
+  <tr><td class="mono">{{ i.deadline }}</td>
+    <td><span class="ren ren-{{ i.status.value }}">{{ t("ren.s." ~ i.status.value, n=i.days_to_deadline, m=-i.days_to_deadline) }}</span></td>
+    <td class="mono">{{ i.contract_ref }}</td>
+    <td>{% if i.provider_code %}<a href="/w/{{ ws.id }}/provider/{{ i.provider_code }}">{{ i.provider }}</a>{% else %}{{ i.provider }}{% endif %}<div class="small muted">{{ i.entities | join(", ") }}</div></td>
+    <td class="mono">{{ i.end_date }}</td><td class="num">{{ i.notice_days if i.notice_days is not none else "—" }}</td>
+    <td class="small">{% if i.critical %}<strong>◆</strong> {% endif %}{{ i.functions | join(", ") }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% else %}<p class="muted">{{ t("ren.none") }}</p>{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+# One-command local run for consultants:  docker compose up --build
+# The app keeps all data in memory; nothing is written to disk and nothing leaves the machine.
+services:
+  workbench:
+    build: .
+    image: dora-roi-toolkit:latest
+    container_name: dora-roi-workbench
+    ports:
+      - "127.0.0.1:8000:8000"   # localhost only – do not expose without authentication
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    # Optional: keep several client registers as project files (autosaved). Uncomment both
+    # lines; the volume then holds confidential client data – protect it accordingly.
+    # environment: { ROI_PROJECTS_DIR: /data }
+    # volumes: [ "roi-projects:/data" ]
+# volumes: { roi-projects: {} }

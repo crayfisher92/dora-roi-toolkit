@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICT Concentration Summary</title>
+<style>
+{% include "_style.css.j2" %}
+.kf { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.kf li { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+.kf .lvl { flex: none; font-size: 12px; font-weight: 650; padding: 2px 8px 2px 6px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface-2); display: inline-flex; gap: 6px;
+  align-items: center; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+.kf .lvl::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.kf .high::before { background: var(--status-critical); }
+.kf .medium::before { background: var(--status-warning); }
+.kf .low::before { background: var(--status-good); }
+.kf strong { display: block; }
+.flag { font-weight: 600; }
+.yes::before { content: "● "; color: var(--status-critical); }
+.ok::before { content: "● "; color: var(--status-good); }
+.section-lead { color: var(--text-secondary); max-width: 72ch; }
+</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA · ICT third-party concentration risk · Executive summary</p>
+  <h1>{{ client }}</h1>
+  <p class="meta">Register reference date {{ a.reference_date }} ·
+    {{ a.totals.entities }} entit{{ "y" if a.totals.entities == 1 else "ies" }} in scope ·
+    Prepared {{ generated.strftime("%d %B %Y") }}{% if prepared_by %} by {{ prepared_by }}{% endif %}</p>
+</header>
+
+<section class="grid tiles" aria-label="Headline figures">
+  <div class="card tile"><div class="label">Annual ICT third-party spend</div>
+    <div class="value">{{ money(a.total_spend, a.reporting_currency) }}</div>
+    <div class="sub">{{ a.totals.contracts }} arrangements</div></div>
+  <div class="card tile"><div class="label">ICT third-party providers</div>
+    <div class="value">{{ a.totals.direct_providers }}</div>
+    <div class="sub">{{ a.totals.provider_groups }} groups · {{ a.totals.subcontractors }} subcontractors</div></div>
+  <div class="card tile"><div class="label">Critical or important functions</div>
+    <div class="value">{{ a.totals.critical_functions }}</div>
+    <div class="sub">of {{ a.totals.functions }} functions</div></div>
+  <div class="card tile"><div class="label">Largest provider group</div>
+    <div class="value">{{ pct(a.top1_share) }}</div>
+    <div class="sub">of spend · HHI {{ "{:,.0f}".format(a.hhi) }} ({{ a.hhi_band }})</div></div>
+  <div class="card tile"><div class="label">Exit plan coverage</div>
+    <div class="value">{{ pct(a.totals.exit_plan_coverage) }}</div>
+    <div class="sub">of {{ a.totals.critical_services }} critical ICT services</div></div>
+  {% if validation %}
+  {% set vc = validation.severity_counts() %}
+  <div class="card tile"><div class="label">Register data quality</div>
+    <div class="value">{{ vc.error }}</div>
+    <div class="sub"><span class="badge {{ 'error' if vc.error else 'info' }}">{{ "errors" if vc.error != 1 else "error" }}</span> · {{ vc.warning }} warnings</div></div>
+  {% endif %}
+</section>
+
+<h2>Key messages</h2>
+<ul class="kf">
+{% for k in a.key_findings %}
+  <li><span class="lvl {{ k.level.value }}">{{ k.level.value }}</span>
+    <div><strong>{{ k.title }}</strong><span class="muted">{{ k.detail }}</span></div></li>
+{% endfor %}
+</ul>
+
+<h2>1. Provider concentration</h2>
+<p class="section-lead">Annual spend under ICT arrangements aggregated by ultimate parent undertaking, so that
+all legal entities of a hyperscaler count as one exposure (DORA Art. 29).</p>
+<div class="grid two">
+  <div class="card"><h3>Share of spend – top {{ [cfg.top_n, a.groups | length] | min }} provider groups</h3>
+    {{ charts.groups }}</div>
+  <div class="card"><h3>Critical functions depending on each provider group (incl. subcontracting)</h3>
+    {{ charts.cif }}</div>
+</div>
+<details{% if pdf %} open{% endif %}><summary>Table: provider groups</summary>
+<div class="table-wrap"><table>
+  <thead><tr><th>Provider group</th><th>HQ</th><th class="num">Spend</th><th class="num">Share</th>
+    <th class="num">Arrangements</th><th class="num">Critical functions (direct)</th><th class="num">Critical functions (incl. subcontracting)</th><th class="num">Indirect arrangements (as subcontractor)</th><th>Legal entities</th></tr></thead>
+  <tbody>
+  {% set shown_groups = a.groups[:pdf_group_limit] if pdf else a.groups %}
+  {% for g in shown_groups %}
+  <tr><td>{{ g.group_name }}</td><td>{{ g.hq_country or "—" }}</td><td class="num">{{ money(g.spend, a.reporting_currency) }}</td>
+    <td class="num">{{ pct(g.spend_share) }}</td><td class="num">{{ g.contracts }}</td>
+    <td class="num">{{ g.critical_functions }}</td><td class="num">{{ g.critical_functions_incl_indirect }}</td><td class="num">{{ g.indirect_contracts }}</td>
+    <td class="small">{{ g.providers | join(", ") }}</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+{% if shown_groups | length < a.groups | length %}<p class="small muted">Top {{ shown_groups | length }} of {{ a.groups | length }} provider groups by spend; the HTML report and the analysis JSON list all of them.</p>{% endif %}
+</details>
+
+<h2>2. Critical or important functions</h2>
+<p class="section-lead">{{ single_cif | length }} of {{ a.critical_functions | length }} critical functions depend on a single provider group.
+Functions combining single-provider dependency with poor substitutability are the priority for exit planning (DORA Art. 28(8)).</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Function</th><th>Entity</th><th>Provider group(s)</th><th>Single provider</th>
+    <th>Hard to substitute</th><th class="num">Exit plan coverage</th><th class="num">Max chain rank</th><th>Data regions</th></tr></thead>
+  <tbody>
+  {% for f in a.critical_functions %}
+  <tr><td><span class="mono small">{{ f.function_id }}</span> {{ f.function_name }}</td><td class="small">{{ f.entity_name }}</td>
+    <td class="small">{{ f.provider_groups[:6] | join(", ") or "—" }}{% if f.provider_groups | length > 6 %} and {{ f.provider_groups | length - 6 }} more{% endif %}</td>
+    <td class="flag {{ 'yes' if f.single_provider else 'ok' }}">{{ "Yes" if f.single_provider else "No" }}</td>
+    <td class="flag {{ 'yes' if f.hard_to_substitute else 'ok' }}">{{ "Yes" if f.hard_to_substitute else "No" }}</td>
+    <td class="num">{{ pct(f.exit_plan_coverage) }}</td><td class="num">{{ f.max_chain_rank or "—" }}</td>
+    <td class="small">{{ f.data_regions | join(", ") or "—" }}</td></tr>
+  {% endfor %}
+  </tbody></table></div>
+
+<h2>3. Geographic concentration</h2>
+<div class="grid two">
+  <div class="card"><h3>Spend by headquarters region of the contracting provider</h3>{{ charts.regions }}
+    <h3>… and of its ultimate parent group</h3>{{ charts.group_regions }}
+    <h3>Top headquarters countries</h3>{{ charts.countries }}</div>
+  <div class="card"><h3>Where data supporting critical functions is stored</h3>
+    <div class="table-wrap"><table><thead><tr><th>Country</th><th class="num">Services</th><th class="num">Share</th></tr></thead><tbody>
+    {% for d in a.data_locations_critical %}
+    <tr><td>{{ d.label }}</td><td class="num">{{ d.count }}</td><td class="num">{{ pct(d.share) }}</td></tr>
+    {% else %}<tr><td colspan="3" class="muted">No data storage reported.</td></tr>{% endfor %}
+    </tbody></table></div>
+    <h3>Countries of service provision</h3>
+    <div class="table-wrap"><table><thead><tr><th>Country</th><th class="num">Services</th><th class="num">Share</th></tr></thead><tbody>
+    {% for d in a.service_countries[:8] %}
+    <tr><td>{{ d.label }}</td><td class="num">{{ d.count }}</td><td class="num">{{ pct(d.share) }}</td></tr>
+    {% endfor %}
+    </tbody></table></div>
+  </div>
+</div>
+
+<h2>4. Subcontracting chains</h2>
+<p class="section-lead">Deepest reported rank per arrangement (B_05.02) and the subcontractors that recur across chains –
+a source of concentration that is invisible when looking at direct providers only.</p>
+<div class="grid two">
+  <div class="card"><h3>Arrangements by chain depth</h3>{{ charts.depth }}</div>
+  <div class="card"><h3>Most frequent subcontractors (fourth parties)</h3>{{ charts.subcontractors }}</div>
+</div>
+
+<h2>5. Exit readiness and substitutability</h2>
+<div class="card"><h3>Substitutability of ICT services supporting critical functions</h3>
+  {{ charts.substitutability }}
+  <p class="small muted">Darker = harder to substitute. {{ a.totals.critical_services_with_exit_plan }} of {{ a.totals.critical_services }}
+  services supporting critical functions have a documented exit plan.</p></div>
+{% if a.expiring_critical %}
+<h3>Arrangements supporting critical functions expiring within {{ cfg.expiry_horizon_days }} days</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arrangement</th><th>Provider</th><th>End date</th><th class="num">Days left</th><th>Functions</th></tr></thead>
+  <tbody>{% for e in a.expiring_critical[:25] %}
+  <tr><td class="mono">{{ e.contract_ref }}</td><td>{{ e.provider }}</td><td>{{ e.end_date }}</td>
+    <td class="num">{{ e.days_left }}</td><td class="small">{{ e.functions | join(", ") }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% if a.expiring_critical | length > 25 %}<p class="small muted">The 25 soonest of {{ a.expiring_critical | length }} arrangements; the full schedule is on the workbench's Renewals page and in the analysis JSON.</p>{% endif %}
+{% endif %}
+
+<h2>6. ICT service mix</h2>
+<div class="card"><p class="small muted">Cloud services (IaaS/PaaS/SaaS) represent {{ pct(a.totals.cloud_service_share) }} of reported ICT service rows.</p>
+  {{ charts.service_types }}</div>
+
+{% if validation %}
+<h2>7. Register data quality</h2>
+{% set vc = validation.severity_counts() %}
+<p class="section-lead">The register was checked against {{ validation.rules_run }} field, referential, supply-chain and business rules.
+{% if vc.error %}<strong>{{ vc.error }} errors</strong> must be fixed before submission to the competent authority; the analysis above
+is based on the data as reported and may change once they are corrected.{% else %}No blocking errors were found.{% endif %}</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Rule</th><th>Severity</th><th>Issue</th><th class="num">Count</th></tr></thead>
+  <tbody>{% for rule, n in validation.by_rule()[:12] %}
+  <tr><td class="mono">{{ rule.id }}</td><td><span class="badge {{ rule.severity.value }}">{{ rule.severity.value }}</span></td>
+    <td>{{ rule.title }}</td><td class="num">{{ n }}</td></tr>
+  {% else %}<tr><td colspan="4" class="muted">No findings.</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+
+<h2>Methodology and limitations</h2>
+<ul class="small muted">
+  <li>Spend = annual cost of arrangements (B_02.01) in {{ a.reporting_currency or "the reporting currency" }}; arrangements with several providers are split equally.
+    {% if a.excluded_spend %}Excluded (other currencies): {% for c, v in a.excluded_spend.items() %}{{ money(v, c) }}{% if not loop.last %}, {% endif %}{% endfor %}.{% endif %}</li>
+  <li>Concentration is measured on provider groups (ultimate parent, B_05.01 c0110). HHI bands: &lt; {{ "{:,.0f}".format(cfg.hhi_moderate) }} unconcentrated,
+    {{ "{:,.0f}".format(cfg.hhi_moderate) }}–{{ "{:,.0f}".format(cfg.hhi_high) }} moderate, ≥ {{ "{:,.0f}".format(cfg.hhi_high) }} high (competition-analysis convention, used here as a heuristic).</li>
+  <li>Critical functions are those assessed as critical or important in B_06.01. Supply-chain metrics rely on B_05.02 completeness.</li>
+  <li>This summary is an analytical aid prepared with dora-roi-toolkit {{ version }}; it is not legal advice and does not replace the entity's own DORA Art. 29 assessment.</li>
+</ul>
+<footer>dora-roi-toolkit {{ version }} · generated {{ generated.strftime("%Y-%m-%d %H:%M UTC") }}</footer>
+</main>
+{% if not pdf %}{{ tooltip_script }}{% endif %}
+</body>
+</html>

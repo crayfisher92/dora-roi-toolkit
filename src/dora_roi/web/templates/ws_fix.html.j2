@@ -1,0 +1,117 @@
+{% extends "ws_base.html.j2" %}
+{% from "_macros.html.j2" import severity_badge %}
+{% block page_title %}{{ t("fix.title") }}{% endblock %}
+{% block content %}
+<h2>{{ t("fix.title") }}</h2>
+<p class="lead">{{ t("fix.lead") }}</p>
+{% if not grouped %}
+<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("fix.none_all") }}</div></div>
+{% else %}
+<div class="fix-layout">
+  <nav class="fix-nav" aria-label="Templates">
+    <ul role="list">
+      {% for code, sev in grouped.items() %}
+      <li><a href="/w/{{ ws.id }}/fix?template={{ code }}" {% if code == template %}aria-current="page"{% endif %}>
+        <span class="mono">{{ code }}</span>
+        <span class="counts">{% if sev.get("error") %}<span class="badge error">{{ sev.error | length }}</span>{% endif %}{% if sev.get("warning") %}<span class="badge warning">{{ sev.warning | length }}</span>{% endif %}{% if sev.get("info") %}<span class="badge info">{{ sev.info | length }}</span>{% endif %}</span>
+      </a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+  <div class="fix-main">
+    <form method="get" class="filter-row" aria-label="{{ t('fix.filter.apply') }}">
+      <input type="hidden" name="template" value="{{ template }}">
+      <label for="f-sev">{{ t("fix.filter.severity") }}</label>
+      <select id="f-sev" name="severity"><option value="">{{ t("sev.all") }}</option>
+        {% for s in ("error", "warning", "info") %}<option value="{{ s }}" {% if severity == s %}selected{% endif %}>{{ t("sev." ~ s) }}</option>{% endfor %}</select>
+      <button class="btn" type="submit">{{ t("fix.filter.apply") }}</button>
+    </form>
+
+    {% if bulks %}
+    <section class="card bulk" aria-labelledby="h-bulk">
+      <h3 id="h-bulk">{{ t("fix.bulk.title") }}</h3>
+      {% for b in bulks %}
+      <form method="post" action="/w/{{ ws.id }}/bulk" class="bulk-row">
+        <input type="hidden" name="template" value="{{ b.template }}"><input type="hidden" name="column" value="{{ b.column }}">
+        <input type="hidden" name="old" value="{{ b.value }}"><input type="hidden" name="rows" value="{{ b.rows | join(',') }}">
+        <input type="hidden" name="next" value="{{ path }}?template={{ template }}">
+        <label for="bulk{{ loop.index }}"><span class="mono small">{{ b.rule_id }} · {{ b.column }}</span>
+          {% if b.value %}{{ t("fix.bulk.replace", old=b.value, n=b.count) }}{% else %}{{ t("fix.bulk.fill", n=b.count) }}{% endif %}
+          <span class="muted small">({{ column_label(b.template, b.column) }})</span></label>
+        <input id="bulk{{ loop.index }}" name="new" value="{{ b.suggestion.value if b.suggestion else '' }}" required>
+        <button class="btn primary" type="submit">{{ t("fix.bulk.apply", n=b.count) }}</button>
+      </form>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% for sev in ("error", "warning", "info") if by_sev.get(sev) %}
+    <section aria-labelledby="h-{{ sev }}">
+      <h3 id="h-{{ sev }}">{{ severity_badge(sev, t) }} {{ template }}</h3>
+      {% for rid, items in by_sev[sev].items() %}
+      <details class="rule-group card" open>
+        <summary><span class="mono">{{ rid }}</span> <strong>{{ rule_title(rid) }}</strong> <span class="count">{{ items | length }}</span></summary>
+        <div class="rule-help">
+          <p><strong>{{ t("fix.why") }}:</strong> {{ explain(rid) }}</p>
+          <p class="small muted"><strong>{{ t("fix.regulation") }}:</strong> {{ RULES[rid].references | join("; ") }}</p>
+        </div>
+        <ul class="findings" role="list">
+          {% for f in items[:limit] %}{% set sug = suggest(f) %}
+          <li class="finding" data-finding>
+            <div class="where"><span class="mono small">{% if f.row %}{{ t("reg.row") }} {{ f.row }}{% endif %}{% if f.column %} · {{ f.column }}{% endif %}</span>
+              {% if f.column %}<span class="small">{{ column_label(f.template, f.column) }}</span>{% endif %}
+              {% if f.record_key %}<div class="small muted key">{{ f.record_key }}</div>{% endif %}</div>
+            <p class="msg">{{ f.message }}</p>
+            {% if f.row and f.column and f.template %}
+            {% set fid = "v-" ~ f.template | replace(".", "_") ~ "-" ~ f.row ~ "-" ~ f.column ~ "-" ~ loop.index %}
+            <form class="cell-form" method="post" action="/w/{{ ws.id }}/cell">
+              <input type="hidden" name="template" value="{{ f.template }}"><input type="hidden" name="row" value="{{ f.row }}">
+              <input type="hidden" name="column" value="{{ f.column }}"><input type="hidden" name="next" value="{{ path }}?template={{ template }}{% if severity %}&severity={{ severity }}{% endif %}">
+              <label for="{{ fid }}">{{ t("fix.value") }}</label>
+              <input id="{{ fid }}" name="value" value="{{ raw_value(f) }}" autocomplete="off" spellcheck="false" aria-describedby="{{ fid }}-s">
+              {% if sug %}<button type="button" class="btn ghost" data-suggest="{{ sug.value }}" data-target="{{ fid }}">{{ t("fix.use") }}: <span class="mono">{{ sug.value or "∅" }}</span></button>{% endif %}
+              <button class="btn primary" type="submit">{{ t("fix.save") }}</button>
+              <span id="{{ fid }}-s" class="small muted status">{% if sug %}{{ t("fix.suggested") }}: {{ sug.note }}{% if sug.confidence.value == "low" %} ({{ t("fix.verify") }}){% endif %}{% endif %}</span>
+            </form>
+            {% elif f.row and f.template %}
+            <a class="small" href="/w/{{ ws.id }}/register/{{ f.template }}/{{ f.row }}">{{ t("fix.open_row") }} →</a>
+            {% endif %}
+            {% if f.severity.value != "error" %}
+            <details class="accept"><summary>{{ t("fix.accept") }}</summary>
+              <form method="post" action="/w/{{ ws.id }}/accept" class="cell-accept">
+                <input type="hidden" name="key" value="{{ finding_key(f) }}">
+                <input type="hidden" name="next" value="{{ path }}?template={{ template }}">
+                <label for="acc-{{ loop.index }}-{{ rid }}">{{ t("fix.accept.reason") }}</label>
+                <input id="acc-{{ loop.index }}-{{ rid }}" name="reason" required maxlength="500">
+                <button class="btn" type="submit">{{ t("fix.accept.button") }}</button>
+              </form>
+            </details>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% if items | length > limit %}<p><a href="/w/{{ ws.id }}/fix?template={{ template }}&amp;rule={{ rid }}">{{ t("fix.more", n=items | length) }}</a></p>{% endif %}
+      </details>
+      {% endfor %}
+    </section>
+    {% else %}
+    <p class="muted">{{ t("fix.none") }}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% if ws.report.accepted %}
+<section aria-labelledby="h-accepted" class="accepted">
+  <h3 id="h-accepted">{{ t("fix.accepted.title") }} ({{ ws.report.accepted | length }})</h3>
+  <p class="small muted">{{ t("fix.accepted.lead") }}</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">{{ t("fix.filter.rule") }}</th><th scope="col">{{ t("reg.row") }}</th><th scope="col">{{ t("fix.accept.reason") }}</th><th scope="col"><span class="visually-hidden">{{ t("fix.accepted.reopen") }}</span></th></tr></thead>
+    <tbody>{% for f in ws.report.accepted %}{% set acc = ws.acceptances[finding_key(f)] %}
+    <tr><td><span class="mono">{{ f.rule_id }}</span> {{ rule_title(f.rule_id) }}<div class="small muted">{{ f.message }}</div></td>
+      <td class="mono small">{{ f.template or "—" }}{% if f.row %} · {{ f.row }}{% endif %}</td>
+      <td>{{ f.accepted_reason }}<div class="small muted">{{ acc.user }} · {{ acc.at.strftime("%Y-%m-%d %H:%M UTC") }}</div></td>
+      <td><form method="post" action="/w/{{ ws.id }}/unaccept"><input type="hidden" name="key" value="{{ finding_key(f) }}"><input type="hidden" name="next" value="{{ path }}"><button class="btn" type="submit">{{ t("fix.accepted.reopen") }}</button></form></td></tr>
+    {% endfor %}</tbody></table></div>
+</section>
+{% endif %}
+{% endblock %}

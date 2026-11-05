@@ -1,0 +1,646 @@
+{
+  "schema": "dora-roi-toolkit/validation-report/v1",
+  "toolkit_version": "0.1.0",
+  "generated_at": "2026-11-05T02:29:10.663295+00:00",
+  "source": "alpenrand-sample.xlsx",
+  "reference_date": "2025-12-31",
+  "maintainer": {
+    "lei": "3912RO6DCAXX71K9W972",
+    "name": "Alpenrand Bank (Europe) AG"
+  },
+  "passed": false,
+  "summary": {
+    "severity_counts": {
+      "error": 27,
+      "warning": 5,
+      "info": 1
+    },
+    "rules_run": 62,
+    "record_counts": {
+      "B_01.01": 1,
+      "B_01.02": 3,
+      "B_01.03": 2,
+      "B_02.01": 121,
+      "B_02.02": 151,
+      "B_02.03": 0,
+      "B_03.01": 120,
+      "B_03.02": 118,
+      "B_03.03": 0,
+      "B_04.01": 144,
+      "B_05.01": 46,
+      "B_05.02": 166,
+      "B_06.01": 31,
+      "B_07.01": 106
+    },
+    "by_template": {
+      "B_01.02": {
+        "error": 0,
+        "warning": 0,
+        "info": 1
+      },
+      "B_02.01": {
+        "error": 3,
+        "warning": 1,
+        "info": 0
+      },
+      "B_02.02": {
+        "error": 13,
+        "warning": 2,
+        "info": 0
+      },
+      "B_03.01": {
+        "error": 1,
+        "warning": 0,
+        "info": 0
+      },
+      "B_04.01": {
+        "error": 1,
+        "warning": 0,
+        "info": 0
+      },
+      "B_05.01": {
+        "error": 0,
+        "warning": 1,
+        "info": 0
+      },
+      "B_05.02": {
+        "error": 3,
+        "warning": 0,
+        "info": 0
+      },
+      "B_06.01": {
+        "error": 1,
+        "warning": 1,
+        "info": 0
+      },
+      "B_07.01": {
+        "error": 5,
+        "warning": 0,
+        "info": 0
+      }
+    },
+    "by_rule": [
+      {
+        "rule_id": "BUS-002",
+        "title": "Termination reason missing for an ended arrangement",
+        "severity": "error",
+        "count": 2
+      },
+      {
+        "rule_id": "BUS-019",
+        "title": "No exit plan for an ICT service supporting a critical function",
+        "severity": "error",
+        "count": 2
+      },
+      {
+        "rule_id": "SC-003",
+        "title": "Subcontracting chain does not resolve",
+        "severity": "error",
+        "count": 2
+      },
+      {
+        "rule_id": "XRF-003",
+        "title": "ICT third-party service provider not listed in B_05.01",
+        "severity": "error",
+        "count": 2
+      },
+      {
+        "rule_id": "XRF-013",
+        "title": "Assessment does not match any ICT service in B_02.02",
+        "severity": "error",
+        "count": 2
+      },
+      {
+        "rule_id": "BUS-001",
+        "title": "End date before start date",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "BUS-004",
+        "title": "Data storage location missing",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "BUS-015",
+        "title": "Critical function lacks justification or recovery objectives",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "BUS-018",
+        "title": "ICT service supporting a critical function not assessed in B_07.01",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "BUS-020",
+        "title": "Reason for non-substitutability missing",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-001",
+        "title": "Mandatory value missing",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-002",
+        "title": "Invalid LEI",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-003",
+        "title": "Invalid date",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-004",
+        "title": "Value not in code list",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-005",
+        "title": "Invalid country code",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-006",
+        "title": "Invalid currency code",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-010",
+        "title": "Duplicate record key",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-013",
+        "title": "Provider code inconsistent with its code type",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "SC-001",
+        "title": "Rank 1 provider is not the direct provider of the arrangement",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "XRF-001",
+        "title": "Contractual arrangement not defined in B_02.01",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "XRF-004",
+        "title": "Function not identified in B_06.01",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "XRF-006",
+        "title": "Contractual arrangement without specific information",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "XRF-008",
+        "title": "Provider in B_02.02 not reported as signatory in B_03.02",
+        "severity": "warning",
+        "count": 2
+      },
+      {
+        "rule_id": "BUS-008",
+        "title": "Currency differs from the reporting currency",
+        "severity": "warning",
+        "count": 1
+      },
+      {
+        "rule_id": "BUS-016",
+        "title": "Criticality assessment not performed",
+        "severity": "warning",
+        "count": 1
+      },
+      {
+        "rule_id": "XRF-010",
+        "title": "Provider not used by any arrangement",
+        "severity": "warning",
+        "count": 1
+      },
+      {
+        "rule_id": "XRF-014",
+        "title": "Parent undertaking outside the register scope",
+        "severity": "info",
+        "count": 1
+      }
+    ]
+  },
+  "findings": [
+    {
+      "rule_id": "FLD-006",
+      "severity": "error",
+      "category": "field",
+      "message": "c0040 'Currency of the amount reported': 'EURO' is not an active ISO 4217 currency code",
+      "template": "B_02.01",
+      "row": 23,
+      "column": "c0040",
+      "record_key": "AR-LU-0020",
+      "value": "EURO",
+      "source": "alpenrand-sample.xlsx:B_02.01"
+    },
+    {
+      "rule_id": "FLD-010",
+      "severity": "error",
+      "category": "field",
+      "message": "Duplicate key (contract_ref) = 'CO-AT-0006' already reported in row 9",
+      "template": "B_02.01",
+      "row": 123,
+      "column": null,
+      "record_key": "CO-AT-0006",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.01"
+    },
+    {
+      "rule_id": "XRF-006",
+      "severity": "error",
+      "category": "referential",
+      "message": "Contractual arrangement 'AR-LU-9002' has no row in B_02.02",
+      "template": "B_02.01",
+      "row": 124,
+      "column": "c0010",
+      "record_key": "AR-LU-9002",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.01"
+    },
+    {
+      "rule_id": "BUS-004",
+      "severity": "error",
+      "category": "business",
+      "message": "Data is stored but the location of data at rest is not reported",
+      "template": "B_02.02",
+      "row": 4,
+      "column": "c0150",
+      "record_key": "MSA-DE-0001 | 3912RO6DCAXX71K9W972 | 5299XGE5RGK9SNVGG353 | F-DE-02 | S17",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "XRF-004",
+      "severity": "error",
+      "category": "referential",
+      "message": "Function 'F-LU-1' is not identified in B_06.01",
+      "template": "B_02.02",
+      "row": 7,
+      "column": "c0050",
+      "record_key": "CO-LU-0002 | 6354ZX2X914MZGYMMB68 | 5299XGE5RGK9SNVGG353 | F-LU-1 | S17",
+      "value": "F-LU-1",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "BUS-018",
+      "severity": "error",
+      "category": "business",
+      "message": "'MSA-DE-0007' supports critical function 'F-DE-06' but has no assessment in B_07.01",
+      "template": "B_02.02",
+      "row": 18,
+      "column": "c0010",
+      "record_key": "MSA-DE-0007 | 3912RO6DCAXX71K9W972 | 2138C2U0YRY1CYEQVJ54 | F-DE-06 | S17",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "FLD-013",
+      "severity": "error",
+      "category": "field",
+      "message": "'21381VQL0Y482P2BV900' is typed as LEI but LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 56",
+      "template": "B_02.02",
+      "row": 38,
+      "column": "c0030",
+      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03",
+      "value": "21381VQL0Y482P2BV900",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "XRF-003",
+      "severity": "error",
+      "category": "referential",
+      "message": "Provider '21381VQL0Y482P2BV900' is not listed in B_05.01",
+      "template": "B_02.02",
+      "row": 38,
+      "column": "c0030",
+      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03",
+      "value": "21381VQL0Y482P2BV900",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "FLD-003",
+      "severity": "error",
+      "category": "field",
+      "message": "c0080 'End date of the contractual arrangement': '31/12/2027' is not a valid ISO 8601 date (YYYY-MM-DD)",
+      "template": "B_02.02",
+      "row": 40,
+      "column": "c0080",
+      "record_key": "AR-AT-0021 | 8156AYQ5YUFTZEC92R45 | 21381VQL0Y482P2BV956 | F-AT-07 | S03",
+      "value": "31/12/2027",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "FLD-005",
+      "severity": "error",
+      "category": "field",
+      "message": "c0120 'Country of the governing law of the contractual arrangement': 'UK' is not an ISO 3166-1 alpha-2 country code (did you mean 'GB'?)",
+      "template": "B_02.02",
+      "row": 54,
+      "column": "c0120",
+      "record_key": "AR-DE-0034 | 3912RO6DCAXX71K9W972 | 63540HLDS88ODR38X136 | F-DE-05 | S19",
+      "value": "UK",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "FLD-004",
+      "severity": "error",
+      "category": "field",
+      "message": "c0060 'Type of ICT services': 'S20' is not a valid IctServiceType code (allowed: S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19)",
+      "template": "B_02.02",
+      "row": 71,
+      "column": "c0060",
+      "record_key": "AR-LU-0050 | 6354ZX2X914MZGYMMB68 | 8945J54J0JEU0CJ1E554 | F-LU-07 | ",
+      "value": "S20",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "FLD-001",
+      "severity": "error",
+      "category": "field",
+      "message": "Mandatory column c0120 'Country of the governing law of the contractual arrangement' is empty",
+      "template": "B_02.02",
+      "row": 77,
+      "column": "c0120",
+      "record_key": "AR-AT-0056 | 8156AYQ5YUFTZEC92R45 | 7245TLYA2OZHE7KGQP74 | F-AT-05 | S19",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "BUS-001",
+      "severity": "error",
+      "category": "business",
+      "message": "End date 2023-04-30 is before start date 2024-05-01",
+      "template": "B_02.02",
+      "row": 84,
+      "column": "c0080",
+      "record_key": "AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19",
+      "value": "2023-04-30",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "BUS-002",
+      "severity": "error",
+      "category": "business",
+      "message": "Arrangement ended on 2023-04-30 but no termination reason is reported",
+      "template": "B_02.02",
+      "row": 84,
+      "column": "c0090",
+      "record_key": "AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "BUS-002",
+      "severity": "error",
+      "category": "business",
+      "message": "Arrangement ended on 2025-10-31 but no termination reason is reported",
+      "template": "B_02.02",
+      "row": 86,
+      "column": "c0090",
+      "record_key": "AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "XRF-003",
+      "severity": "error",
+      "category": "referential",
+      "message": "Provider '8156YII8DXJIQ6LZZ583' is not listed in B_05.01",
+      "template": "B_02.02",
+      "row": 154,
+      "column": "c0030",
+      "record_key": "AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10",
+      "value": "8156YII8DXJIQ6LZZ583",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "FLD-002",
+      "severity": "error",
+      "category": "field",
+      "message": "c0020 'LEI of the entity signing the contractual arrangement': '6354ZX2X914MZGYMMB99' is not a valid LEI: LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 68",
+      "template": "B_03.01",
+      "row": 11,
+      "column": "c0020",
+      "record_key": "CO-LU-0008 | ",
+      "value": "6354ZX2X914MZGYMMB99",
+      "source": "alpenrand-sample.xlsx:B_03.01"
+    },
+    {
+      "rule_id": "XRF-001",
+      "severity": "error",
+      "category": "referential",
+      "message": "Contractual arrangement 'AR-AT-0000' is not reported in B_02.01",
+      "template": "B_04.01",
+      "row": 147,
+      "column": "c0010",
+      "record_key": "AR-AT-0000 | 8156AYQ5YUFTZEC92R45 | ",
+      "value": "AR-AT-0000",
+      "source": "alpenrand-sample.xlsx:B_04.01"
+    },
+    {
+      "rule_id": "SC-003",
+      "severity": "error",
+      "category": "supply_chain",
+      "message": "In 'MSA-DE-0001', recipient '7245LHPDBFHF0V7L0532' of rank 3 subcontractor '5299KSAC8PGOY2WZG688' is not reported at rank 2",
+      "template": "B_05.02",
+      "row": 6,
+      "column": "c0060",
+      "record_key": "MSA-DE-0001 | S17 | 5299KSAC8PGOY2WZG688 | 3 | 7245LHPDBFHF0V7L0532",
+      "value": "7245LHPDBFHF0V7L0532",
+      "source": "alpenrand-sample.xlsx:B_05.02"
+    },
+    {
+      "rule_id": "SC-001",
+      "severity": "error",
+      "category": "supply_chain",
+      "message": "Rank 1 provider '6354222DLTFK714K9K18' is not a direct provider of 'CO-LU-0002' (expected one of: 5299XGE5RGK9SNVGG353)",
+      "template": "B_05.02",
+      "row": 7,
+      "column": "c0030",
+      "record_key": "CO-LU-0002 | S17 | 6354222DLTFK714K9K18 | 1 | ",
+      "value": "6354222DLTFK714K9K18",
+      "source": "alpenrand-sample.xlsx:B_05.02"
+    },
+    {
+      "rule_id": "SC-003",
+      "severity": "error",
+      "category": "supply_chain",
+      "message": "In 'CO-LU-0002', recipient '5299XGE5RGK9SNVGG353' of rank 2 subcontractor '3912HE4IZZF3ZD1EDH65' is not reported at rank 1",
+      "template": "B_05.02",
+      "row": 8,
+      "column": "c0060",
+      "record_key": "CO-LU-0002 | S17 | 3912HE4IZZF3ZD1EDH65 | 2 | 5299XGE5RGK9SNVGG353",
+      "value": "5299XGE5RGK9SNVGG353",
+      "source": "alpenrand-sample.xlsx:B_05.02"
+    },
+    {
+      "rule_id": "BUS-015",
+      "severity": "error",
+      "category": "business",
+      "message": "Critical function 'F-LU-05' is missing Recovery time objective of the function (hours)",
+      "template": "B_06.01",
+      "row": 22,
+      "column": "c0080",
+      "record_key": "F-LU-05 | 6354ZX2X914MZGYMMB68",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_06.01"
+    },
+    {
+      "rule_id": "BUS-019",
+      "severity": "error",
+      "category": "business",
+      "message": "'CO-AT-0003' supports critical function 'F-AT-01' but has no exit plan",
+      "template": "B_07.01",
+      "row": 6,
+      "column": "c0080",
+      "record_key": "CO-AT-0003 | 5299XGE5RGK9SNVGG353 | S17",
+      "value": "False",
+      "source": "alpenrand-sample.xlsx:B_07.01"
+    },
+    {
+      "rule_id": "BUS-019",
+      "severity": "error",
+      "category": "business",
+      "message": "'MSA-DE-0004' supports critical function 'F-DE-03' but has no exit plan",
+      "template": "B_07.01",
+      "row": 7,
+      "column": "c0080",
+      "record_key": "MSA-DE-0004 | 5299XGE5RGK9SNVGG353 | S18",
+      "value": "False",
+      "source": "alpenrand-sample.xlsx:B_07.01"
+    },
+    {
+      "rule_id": "XRF-013",
+      "severity": "error",
+      "category": "referential",
+      "message": "No B_02.02 row for arrangement 'AR-DE-0019', provider '21381VQL0Y482P2BV956', service S03",
+      "template": "B_07.01",
+      "row": 20,
+      "column": "c0010",
+      "record_key": "AR-DE-0019 | 21381VQL0Y482P2BV956 | S03",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_07.01"
+    },
+    {
+      "rule_id": "BUS-020",
+      "severity": "error",
+      "category": "business",
+      "message": "Substitutability is 'Not substitutable' but no reason is given",
+      "template": "B_07.01",
+      "row": 22,
+      "column": "c0060",
+      "record_key": "AR-DE-0022 | 81567Y1C50614Y00S578 | S13",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_07.01"
+    },
+    {
+      "rule_id": "XRF-013",
+      "severity": "error",
+      "category": "referential",
+      "message": "No B_02.02 row for arrangement 'AR-LU-0050', provider '8945J54J0JEU0CJ1E554', service S19",
+      "template": "B_07.01",
+      "row": 50,
+      "column": "c0010",
+      "record_key": "AR-LU-0050 | 8945J54J0JEU0CJ1E554 | S19",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_07.01"
+    },
+    {
+      "rule_id": "BUS-008",
+      "severity": "warning",
+      "category": "business",
+      "message": "Amount reported in CHF, reporting currency is EUR",
+      "template": "B_02.01",
+      "row": 19,
+      "column": "c0040",
+      "record_key": "AR-LU-0016",
+      "value": "CHF",
+      "source": "alpenrand-sample.xlsx:B_02.01"
+    },
+    {
+      "rule_id": "XRF-008",
+      "severity": "warning",
+      "category": "referential",
+      "message": "Provider '21381VQL0Y482P2BV900' of 'AR-DE-0019' is not reported in B_03.02",
+      "template": "B_02.02",
+      "row": 38,
+      "column": "c0030",
+      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03",
+      "value": "21381VQL0Y482P2BV900",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "XRF-008",
+      "severity": "warning",
+      "category": "referential",
+      "message": "Provider '8156YII8DXJIQ6LZZ583' of 'AR-DE-9001' is not reported in B_03.02",
+      "template": "B_02.02",
+      "row": 154,
+      "column": "c0030",
+      "record_key": "AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10",
+      "value": "8156YII8DXJIQ6LZZ583",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "XRF-010",
+      "severity": "warning",
+      "category": "referential",
+      "message": "Provider '2138QO7IUC1RRV1FDZ58' (Legacy Mainframe Services GmbH) is not referenced by any arrangement or supply chain",
+      "template": "B_05.01",
+      "row": 49,
+      "column": "c0010",
+      "record_key": "2138QO7IUC1RRV1FDZ58",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_05.01"
+    },
+    {
+      "rule_id": "BUS-016",
+      "severity": "warning",
+      "category": "business",
+      "message": "Function 'F-AT-06' has not been assessed",
+      "template": "B_06.01",
+      "row": 33,
+      "column": "c0050",
+      "record_key": "F-AT-06 | 8156AYQ5YUFTZEC92R45",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_06.01"
+    },
+    {
+      "rule_id": "XRF-014",
+      "severity": "info",
+      "category": "referential",
+      "message": "Parent '5299NRPC2H5F3BPYBP79' of Alpenrand Bank (Europe) AG is not listed in B_01.02",
+      "template": "B_01.02",
+      "row": 4,
+      "column": "c0060",
+      "record_key": "3912RO6DCAXX71K9W972",
+      "value": "5299NRPC2H5F3BPYBP79",
+      "source": "alpenrand-sample.xlsx:B_01.02"
+    }
+  ],
+  "rule_failures": []
+}
