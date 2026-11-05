@@ -240,3 +240,6 @@ form[aria-busy="true"] button[disabled]::before {
 @media (prefers-reduced-motion: reduce) {
   form[aria-busy="true"] button[disabled]::before { animation: none; }
 }
+
+/* horizontally scrolling tables are focusable regions (see app.js) */
+.table-wrap[data-scroll-region]:focus-visible { outline: 3px solid var(--focus, #1c5cab); outline-offset: 2px; }

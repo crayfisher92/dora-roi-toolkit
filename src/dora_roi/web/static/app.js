@@ -20,6 +20,30 @@
     apply(current);
   }
 
+  /* ---------- keyboard access to horizontally scrolling tables (WCAG 2.1.1) */
+  function labelFor(wrap) {
+    var section = wrap.closest("[aria-labelledby]");
+    var heading = section && document.getElementById(section.getAttribute("aria-labelledby"));
+    var caption = wrap.querySelector("caption");
+    return (heading || caption || {}).textContent || "Table";
+  }
+  function scrollRegions() {
+    document.querySelectorAll(".table-wrap").forEach(function (wrap) {
+      var overflowing = wrap.scrollWidth > wrap.clientWidth + 1;
+      if (overflowing && !wrap.hasAttribute("tabindex")) {
+        wrap.setAttribute("tabindex", "0");
+        wrap.setAttribute("role", "region");
+        wrap.setAttribute("aria-label", labelFor(wrap).trim());
+        wrap.dataset.scrollRegion = "1";
+      } else if (!overflowing && wrap.dataset.scrollRegion) {
+        ["tabindex", "role", "aria-label", "data-scroll-region"].forEach(function (a) { wrap.removeAttribute(a); });
+      }
+    });
+  }
+  scrollRegions();
+  var resizeTimer;
+  window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(scrollRegions, 150); });
+
   /* ---------- busy state for slow form posts (imports of large registers) */
   document.querySelectorAll("form[data-busy]").forEach(function (form) {
     form.addEventListener("submit", function () {

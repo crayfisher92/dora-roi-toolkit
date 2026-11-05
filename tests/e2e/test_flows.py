@@ -137,11 +137,13 @@ def test_responsive_no_horizontal_scroll(browser: Any, base_url: str) -> None:
     ctx.close()
 
 
-@pytest.mark.parametrize("scheme", ["light", "dark"])
-def test_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: Any, scheme: str) -> None:
+@pytest.mark.parametrize(("scheme", "width"), [("light", 1280), ("dark", 1280), ("light", 390)])
+def test_accessibility_wcag22_aa(browser: Any, base_url: str, a11y: Any, scheme: str,
+                                 width: int) -> None:
     # bypass_csp only so that axe-core can be injected; the app itself runs under its CSP
-    # in every other test
-    ctx = browser.new_context(viewport={"width": 1280, "height": 900}, base_url=base_url,
+    # in every other test. The narrow viewport makes wide tables overflow regardless of the
+    # fonts installed, so scroll containers are checked for keyboard access everywhere.
+    ctx = browser.new_context(viewport={"width": width, "height": 900}, base_url=base_url,
                               color_scheme=scheme, bypass_csp=True)
     pg = ctx.new_page()
     url = open_sample(pg)
