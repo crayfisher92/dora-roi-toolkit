@@ -296,3 +296,20 @@ def test_finma_page(client: TestClient, tmp_path: Path) -> None:
     client.cookies.clear()
     bare = _upload(client, tmp_path)
     assert "not assessed yet" in client.get(bare + "/finma").text
+
+
+# =========================================================================== readiness
+
+
+def test_dashboard_report_and_overview(client: TestClient) -> None:
+    url = _sample(client)
+    page = client.get(url + "/dashboard")
+    assert page.status_code == 200 and "DORA readiness dashboard" in page.text
+    assert "Action required" in page.text and "kronos-certificate-rotation" in page.text
+    assert f'href="{url}/contracts?status=gaps&amp;critical=1"' in page.text
+    report = client.get(url + "/readiness.html")
+    assert report.status_code == 200 and "DORA readiness report" in report.text
+    overview = client.get(url)
+    assert "DORA readiness dashboard" in overview.text and f"{url}/dashboard" in overview.text
+    de = client.get(url + "/dashboard?lang=de")
+    assert "DORA-Reifegrad im Überblick" in de.text

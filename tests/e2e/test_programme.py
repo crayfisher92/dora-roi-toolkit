@@ -20,8 +20,8 @@ def open_sample(page: Any, label: str = "Sample with 25 deliberate errors") -> s
 
 PROGRAMME_PAGES = ["/contracts", "/contracts/checklist", "/contract/AR-DE-0057",
                    "/contract/CO-LU-0002", "/incidents", "/incidents/new",
-                   "/incidents/INC-2025-006", "/finma"]
-STANDALONE_REPORTS = ["/contracts/plan.html", "/incidents/summary.html"]
+                   "/incidents/INC-2025-006", "/finma", "/dashboard", ""]
+STANDALONE_REPORTS = ["/contracts/plan.html", "/incidents/summary.html", "/readiness.html"]
 
 
 def test_contract_assessment_with_document_suggestions(page: Any) -> None:
@@ -90,6 +90,25 @@ def test_incident_classification_and_countdown(page: Any) -> None:
     page.wait_for_url(re.compile(r"saved=1"))
     assert page.get_by_text("Submitted on time").first.is_visible() or \
         page.get_by_text("Submitted late").first.is_visible()
+
+
+def test_overview_to_dashboard_to_action(page: Any) -> None:
+    url = open_sample(page)
+    page.get_by_role("link", name=re.compile("ICT contracts")).first.click()
+    page.wait_for_url(url + "/dashboard")
+    assert page.get_by_role("heading", name="DORA readiness dashboard").is_visible()
+    assert page.locator(".dashboard-rag .card").count() == 5
+    page.get_by_role("link", name=re.compile(r"Close \d+ high-priority contract gap")).click()
+    page.wait_for_url(re.compile(r"/contracts\?status=gaps&critical=1"))
+    assert page.locator("#c-status").input_value() == "gaps"
+    with page.context.expect_page() as report_info:
+        page.goto(url + "/dashboard")
+        page.get_by_role("link", name="Open the readiness report").click()
+    report = report_info.value
+    report.wait_for_load_state()
+    assert report.get_by_role("heading", name="Priority actions").is_visible()
+    report.emulate_media(media="print")
+    assert report.locator(".page-break").count() >= 2
 
 
 def test_countdown_updates_without_reload(page: Any) -> None:

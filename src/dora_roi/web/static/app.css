@@ -264,3 +264,16 @@ select[multiple] { min-height: 160px; width: 100%; }
 .tiles + .card, .tiles + section.card { margin-top: 16px; }
 dl.links dd { overflow-wrap: anywhere; }
 @media (max-width: 640px) { dl.links { grid-template-columns: 1fr; } dl.links dd { margin-bottom: 6px; } }
+.overall-card { margin: 12px 0 16px; }
+.overall-card h3 { margin-top: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.overall-card.rag-red { box-shadow: inset 6px 0 0 var(--status-critical); }
+.overall-card.rag-amber { box-shadow: inset 6px 0 0 var(--status-warning); }
+.overall-card.rag-green { box-shadow: inset 6px 0 0 var(--status-good); }
+.dashboard-rag .card h3 a { color: var(--text-primary); }
+.dashboard-rag .card ul { margin: 6px 0 0; gap: 4px; }
+ol.actions-list li { margin-bottom: 8px; }
+.programme-teaser { margin: 16px 0; }
+.programme-teaser h2 { margin: 0 0 8px; font-size: 18px; }
+.teaser-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.teaser-list a { text-decoration: none; color: var(--text-primary); display: inline-flex; gap: 6px; align-items: center; min-height: 32px; }
+.teaser-list a:hover strong { text-decoration: underline; }

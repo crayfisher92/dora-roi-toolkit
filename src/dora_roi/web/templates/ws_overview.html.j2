@@ -14,6 +14,12 @@
   {% elif counts.warning %}<a class="btn primary" href="/w/{{ ws.id }}/fix">{{ t("ws.next.review", n=counts.warning) }}</a>
   {% else %}<a class="btn primary" href="/w/{{ ws.id }}/analyse">{{ t("ws.next.analyse") }}</a>{% endif %}
 </p>
+<section class="card programme-teaser" aria-labelledby="h-prog">
+  <h2 id="h-prog">{{ t("rd.title") }}</h2>
+  <ul class="teaser-list" role="list">{% for p in readiness.pillars %}
+    <li><a href="/w/{{ ws.id }}/dashboard"><span class="pill {{ p.rag.value }}">{{ t("rag." ~ p.rag.value) }}</span> {{ t("rd.pillar." ~ p.key) }}: <strong>{{ p.metric }}</strong></a></li>{% endfor %}
+  </ul>
+</section>
 {% if notes %}
 <section class="card" aria-labelledby="h-notes"><h2 id="h-notes">{{ t("wiz.notes") }}</h2><ul>{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul></section>
 {% endif %}

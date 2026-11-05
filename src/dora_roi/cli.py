@@ -663,6 +663,74 @@ def finma(input_path: Path, assessments_path: Path | None, incidents_path: Path 
     _write("\n".join(lines), output)
 
 
+# =========================================================================== readiness
+
+
+@main.command()
+@input_arg
+@click.option("-o", "--output", type=click.Path(dir_okay=False, path_type=Path), required=True,
+              help="Output HTML file (print-friendly; save as PDF from the browser).")
+@click.option("--assessments", "assessments_path",
+              type=click.Path(exists=True, dir_okay=False, path_type=Path),
+              help="Art. 30 assessments (.json or .xlsx).")
+@click.option("--incidents", "incidents_path",
+              type=click.Path(exists=True, dir_okay=False, path_type=Path),
+              help="Incident log (.json).")
+@click.option("--client", "client_name", help="Client name shown in the title.")
+@click.option("--prepared-by", help="Author shown in the header.")
+@click.option("--no-finma", is_flag=True, help="Leave out the Swiss (FINMA) section.")
+@click.option("--json", "json_path", type=click.Path(dir_okay=False, path_type=Path),
+              help="Also write the traffic lights and actions as JSON.")
+@now_opt
+@lang_opt
+@code_map_opt
+def readiness(input_path: Path, output: Path, assessments_path: Path | None,
+              incidents_path: Path | None, client_name: str | None, prepared_by: str | None,
+              no_finma: bool, json_path: Path | None, now_value: object, lang: str,
+              code_map: Path | None) -> None:
+    """DORA readiness report for a CRO: register, Art. 30 contracts, incidents, concentration."""
+    from dora_roi.analytics import analyse
+    from dora_roi.contracts.analysis import evaluate, remediation_plan
+    from dora_roi.contracts.model import AssessmentBook
+    from dora_roi.finma import evaluate_finma
+    from dora_roi.incidents.model import IncidentLog
+    from dora_roi.incidents.report import overview
+    from dora_roi.quality import quality_score
+    from dora_roi.readiness import build_readiness, render_readiness_html
+
+    loaded = _load(input_path, _code_map(code_map))
+    report = validate_loaded(loaded)
+    book = AssessmentBook()
+    if assessments_path is not None:
+        found, _ = _assessments(assessments_path)
+        assert isinstance(found, AssessmentBook)
+        book = found
+    log = _incident_log(incidents_path) if incidents_path is not None else IncidentLog()
+    assert isinstance(log, IncidentLog)
+    now = _now_opt(now_value)
+    reg = loaded.register
+    portfolio = evaluate(reg, book)
+    view = build_readiness(
+        report=report, quality=quality_score(report), analysis=analyse(reg),
+        portfolio=portfolio, plan=remediation_plan(portfolio, now.date()),
+        incidents=overview(log, reg, now),
+        finma=None if no_finma else evaluate_finma(reg, portfolio, log, now),
+        lang=lang, now=now)
+    _write(render_readiness_html(view, lang=lang, client=client_name, prepared_by=prepared_by),
+           output)
+    if json_path is not None:
+        _write(json.dumps({
+            "schema": "dora-roi-toolkit/readiness/v1", "generated_at": now.isoformat(),
+            "overall": view.overall.value,
+            "pillars": [{"key": p.key, "status": p.rag.value, "metric": p.metric,
+                         "details": p.lines} for p in view.pillars],
+            "actions": [{"priority": a.priority, "area": a.pillar, "action": a.text}
+                        for a in view.actions],
+        }, indent=2, ensure_ascii=False), json_path)
+    click.echo(f"Overall: {view.overall.value} · " + " · ".join(
+        f"{p.key} {p.rag.value}" for p in view.pillars), err=True)
+
+
 @main.command()
 @click.option("--host", default="127.0.0.1", show_default=True)
 @click.option("--port", default=8000, show_default=True, type=int)

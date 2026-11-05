@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DORA readiness report · Alpenrand Group</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #6f6d68;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --ord-1: #86b6ef;
+  --ord-2: #3987e5;
+  --ord-3: #1c5cab;
+  --ord-4: #0d366b;
+  --series-muted: #c3c2b7;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --accent-ink: #1c5cab;
+  --good-ink: #006300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --surface-2: #232321;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #a3a29b;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --ord-1: #184f95;
+    --ord-2: #2a78d6;
+    --ord-3: #5598e7;
+    --ord-4: #9ec5f4;
+    --series-muted: #4a4a46;
+    --accent-ink: #86b6ef;
+    --good-ink: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --surface-2: #232321;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted: #a3a29b;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --ord-1: #184f95;
+  --ord-2: #2a78d6;
+  --ord-3: #5598e7;
+  --ord-4: #9ec5f4;
+  --series-muted: #4a4a46;
+  --accent-ink: #86b6ef;
+  --good-ink: #0ca30c;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text-primary);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+header.doc { margin-bottom: 24px; }
+header.doc .eyebrow { color: var(--text-muted); font-size: 13px; text-transform: uppercase;
+  letter-spacing: .06em; margin: 0 0 4px; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; font-weight: 650; }
+h2 { font-size: 20px; margin: 40px 0 12px; font-weight: 620; }
+h3 { font-size: 16px; margin: 24px 0 8px; font-weight: 600; }
+p { margin: 0 0 12px; }
+.meta { color: var(--text-secondary); font-size: 14px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; }
+.grid { display: grid; gap: 16px; }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.tile .label { color: var(--text-secondary); font-size: 13px; }
+.tile .value { font-size: 30px; font-weight: 650; line-height: 1.15; margin-top: 4px; }
+.tile .sub { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+.banner { display: flex; gap: 12px; align-items: flex-start; border-radius: 10px; padding: 14px 18px;
+  border: 1px solid var(--border); background: var(--surface-1); margin: 16px 0; }
+.banner .icon { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+.banner.fail .icon { background: var(--status-critical); }
+.banner.pass .icon { background: var(--status-good); }
+.banner.warn .icon { background: var(--status-warning); color: #0b0b0b; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+  padding: 2px 8px 2px 6px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); white-space: nowrap; }
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.badge.error::before { background: var(--status-critical); }
+.badge.warning::before { background: var(--status-warning); }
+.badge.info::before { background: var(--series-muted); }
+.badge.error::after { content: ""; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-1); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--grid);
+  vertical-align: top; }
+th { color: var(--text-secondary); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0; }
+tr:last-child td { border-bottom: none; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.mono { white-space: nowrap; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px; }
+.muted { color: var(--text-muted); }
+.small { font-size: 13px; }
+details { margin: 8px 0; }
+details > summary { cursor: pointer; color: var(--text-secondary); font-size: 14px; }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--text-secondary); font-size: 12px; }
+.chart .value-label { fill: var(--text-primary); font-variant-numeric: tabular-nums; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .baseline { stroke: var(--axis); stroke-width: 1; }
+.chart .bar { fill: var(--series-1); }
+.chart .bar.alt { fill: var(--series-2); }
+.chart .bar.muted { fill: var(--series-muted); }
+.chart .hit:hover + .bar, .chart .bar:hover { opacity: .8; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px;
+  color: var(--text-secondary); margin: 4px 0 8px; }
+.legend .key { display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  margin-right: 6px; vertical-align: -1px; }
+.seg-bar { display: flex; gap: 2px; height: 22px; border-radius: 6px; overflow: hidden;
+  margin: 8px 0; }
+.seg-bar > span { display: block; height: 100%; min-width: 2px; }
+.callouts li { margin-bottom: 8px; }
+footer { margin-top: 48px; color: var(--text-muted); font-size: 12.5px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+.filter-row input, .filter-row select { font: inherit; font-size: 14px; padding: 6px 10px;
+  border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-primary); }
+@media print {
+  body { background: #fff; }
+  .card, .table-wrap { break-inside: avoid; }
+  .filter-row { display: none; }
+}/* Shared styles of the programme reports (remediation plan, incident summary, readiness). */
+.section-lead { color: var(--text-secondary); max-width: 80ch; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650;
+  padding: 2px 9px 2px 7px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); white-space: nowrap; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--series-muted); }
+.pill.high::before, .pill.red::before, .pill.missing::before, .pill.gaps::before,
+.pill.major::before, .pill.overdue::before { background: var(--status-critical); }
+.pill.medium::before, .pill.amber::before, .pill.partial::before, .pill.incomplete::before,
+.pill.provisional::before, .pill.due::before { background: var(--status-warning); }
+.pill.low::before, .pill.green::before, .pill.present::before, .pill.compliant::before,
+.pill.not_major::before, .pill.done::before { background: var(--status-good); }
+.rag { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px; }
+.rag .card { border-left-width: 6px; }
+.rag .red { border-left-color: var(--status-critical); }
+.rag .amber { border-left-color: var(--status-warning); }
+.rag .green { border-left-color: var(--status-good); }
+.rag .grey { border-left-color: var(--series-muted); }
+.rag h3 { margin: 0 0 4px; font-size: 15px; }
+.rag .metric { font-size: 24px; font-weight: 650; }
+.actions-list { padding-left: 20px; }
+.actions-list li { margin-bottom: 6px; }
+td.wrap, th.wrap { min-width: 220px; }
+.evidence { color: var(--text-secondary); font-size: 12.5px; }
+.toc { columns: 2; font-size: 14px; }
+@page { size: A4; margin: 16mm 14mm; }
+@media print {
+  :root, :root[data-theme="dark"] { color-scheme: light; }
+  body { font-size: 11.5px; }
+  main { max-width: none; padding: 0; }
+  h2 { break-after: avoid; page-break-after: avoid; }
+  tr, .card, .tile { break-inside: avoid; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  th { position: static; }
+  .table-wrap { overflow: visible; border: none; }
+  a { color: inherit; text-decoration: none; }
+  .no-print { display: none !important; }
+  .page-break { break-before: page; page-break-before: always; }
+}
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.incident-detail { margin-top: 16px; }
+.incident-detail h2 { margin-top: 0; }.overall { display: flex; gap: 16px; align-items: center; }
+.overall .light { width: 48px; height: 48px; border-radius: 50%; flex: none; border: 3px solid var(--border); }
+.light.red { background: var(--status-critical); } .light.amber { background: var(--status-warning); }
+.light.green { background: var(--status-good); } .light.grey { background: var(--series-muted); }
+.rag .card p { margin: 4px 0; font-size: 13.5px; }
+ol.actions-list li { margin-bottom: 8px; }
+.overall h2, .overall p { margin: 0; }
+.rag-section { margin-top: 16px; }
+.prio { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA · Regulation (EU) 2022/2554 · DORA readiness report</p>
+  <h1>Alpenrand Group</h1>
+  <p class="meta">Prepared 05 Nov 2026 by GRC Advisory (sample) · RoI 31 Dec 2025</p>
+  <p class="section-lead">Status of the client&#39;s DORA programme for the Register of Information, ICT third-party contracts, major-incident reporting and ICT concentration risk, with the actions that matter most.</p>
+</header>
+
+<section class="card overall" aria-labelledby="h-overall">
+  <span class="light red" aria-hidden="true"></span>
+  <div><h2 id="h-overall">Overall status: Action required</h2>
+    <p>Action required: at least one area has material gaps.</p></div>
+</section>
+
+<section class="rag rag-section" aria-label="DORA readiness">
+  <div class="card red">
+    <h3>Register of Information</h3>
+    <p><span class="pill red">Action required</span> <span class="small muted">DORA Art. 28(3)</span></p>
+    <p><span class="metric">97/100</span> <span class="small muted">Data-quality score</span></p>
+<p>Status: not ready for submission.</p><p>27 error(s) and 5 warning(s) in 1009 records.</p>  </div>
+  <div class="card red">
+    <h3>ICT contracts (Art. 30)</h3>
+    <p><span class="pill red">Action required</span> <span class="small muted">DORA Art. 30</span></p>
+    <p><span class="metric">16%</span> <span class="small muted">Critical arrangements assessed</span></p>
+<p>14 of 90 arrangements supporting critical or important functions assessed.</p><p>14 arrangement(s) with gaps: 22 missing and 22 partial provision(s).</p><p>Remediation actions: 18 high, 15 medium, 2 low.</p><p>Most frequent gap: Participation and full cooperation in threat-led penetration testing (TLPT) (5×).</p>  </div>
+  <div class="card red">
+    <h3>Incident management</h3>
+    <p><span class="pill red">Action required</span> <span class="small muted">DORA Art. 17–19</span></p>
+    <p><span class="metric">1</span> <span class="small muted">Major incidents</span></p>
+<p>5 incident(s) recorded, 1 open, 1 major.</p><p>Next: Initial notification for INC-2026-014 in 2 h 28 min.</p><p>Recurring series &#39;kronos-certificate-rotation&#39; (2 incidents) meets the major criteria.</p>  </div>
+  <div class="card red">
+    <h3>Concentration risk</h3>
+    <p><span class="pill red">Action required</span> <span class="small muted">DORA Art. 28–29</span></p>
+    <p><span class="metric">17%</span> <span class="small muted">Largest provider group</span></p>
+<p>Largest provider group: 17% of spend; HHI 726 (unconcentrated).</p><p>20 critical or important functions, 0 relying on a single provider.</p><p>Exit plans cover 94% of ICT services supporting critical functions.</p>  </div>
+  <div class="card amber">
+    <h3>Switzerland (FINMA)</h3>
+    <p><span class="pill amber">Needs attention</span> <span class="small muted">FINMA Circ. 2018/3, 2023/1</span></p>
+    <p><span class="metric">56%</span> <span class="small muted">Coverage score</span></p>
+<p>FINMA requirements: 5 covered, 17 partly, 2 not covered by this dataset.</p>  </div>
+</section>
+
+<h2>Priority actions</h2>
+<ol class="actions-list"><li><span class="pill high prio">High</span> Fix 27 blocking validation error(s) in the register. <span class="small muted">(Register of Information)</span></li><li><span class="pill high prio">High</span> Close 18 high-priority contract gap(s) – Cirrus Platforms Ireland Ltd, Helix Core Banking AG, Ledgerline Systems GmbH …. <span class="small muted">(ICT contracts (Art. 30))</span></li><li><span class="pill high prio">High</span> Assess 76 arrangement(s) supporting critical functions against Art. 30. <span class="small muted">(ICT contracts (Art. 30))</span></li><li><span class="pill high prio">High</span> Submit the Initial notification for INC-2026-014 – due in 2 h 28 min. <span class="small muted">(Incident management)</span></li><li><span class="pill high prio">High</span> Report the recurring incidents &#39;kronos-certificate-rotation&#39; as one major incident (or document why not). <span class="small muted">(Incident management)</span></li><li><span class="pill medium prio">Medium</span> 4 provider group(s) support 5 or more critical or important functions <span class="small muted">(Concentration risk)</span></li><li><span class="pill medium prio">Medium</span> 5 arrangement(s) supporting critical functions expire within 365 days <span class="small muted">(Concentration risk)</span></li><li><span class="pill low prio">Low</span> Maintain the 2 FINMA requirement(s) not covered by the RoI (FIN-OS-05, FIN-OR-09). <span class="small muted">(Switzerland (FINMA))</span></li></ol>
+
+<section class="page-break" aria-labelledby="h-s1">
+<h2 id="h-s1">1. Register of Information – data quality</h2>
+<p>Status: not ready for submission.</p><p>27 error(s) and 5 warning(s) in 1009 records.</p><h3>Templates with most errors</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="DORA readiness report"><table><thead><tr><th scope="col">Template</th><th scope="col" class="num">Errors</th><th scope="col" class="num">Warnings</th></tr></thead>
+<tbody><tr><td class="mono">B_02.02</td><td class="num">13</td><td class="num">2</td></tr><tr><td class="mono">B_07.01</td><td class="num">5</td><td class="num">0</td></tr><tr><td class="mono">B_02.01</td><td class="num">3</td><td class="num">1</td></tr><tr><td class="mono">B_05.02</td><td class="num">3</td><td class="num">0</td></tr><tr><td class="mono">B_03.01</td><td class="num">1</td><td class="num">0</td></tr></tbody></table></div>
+</section>
+
+<section aria-labelledby="h-s2">
+<h2 id="h-s2">2. ICT third-party contracts – DORA Art. 30</h2>
+<p>14 of 90 arrangements supporting critical or important functions assessed.</p><p>14 arrangement(s) with gaps: 22 missing and 22 partial provision(s).</p><p>Remediation actions: 18 high, 15 medium, 2 low.</p><p>Most frequent gap: Participation and full cooperation in threat-led penetration testing (TLPT) (5×).</p><div class="table-wrap" tabindex="0" role="region" aria-label="DORA readiness report"><table><caption class="visually-hidden">Gaps by provision</caption>
+<thead><tr><th scope="col">Provision</th><th scope="col" class="num">Missing</th><th scope="col" class="num">Partial</th></tr></thead>
+<tbody><tr><td><span class="mono small">DORA Art. 30(2)(a)</span> Subcontracting: whether permitted and under which conditions</td><td class="num">1</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Locations of service provision and of data processing and storage</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Advance notice before changing locations</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(d)</span> Access, recovery and return of data on insolvency, resolution or termination</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(f)</span> Assistance in ICT incidents at no additional or a pre-agreed cost</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(g)</span> Full cooperation with competent and resolution authorities</td><td class="num">1</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(h)</span> Termination rights and minimum notice periods</td><td class="num">0</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(i)</span> Participation in ICT security awareness and resilience training</td><td class="num">2</td><td class="num">0</td></tr></tbody></table></div>
+<h3>High – Remediation actions</h3>
+<div class="table-wrap" tabindex="0" role="region" aria-label="DORA readiness report"><table>
+<thead><tr><th scope="col">ICT third-party service provider</th><th scope="col">Arrangement</th><th scope="col">Provision</th><th scope="col">Target date</th></tr></thead>
+<tbody><tr><td>Cirrus Platforms Ireland Ltd</td><td class="mono">MSA-DE-0010</td><td>Participation and full cooperation in threat-led penetration testing (TLPT) <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Helix Core Banking AG</td><td class="mono">AR-DE-0022</td><td>Participation and full cooperation in threat-led penetration testing (TLPT) <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Helix Core Banking AG</td><td class="mono">AR-DE-0022</td><td>Exit strategy: mandatory adequate transition period <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Ledgerline Systems GmbH</td><td class="mono">AR-DE-0026</td><td>Subcontracting: whether permitted and under which conditions <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Ledgerline Systems GmbH</td><td class="mono">AR-DE-0026</td><td>Participation and full cooperation in threat-led penetration testing (TLPT) <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Ledgerline Systems GmbH</td><td class="mono">AR-DE-0026</td><td>Unrestricted rights of access, inspection and audit <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Mobilio Digital Banking GmbH</td><td class="mono">AR-DE-0057</td><td>Participation and full cooperation in threat-led penetration testing (TLPT) <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Mobilio Digital Banking GmbH</td><td class="mono">AR-DE-0057</td><td>Exit strategy: mandatory adequate transition period <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Wealthbridge Software Ltd</td><td class="mono">AR-LU-0049</td><td>Unrestricted rights of access, inspection and audit <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Helix Core Banking AG</td><td class="mono">AR-DE-0022</td><td>Participation in ICT security awareness and resilience training <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Helix Core Banking AG</td><td class="mono">AR-DE-0022</td><td>Right to agree alternative assurance levels <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr><tr><td>Helix Core Banking AG</td><td class="mono">AR-DE-0022</td><td>Exit strategy: migration to another provider or in-house <span class="small muted">(Missing)</span></td><td class="num">03 Feb 2027</td></tr></tbody></table></div>
+<p class="small muted">+ 6</p></section>
+
+<section aria-labelledby="h-s3">
+<h2 id="h-s3">3. Major ICT-related incidents</h2>
+<p>5 incident(s) recorded, 1 open, 1 major.</p><p>Next: Initial notification for INC-2026-014 in 2 h 28 min.</p><p>Recurring series &#39;kronos-certificate-rotation&#39; (2 incidents) meets the major criteria.</p><div class="table-wrap" tabindex="0" role="region" aria-label="DORA readiness report"><table>
+<thead><tr><th scope="col">ID</th><th scope="col">Title</th><th scope="col">Initial notification</th><th scope="col">Intermediate report</th><th scope="col">Final report</th></tr></thead>
+<tbody><tr><td class="mono">INC-2026-014</td><td>Nimbus EMEA region outage – core banking and payments unavailable</td>
+<td class="small">Due<br>2026-11-05 07:25 UTC</td><td class="small">Projected<br>2026-11-08 07:25 UTC</td><td class="small">Projected<br>2026-12-08 07:25 UTC</td></tr></tbody></table></div>
+</section>
+
+<section class="page-break" aria-labelledby="h-s4">
+<h2 id="h-s4">4. ICT concentration risk</h2>
+<p>Largest provider group: 17% of spend; HHI 726 (unconcentrated).</p><p>20 critical or important functions, 0 relying on a single provider.</p><p>Exit plans cover 94% of ICT services supporting critical functions.</p><h3>Key messages</h3>
+<ul><li><span class="pill high">High</span> <strong>4 provider group(s) support 5 or more critical or important functions</strong> <span class="muted">Most exposed: Nimbus Cloud Inc. (14), Alpine Telecom AG (7), Alpenrand Services AG (6). A failure at one of these providers would affect several critical functions simultaneously.</span></li><li><span class="pill high">High</span> <strong>5 arrangement(s) supporting critical functions expire within 365 days</strong> <span class="muted">Earliest: AR-DE-0105 with Meridian Technology Consulting GmbH on 2026-02-13 (44 days).</span></li><li><span class="pill medium">Medium</span> <strong>Exit plans cover 94% of ICT services supporting critical functions</strong> <span class="muted">7 service(s) lack a documented exit plan or assessment (DORA Art. 28(8)).</span></li><li><span class="pill medium">Medium</span> <strong>24% of spend goes to provider groups headquartered outside the EEA and Switzerland</strong> <span class="muted">8% is contracted directly with third-country entities; the rest via EU/EEA subsidiaries of third-country groups. Consider third-country legal, data-transfer and supervisory-access risks.</span></li><li><span class="pill medium">Medium</span> <strong>Subcontracting chains reach rank 3</strong> <span class="muted">9 arrangement(s) have chains of rank 3 or deeper; visibility on fourth parties should be confirmed.</span></li><li><span class="pill medium">Medium</span> <strong>Hidden concentration: Nimbus Cloud Services EMEA Ltd sits in 11 supply chains</strong> <span class="muted">9 subcontractor(s) appear in two or more chains supporting critical functions; their failure would propagate through several direct providers.</span></li></ul>
+<div class="grid two">
+  <div class="card"><svg class="chart" viewBox="0 0 500 268" role="img" aria-label="Share of annual ICT third-party spend by provider group" preserveAspectRatio="xMinYMin meet"><title>Share of annual ICT third-party spend by provider group</title><line class="baseline" x1="190" x2="190" y1="0" y2="264"/><g data-tip="Alpenrand Services AG: 17% of spend · EUR 8.3m · 7 arrangement(s) · 6 critical function(s)"><title>Alpenrand Services AG: 17% of spend · EUR 8.3m · 7 arrangement(s) · 6 critical function(s)</title><rect x="0" y="-1.0" width="500" height="26" fill="transparent"/><text x="180" y="16.0" text-anchor="end">Alpenrand Services AG</text><path class="bar" d="M191.0,4.0 H441.0 Q445.0,4.0 445.0,8.0 V16.0 Q445.0,20.0 441.0,20.0 H191.0 Z"/><text class="value-label" x="453.0" y="16.0">17%</text></g><g data-tip="Helix Core Banking AG: 13% of spend · EUR 6.4m · 4 arrangement(s) · 2 critical function(s)"><title>Helix Core Banking AG: 13% of spend · EUR 6.4m · 4 arrangement(s) · 2 critical function(s)</title><rect x="0" y="25.0" width="500" height="26" fill="transparent"/><text x="180" y="42.0" text-anchor="end">Helix Core Banking AG</text><path class="bar" d="M191.0,30.0 H384.8 Q388.8,30.0 388.8,34.0 V42.0 Q388.8,46.0 384.8,46.0 H191.0 Z"/><text class="value-label" x="396.8" y="42.0">13%</text></g><g data-tip="Nimbus Cloud Inc.: 12% of spend · EUR 5.7m · 7 arrangement(s) · 14 critical function(s)"><title>Nimbus Cloud Inc.: 12% of spend · EUR 5.7m · 7 arrangement(s) · 14 critical function(s)</title><rect x="0" y="51.0" width="500" height="26" fill="transparent"/><text x="180" y="68.0" text-anchor="end">Nimbus Cloud Inc.</text><path class="bar" d="M191.0,56.0 H361.3 Q365.3,56.0 365.3,60.0 V68.0 Q365.3,72.0 361.3,72.0 H191.0 Z"/><text class="value-label" x="373.3" y="68.0">12%</text></g><g data-tip="Ledgerline Systems GmbH: 6% of spend · EUR 2.8m · 4 arrangement(s) · 2 critical function(s)"><title>Ledgerline Systems GmbH: 6% of spend · EUR 2.8m · 4 arrangement(s) · 2 critical function(s)</title><rect x="0" y="77.0" width="500" height="26" fill="transparent"/><text x="180" y="94.0" text-anchor="end">Ledgerline Systems GmbH</text><path class="bar" d="M191.0,82.0 H271.7 Q275.7,82.0 275.7,86.0 V94.0 Q275.7,98.0 271.7,98.0 H191.0 Z"/><text class="value-label" x="283.7" y="94.0">6%</text></g><g data-tip="Danubia IT Services Kft.: 4% of spend · EUR 1.9m · 7 arrangement(s) · 2 critical function(s)"><title>Danubia IT Services Kft.: 4% of spend · EUR 1.9m · 7 arrangement(s) · 2 critical function(s)</title><rect x="0" y="103.0" width="500" height="26" fill="transparent"/><text x="180" y="120.0" text-anchor="end">Danubia IT Services Kft.</text><path class="bar" d="M191.0,108.0 H244.6 Q248.6,108.0 248.6,112.0 V120.0 Q248.6,124.0 244.6,124.0 H191.0 Z"/><text class="value-label" x="256.6" y="120.0">4%</text></g><g data-tip="Wealthbridge Software Ltd: 4% of spend · EUR 1.8m · 5 arrangement(s) · 2 critical function(s)"><title>Wealthbridge Software Ltd: 4% of spend · EUR 1.8m · 5 arrangement(s) · 2 critical function(s)</title><rect x="0" y="129.0" width="500" height="26" fill="transparent"/><text x="180" y="146.0" text-anchor="end">Wealthbridge Software Ltd</text><path class="bar" d="M191.0,134.0 H242.9 Q246.9,134.0 246.9,138.0 V146.0 Q246.9,150.0 242.9,150.0 H191.0 Z"/><text class="value-label" x="254.9" y="146.0">4%</text></g><g data-tip="Rheinpark Datacenter GmbH: 3% of spend · EUR 1.3m · 2 arrangement(s) · 4 critical function(s)"><title>Rheinpark Datacenter GmbH: 3% of spend · EUR 1.3m · 2 arrangement(s) · 4 critical function(s)</title><rect x="0" y="155.0" width="500" height="26" fill="transparent"/><text x="180" y="172.0" text-anchor="end">Rheinpark Datacenter GmbH</text><path class="bar" d="M191.0,160.0 H227.0 Q231.0,160.0 231.0,164.0 V172.0 Q231.0,176.0 227.0,176.0 H191.0 Z"/><text class="value-label" x="239.0" y="172.0">3%</text></g><g data-tip="Cirrus Platforms LLC: 3% of spend · EUR 1.3m · 3 arrangement(s) · 2 critical function(s)"><title>Cirrus Platforms LLC: 3% of spend · EUR 1.3m · 3 arrangement(s) · 2 critical function(s)</title><rect x="0" y="181.0" width="500" height="26" fill="transparent"/><text x="180" y="198.0" text-anchor="end">Cirrus Platforms LLC</text><path class="bar" d="M191.0,186.0 H226.1 Q230.1,186.0 230.1,190.0 V198.0 Q230.1,202.0 226.1,202.0 H191.0 Z"/><text class="value-label" x="238.1" y="198.0">3%</text></g><g data-tip="CardStream Processing S.A.: 3% of spend · EUR 1.3m · 2 arrangement(s) · 1 critical function(s)"><title>CardStream Processing S.A.: 3% of spend · EUR 1.3m · 2 arrangement(s) · 1 critical function(s)</title><rect x="0" y="207.0" width="500" height="26" fill="transparent"/><text x="180" y="224.0" text-anchor="end">CardStream Processing S.A.</text><path class="bar" d="M191.0,212.0 H226.1 Q230.1,212.0 230.1,216.0 V224.0 Q230.1,228.0 226.1,228.0 H191.0 Z"/><text class="value-label" x="238.1" y="224.0">3%</text></g><g data-tip="Kronos Payments B.V.: 2% of spend · EUR 1.2m · 2 arrangement(s) · 2 critical function(s)"><title>Kronos Payments B.V.: 2% of spend · EUR 1.2m · 2 arrangement(s) · 2 critical function(s)</title><rect x="0" y="233.0" width="500" height="26" fill="transparent"/><text x="180" y="250.0" text-anchor="end">Kronos Payments B.V.</text><path class="bar" d="M191.0,238.0 H223.8 Q227.8,238.0 227.8,242.0 V250.0 Q227.8,254.0 223.8,254.0 H191.0 Z"/><text class="value-label" x="235.8" y="250.0">2%</text></g></svg></div>
+  <div class="card"><svg class="chart" viewBox="0 0 500 268" role="img" aria-label="Critical or important functions supported, by provider group" preserveAspectRatio="xMinYMin meet"><title>Critical or important functions supported, by provider group</title><line class="baseline" x1="190" x2="190" y1="0" y2="264"/><g data-tip="Nimbus Cloud Inc.: supports 14 critical function(s)"><title>Nimbus Cloud Inc.: supports 14 critical function(s)</title><rect x="0" y="-1.0" width="500" height="26" fill="transparent"/><text x="180" y="16.0" text-anchor="end">Nimbus Cloud Inc.</text><path class="bar" d="M191.0,4.0 H441.0 Q445.0,4.0 445.0,8.0 V16.0 Q445.0,20.0 441.0,20.0 H191.0 Z"/><text class="value-label" x="453.0" y="16.0">14</text></g><g data-tip="Alpine Telecom AG: supports 7 critical function(s)"><title>Alpine Telecom AG: supports 7 critical function(s)</title><rect x="0" y="25.0" width="500" height="26" fill="transparent"/><text x="180" y="42.0" text-anchor="end">Alpine Telecom AG</text><path class="bar" d="M191.0,30.0 H314.0 Q318.0,30.0 318.0,34.0 V42.0 Q318.0,46.0 314.0,46.0 H191.0 Z"/><text class="value-label" x="326.0" y="42.0">7</text></g><g data-tip="Alpenrand Services AG: supports 6 critical function(s)"><title>Alpenrand Services AG: supports 6 critical function(s)</title><rect x="0" y="51.0" width="500" height="26" fill="transparent"/><text x="180" y="68.0" text-anchor="end">Alpenrand Services AG</text><path class="bar" d="M191.0,56.0 H295.9 Q299.9,56.0 299.9,60.0 V68.0 Q299.9,72.0 295.9,72.0 H191.0 Z"/><text class="value-label" x="307.9" y="68.0">6</text></g><g data-tip="Meridian Technology Consulting GmbH: supports 5 critical function(s)"><title>Meridian Technology Consulting GmbH: supports 5 critical function(s)</title><rect x="0" y="77.0" width="500" height="26" fill="transparent"/><text x="180" y="94.0" text-anchor="end">Meridian Technology Consulting…</text><path class="bar" d="M191.0,82.0 H277.7 Q281.7,82.0 281.7,86.0 V94.0 Q281.7,98.0 277.7,98.0 H191.0 Z"/><text class="value-label" x="289.7" y="94.0">5</text></g><g data-tip="Rheinpark Datacenter GmbH: supports 4 critical function(s)"><title>Rheinpark Datacenter GmbH: supports 4 critical function(s)</title><rect x="0" y="103.0" width="500" height="26" fill="transparent"/><text x="180" y="120.0" text-anchor="end">Rheinpark Datacenter GmbH</text><path class="bar" d="M191.0,108.0 H259.6 Q263.6,108.0 263.6,112.0 V120.0 Q263.6,124.0 259.6,124.0 H191.0 Z"/><text class="value-label" x="271.6" y="120.0">4</text></g><g data-tip="Aurum Market Data S.A.: supports 4 critical function(s)"><title>Aurum Market Data S.A.: supports 4 critical function(s)</title><rect x="0" y="129.0" width="500" height="26" fill="transparent"/><text x="180" y="146.0" text-anchor="end">Aurum Market Data S.A.</text><path class="bar" d="M191.0,134.0 H259.6 Q263.6,134.0 263.6,138.0 V146.0 Q263.6,150.0 259.6,150.0 H191.0 Z"/><text class="value-label" x="271.6" y="146.0">4</text></g><g data-tip="FinConnect Service Bureau S.A.: supports 4 critical function(s)"><title>FinConnect Service Bureau S.A.: supports 4 critical function(s)</title><rect x="0" y="155.0" width="500" height="26" fill="transparent"/><text x="180" y="172.0" text-anchor="end">FinConnect Service Bureau S.A.</text><path class="bar" d="M191.0,160.0 H259.6 Q263.6,160.0 263.6,164.0 V172.0 Q263.6,176.0 259.6,176.0 H191.0 Z"/><text class="value-label" x="271.6" y="172.0">4</text></g><g data-tip="Codeforge Solutions Sp. z o.o.: supports 4 critical function(s)"><title>Codeforge Solutions Sp. z o.o.: supports 4 critical function(s)</title><rect x="0" y="181.0" width="500" height="26" fill="transparent"/><text x="180" y="198.0" text-anchor="end">Codeforge Solutions Sp. z o.o.</text><path class="bar" d="M191.0,186.0 H259.6 Q263.6,186.0 263.6,190.0 V198.0 Q263.6,202.0 259.6,202.0 H191.0 Z"/><text class="value-label" x="271.6" y="198.0">4</text></g><g data-tip="Luxhost Data Centres S.A.: supports 3 critical function(s)"><title>Luxhost Data Centres S.A.: supports 3 critical function(s)</title><rect x="0" y="207.0" width="500" height="26" fill="transparent"/><text x="180" y="224.0" text-anchor="end">Luxhost Data Centres S.A.</text><path class="bar" d="M191.0,212.0 H241.4 Q245.4,212.0 245.4,216.0 V224.0 Q245.4,228.0 241.4,228.0 H191.0 Z"/><text class="value-label" x="253.4" y="224.0">3</text></g><g data-tip="Netwave Infrastructure GmbH: supports 3 critical function(s)"><title>Netwave Infrastructure GmbH: supports 3 critical function(s)</title><rect x="0" y="233.0" width="500" height="26" fill="transparent"/><text x="180" y="250.0" text-anchor="end">Netwave Infrastructure GmbH</text><path class="bar" d="M191.0,238.0 H241.4 Q245.4,238.0 245.4,242.0 V250.0 Q245.4,254.0 241.4,254.0 H191.0 Z"/><text class="value-label" x="253.4" y="250.0">3</text></g></svg></div>
+</div>
+</section>
+
+<section aria-labelledby="h-s5">
+<h2 id="h-s5">5. Switzerland – FINMA coverage</h2>
+<p>FINMA requirements: 5 covered, 17 partly, 2 not covered by this dataset.</p><ul><li><span class="mono small">FIN-OS-05</span> Responsible person or unit in the bank – Not part of the RoI. Maintain a business owner / responsible unit per arrangement.</li><li><span class="mono small">FIN-OR-09</span> Scenario testing of operational resilience – Not part of the RoI. Plan and document severe but plausible scenario tests per critical function.</li></ul>
+</section>
+
+<h2>Method, sources and caveats</h2>
+<p class="section-lead">Traffic lights – register: red with more than 10 validation errors, amber with 1–10; contracts: red with high-priority gaps or fewer than half of the critical arrangements assessed, amber with any gap or assessment outstanding; incidents: red with an overdue report or a recurring series meeting the major criteria, amber with pending reports or undetermined classifications; concentration: red/amber with high/medium key messages. The overall status is the worst of these four; FINMA coverage is informational. Sources: the register as reported, the Art. 30 contract assessments and the incident log maintained in the toolkit.</p>
+<p class="section-lead">Status per provision: present, partial or missing, recorded by the assessor with the clause reference and evidence. Art. 30(3) applies when the register links the arrangement to a critical or important function (B_02.02 → B_06.01). Call-offs inherit unassessed items from their overarching arrangement (B_02.01 c0030); such gaps are fixed – and listed – once, in the overarching arrangement. Priority: missing clause on an arrangement supporting a critical function = high; partial clause on such an arrangement or missing clause elsewhere = medium; partial clause elsewhere = low. Target dates: high 90 days, medium 180 days, low 365 days from the plan date – align them with renewal dates where earlier.</p>
+<p class="section-lead">Classification per DORA Art. 18 and the RTS on classification (Delegated Regulation (EU) 2024/1772): major when critical services are affected and either a successful malicious unauthorised access occurred or two or more of the other six criteria meet their thresholds. Unknown answers are evaluated both ways; the outcome is definitive only when they cannot change it. Reporting deadlines per Delegated Regulation (EU) 2025/301 without weekend relief. Thresholds and article numbers are open assumptions (A-INC-*).</p>
+<footer>Generated by the DORA RoI Toolkit. Not legal advice: the checklist, thresholds and mappings are the authors&#39; reading of the texts and are listed as assumptions in docs/ASSUMPTIONS.md. · dora-roi-toolkit 0.1.0</footer>
+</main>
+</body>
+</html>

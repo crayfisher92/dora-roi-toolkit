@@ -366,6 +366,86 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.resolved": "Resolved",
         "inc.ev.closed": "Closed",
         "inc.ev.reopened": "Reopened",
+        "rd.name": "DORA readiness",
+        "rd.title": "DORA readiness dashboard",
+        "rd.report.title": "DORA readiness report",
+        "rd.lead": "Register data quality, Art. 30 contract compliance, incident management "
+                   "and ICT concentration risk of this client on one page.",
+        "rd.report.lead": "Status of the client's DORA programme for the Register of "
+                          "Information, ICT third-party contracts, major-incident reporting and "
+                          "ICT concentration risk, with the actions that matter most.",
+        "rd.overall": "Overall status",
+        "rd.overall.red": "Action required: at least one area has material gaps.",
+        "rd.overall.amber": "On the way: no area has material gaps, but several need "
+                            "attention.",
+        "rd.overall.green": "On track in every area assessed.",
+        "rd.overall.grey": "Not enough data to assess.",
+        "rd.pillar.register": "Register of Information",
+        "rd.pillar.contracts": "ICT contracts (Art. 30)",
+        "rd.pillar.incidents": "Incident management",
+        "rd.pillar.concentration": "Concentration risk",
+        "rd.pillar.finma": "Switzerland (FINMA)",
+        "rd.actions": "Priority actions",
+        "rd.no_actions": "No open actions.",
+        "rd.open": "Open",
+        "rd.report.open": "Open the readiness report",
+        "rd.report.print": "Print or save as PDF from the browser (A4).",
+        "rd.reg.metric": "Data-quality score",
+        "rd.reg.status": "Status: {status}.",
+        "rd.reg.findings": "{errors} error(s) and {warnings} warning(s) in {records} records.",
+        "rd.ready.ready": "ready for submission",
+        "rd.ready.almost": "almost ready",
+        "rd.ready.not_ready": "not ready for submission",
+        "rd.ready.empty": "register is empty",
+        "rd.c30.metric": "Critical arrangements assessed",
+        "rd.c30.assessed": "{assessed} of {total} arrangements supporting critical or important "
+                           "functions assessed.",
+        "rd.c30.gaps": "{n} arrangement(s) with gaps: {missing} missing and {partial} partial "
+                       "provision(s).",
+        "rd.c30.actions": "Remediation actions: {high} high, {medium} medium, {low} low.",
+        "rd.c30.top_gap": "Most frequent gap: {provision} ({n}×).",
+        "rd.inc.metric": "Major incidents",
+        "rd.inc.counts": "{total} incident(s) recorded, {open} open, {major} major.",
+        "rd.inc.next": "Next: {report} for {id} {when}.",
+        "rd.inc.recurring": "Recurring series '{series}' ({n} incidents) meets the major criteria.",
+        "rd.conc.metric": "Largest provider group",
+        "rd.conc.top": "Largest provider group: {share} of spend; HHI {hhi} ({band}).",
+        "rd.conc.cif": "{n} critical or important functions, {single} relying on a single "
+                       "provider.",
+        "rd.conc.exit": "Exit plans cover {pct} of ICT services supporting critical functions.",
+        "rd.fin.counts": "FINMA requirements: {full} covered, {partial} partly, {none} not "
+                         "covered by this dataset.",
+        "rd.act.fix": "Fix {n} blocking validation error(s) in the register.",
+        "rd.act.review": "Review {n} validation warning(s).",
+        "rd.act.c30_high": "Close {n} high-priority contract gap(s) – {providers}.",
+        "rd.act.c30_assess": "Assess {n} arrangement(s) supporting critical functions against "
+                             "Art. 30.",
+        "rd.act.inc_report": "Submit the {report} for {id} – due {when}.",
+        "rd.act.inc_recurring": "Report the recurring incidents '{series}' as one major incident "
+                                "(or document why not).",
+        "rd.act.inc_classify": "Complete the classification of {n} incident(s).",
+        "rd.act.finma": "Maintain the {n} FINMA requirement(s) not covered by the RoI ({ids}).",
+        "rd.section.register": "1. Register of Information – data quality",
+        "rd.section.contracts": "2. ICT third-party contracts – DORA Art. 30",
+        "rd.section.incidents": "3. Major ICT-related incidents",
+        "rd.section.concentration": "4. ICT concentration risk",
+        "rd.section.finma": "5. Switzerland – FINMA coverage",
+        "rd.section.method": "Method, sources and caveats",
+        "rd.method": "Traffic lights – register: red with more than 10 validation errors, amber "
+                     "with 1–10; contracts: red with high-priority gaps or fewer than half of "
+                     "the critical arrangements assessed, amber with any gap or assessment "
+                     "outstanding; incidents: red with an overdue report or a recurring series "
+                     "meeting the major criteria, amber with pending reports or undetermined "
+                     "classifications; concentration: red/amber with high/medium key messages. "
+                     "The overall status is the worst of these four; FINMA coverage is "
+                     "informational. Sources: the register as reported, the Art. 30 contract "
+                     "assessments and the incident log maintained in the toolkit.",
+        "rd.templates_with_errors": "Templates with most errors",
+        "rd.key_messages": "Key messages",
+        "rd.at": "as of {date}",
+        "rd.col.template": "Template",
+        "rd.col.errors": "Errors",
+        "rd.col.warnings": "Warnings",
         "fin.name": "Switzerland (FINMA)",
         "fin.title": "One dataset for DORA and FINMA",
         "fin.lead": "Which data of the Register of Information – together with the Art. 30 "
@@ -782,6 +862,92 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.resolved": "Behoben",
         "inc.ev.closed": "Abgeschlossen",
         "inc.ev.reopened": "Wieder geöffnet",
+        "rd.name": "DORA-Reifegrad",
+        "rd.title": "DORA-Reifegrad im Überblick",
+        "rd.report.title": "DORA-Statusbericht",
+        "rd.lead": "Datenqualität des Registers, Vertragskonformität nach Art. 30, "
+                   "Vorfallmanagement und IKT-Konzentrationsrisiko dieses Kunden auf einer Seite.",
+        "rd.report.lead": "Stand des DORA-Programms für Informationsregister, Verträge mit "
+                          "IKT-Drittdienstleistern, Meldung schwerwiegender Vorfälle und "
+                          "IKT-Konzentrationsrisiko – mit den wichtigsten Maßnahmen.",
+        "rd.overall": "Gesamtstatus",
+        "rd.overall.red": "Handlungsbedarf: Mindestens ein Bereich hat wesentliche Lücken.",
+        "rd.overall.amber": "Auf dem Weg: Kein Bereich hat wesentliche Lücken, mehrere "
+                            "brauchen Aufmerksamkeit.",
+        "rd.overall.green": "In allen bewerteten Bereichen im Plan.",
+        "rd.overall.grey": "Zu wenige Daten für eine Bewertung.",
+        "rd.pillar.register": "Informationsregister",
+        "rd.pillar.contracts": "IKT-Verträge (Art. 30)",
+        "rd.pillar.incidents": "Vorfallmanagement",
+        "rd.pillar.concentration": "Konzentrationsrisiko",
+        "rd.pillar.finma": "Schweiz (FINMA)",
+        "rd.actions": "Prioritäre Maßnahmen",
+        "rd.no_actions": "Keine offenen Maßnahmen.",
+        "rd.open": "Öffnen",
+        "rd.report.open": "Statusbericht öffnen",
+        "rd.report.print": "Im Browser drucken oder als PDF speichern (A4).",
+        "rd.reg.metric": "Datenqualität",
+        "rd.reg.status": "Status: {status}.",
+        "rd.reg.findings": "{errors} Fehler und {warnings} Warnung(en) in {records} "
+                           "Datensätzen.",
+        "rd.ready.ready": "einreichungsbereit",
+        "rd.ready.almost": "fast einreichungsbereit",
+        "rd.ready.not_ready": "nicht einreichungsbereit",
+        "rd.ready.empty": "Register ist leer",
+        "rd.c30.metric": "Kritische Vereinbarungen bewertet",
+        "rd.c30.assessed": "{assessed} von {total} Vereinbarungen für kritische oder wichtige "
+                           "Funktionen bewertet.",
+        "rd.c30.gaps": "{n} Vereinbarung(en) mit Lücken: {missing} fehlende und {partial} "
+                       "teilweise Bestimmung(en).",
+        "rd.c30.actions": "Maßnahmen: {high} hoch, {medium} mittel, {low} niedrig.",
+        "rd.c30.top_gap": "Häufigste Lücke: {provision} ({n}×).",
+        "rd.inc.metric": "Schwerwiegende Vorfälle",
+        "rd.inc.counts": "{total} Vorfall/Vorfälle erfasst, {open} offen, {major} "
+                         "schwerwiegend.",
+        "rd.inc.next": "Als Nächstes: {report} für {id} {when}.",
+        "rd.inc.recurring": "Wiederkehrende Serie „{series}“ ({n} Vorfälle) erfüllt die "
+                            "Kriterien.",
+        "rd.conc.metric": "Größte Dienstleistergruppe",
+        "rd.conc.top": "Größte Dienstleistergruppe: {share} der Kosten; HHI {hhi} ({band}).",
+        "rd.conc.cif": "{n} kritische oder wichtige Funktionen, {single} davon mit nur einem "
+                       "Dienstleister.",
+        "rd.conc.exit": "Exit-Pläne decken {pct} der IKT-Dienstleistungen für kritische "
+                        "Funktionen ab.",
+        "rd.fin.counts": "FINMA-Anforderungen: {full} abgedeckt, {partial} teilweise, {none} "
+                         "nicht durch diesen Datenbestand abgedeckt.",
+        "rd.act.fix": "{n} blockierende Validierungsfehler im Register beheben.",
+        "rd.act.review": "{n} Validierungswarnung(en) prüfen.",
+        "rd.act.c30_high": "{n} Vertragslücke(n) mit hoher Priorität schließen – {providers}.",
+        "rd.act.c30_assess": "{n} Vereinbarung(en) für kritische Funktionen nach Art. 30 "
+                             "bewerten.",
+        "rd.act.inc_report": "{report} für {id} übermitteln – fällig {when}.",
+        "rd.act.inc_recurring": "Wiederkehrende Vorfälle „{series}“ als einen schwerwiegenden "
+                                "Vorfall melden (oder begründen, warum nicht).",
+        "rd.act.inc_classify": "Klassifizierung von {n} Vorfall/Vorfällen abschließen.",
+        "rd.act.finma": "Die {n} nicht durch das RoI abgedeckten FINMA-Anforderungen pflegen "
+                        "({ids}).",
+        "rd.section.register": "1. Informationsregister – Datenqualität",
+        "rd.section.contracts": "2. Verträge mit IKT-Drittdienstleistern – DORA Art. 30",
+        "rd.section.incidents": "3. Schwerwiegende IKT-bezogene Vorfälle",
+        "rd.section.concentration": "4. IKT-Konzentrationsrisiko",
+        "rd.section.finma": "5. Schweiz – Abdeckung FINMA",
+        "rd.section.method": "Methode, Quellen und Einschränkungen",
+        "rd.method": "Ampeln – Register: rot bei mehr als 10 Validierungsfehlern, gelb bei 1–10; "
+                     "Verträge: rot bei Lücken hoher Priorität oder weniger als der Hälfte "
+                     "bewerteter kritischer Vereinbarungen, gelb bei jeder Lücke oder "
+                     "ausstehender Bewertung; Vorfälle: rot bei überfälliger Meldung oder einer "
+                     "wiederkehrenden Serie über den Schwellen, gelb bei ausstehenden Meldungen "
+                     "oder unbestimmter Klassifizierung; Konzentration: rot/gelb bei Hinweisen "
+                     "hoher/mittlerer Stufe. Der Gesamtstatus ist der schlechteste dieser vier; "
+                     "die FINMA-Abdeckung dient der Information. Quellen: das gemeldete "
+                     "Register, die Vertragsbewertungen nach Art. 30 und das "
+                     "Vorfallverzeichnis im Toolkit.",
+        "rd.templates_with_errors": "Vorlagen mit den meisten Fehlern",
+        "rd.key_messages": "Kernaussagen",
+        "rd.at": "Stand {date}",
+        "rd.col.template": "Vorlage",
+        "rd.col.errors": "Fehler",
+        "rd.col.warnings": "Warnungen",
         "fin.name": "Schweiz (FINMA)",
         "fin.title": "Ein Datenbestand für DORA und FINMA",
         "fin.lead": "Welche Daten des Informationsregisters – zusammen mit den "

@@ -375,7 +375,8 @@ def create_app(capacity: int = MAX_WORKSPACES) -> FastAPI:
     def overview(request: Request, wid: str) -> HTMLResponse:
         ws = ws_or_404(wid)
         return ws_page(request, ws, "ws_overview.html.j2", "import",
-                       notes=ws.import_notes)
+                       notes=ws.import_notes,
+                       readiness=programme_routes.workspace_readiness(ws, lang_of(request)))
 
     @app.get("/w/{wid}/fix", response_class=HTMLResponse)
     def fix(request: Request, wid: str, template: str | None = None,

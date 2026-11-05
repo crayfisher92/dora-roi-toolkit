@@ -1,8 +1,10 @@
-# 5-minute client demo – DORA RoI Workbench
+# 10-minute client demo – DORA readiness with the Alpenrand sample
 
-A scripted walkthrough with the fictional **Alpenrand** banking group, for a first meeting
-with a CRO, a head of ICT third-party risk or a compliance team. Timings are approximate; the
-figures quoted come from the deterministic sample data (seed 2554).
+A scripted walkthrough of the full story – **register → contracts → incidents → Switzerland →
+CRO report** – with the fictional **Alpenrand** banking group, for a first meeting with a
+CRO, a Head of Third-Party Risk or a compliance team. Timings are approximate; the figures
+come from the deterministic sample (seed 2554). Only the open major incident is placed
+relative to the moment you load the sample, so its reporting countdown is live.
 
 ## Before the meeting (2 minutes, once)
 
@@ -11,108 +13,187 @@ docker compose up --build -d        # or: pip install -e ".[web]" && roi serve
 ```
 
 Open <http://127.0.0.1:8000> in a full-screen browser window (1280 px or wider). Light mode
-works best on projectors; the **Light** button in the top right forces it. Close other
-workspaces by restarting the app (`docker compose restart`) so the demo starts clean.
+works best on projectors; the **Light** button in the top right forces it. Restart the app
+(`docker compose restart`) so the demo starts clean – and so the live incident countdown
+starts at about 2 h 30 min.
 
-> Say once at the start: *"Everything you see runs locally on this laptop. The data is a
-> fictional bank; nothing leaves the machine and nothing is stored."*
+> Say once at the start: *"Everything runs locally on this laptop. The bank is fictional;
+> nothing leaves the machine and nothing is stored."*
 
 ---
 
-## 0:00 – The starting point (30 s)
+## 0:00 – One bank, four DORA obligations (30 s)
 
-**Show** the home page.
+**Show** the home page, **click** *Sample with 25 deliberate errors*.
 
-> "There are three ways in: your RoI workbook, your own contract inventory in whatever format
-> procurement gives you, or – for today – a sample: a Swiss group with three EU entities,
-> 45 ICT providers and about 120 contracts."
+> "A Swiss group with three EU entities, 45 ICT providers, about 120 contracts. We will look
+> at the four things a supervisor asks about: the Register of Information, the ICT
+> contracts, incident reporting and concentration – and at what a Swiss parent needs from
+> the same data."
 
-**Click** *Sample with 25 deliberate errors*.
+**Point at** the *DORA readiness dashboard* box on the overview: four red lights.
 
-## 0:30 – Where do we stand? (45 s)
+## 0:30 – The register: where do we stand? (60 s)
 
 **Point at** the header: score **97/100**, *Not ready for submission*, **27 errors**,
-**5 warnings**, and the four-step stepper *Import → Fix → Analyse → Export*.
+**5 warnings**.
 
-> "97 % of the records are clean – but 27 errors would make the supervisor reject the
-> file. The score tells you how far you are; the status tells you whether you can submit."
+> "97 % of the records are clean, but 27 errors would make the supervisor reject the file."
 
-**Scroll** to *Key messages*: four provider groups each support five or more critical
-functions; five contracts supporting critical functions expire within a year.
+**Click** *Fix 27 blocking error(s)* → **B_02.02** → *FLD-005 Invalid country code*
+(governing law "UK") → *Use suggestion: GB* → **Save**.
 
-## 1:15 – Fixing, in plain language (75 s)
+> "Plain-language explanation, the DORA provision behind it, and the counter goes from 27
+> to 26 without reloading."
 
-**Click** *Fix 27 blocking error(s)*, then template **B_02.02** in the left list.
+## 1:30 – Concentration in 30 seconds (30 s)
 
-> "Every finding says what is wrong, how to fix it and which DORA or ITS provision it
-> supports – no rule codes to look up."
+**Click** *Analyse*.
 
-**Find** *FLD-005 Invalid country code* (governing law "UK"). **Click** *Use suggestion: GB*,
-then **Save**.
+> "Four provider groups each support five or more critical functions; five critical
+> contracts expire within a year; a quarter of the spend sits with groups headquartered
+> outside the EEA and Switzerland."
 
-> "The register is re-validated instantly – the error counter in the header just went from
-> 27 to 26, without reloading."
+## 2:00 – Contracts: Art. 30 gap analysis (90 s)
 
-Optionally show *FLD-003* (date `31/12/2027` → suggestion `2027-12-31`) and mention that
-repeated mistakes can be fixed in bulk.
+**Click** *Art. 30 contracts* in the *DORA programme* row.
 
-## 2:30 – One provider, all the facts (45 s)
+> "Every arrangement in the register can be assessed against the 22 key contractual
+> provisions of Article 30 – twelve for every ICT service, ten more for services supporting
+> critical or important functions. The register decides which apply."
 
-**Click** *Analyse*, scroll to the **dependency graph**, and click
-**Nimbus Cloud Services EMEA Ltd**.
+**Point at** the tiles: **120** arrangements, **90** supporting critical functions, **17**
+assessed (16 % of the critical ones), **14** with gaps, **35** actions: **18 high**,
+15 medium, 2 low. **Scroll** to *Providers, by criticality*: Nimbus EMEA supports 13
+critical functions; its two call-offs inherit the master agreement's assessment.
 
-> "This is everything about one provider on one page: it supports 13 critical or important
-> functions, is hard to substitute, sits in 11 supply chains as a subcontractor, and its
-> group is headquartered in a third country. These are the questions the board risk
-> committee asks."
+**Click** the filter *Gaps* + *Critical functions only*, then **AR-DE-0026** (Ledgerline):
 
-## 3:15 – Concentration and fourth parties (45 s)
+> "The typical picture of a pre-DORA contract: silent on subcontracting although the
+> payment hub is hosted on Nimbus, no audit rights – only an ISAE 3402 report – and no TLPT
+> clause."
 
-**Go back** to *Analyse*; switch *Colour by* to **Region** and press *Update graph*.
+**Go back**, **click** *HTML* under *Contract remediation plan* (opens in a new tab):
 
-> "Direct providers on the left, their subcontractors to the right. The Irish and
-> Luxembourg hyperscaler entities roll up to US parents – 24 % of the spend is with groups
-> headquartered outside the EEA and Switzerland, although only 8 % is contracted directly
-> with third-country entities. That is the hidden concentration DORA Article 29 asks you to
-> assess."
+> "This is the deliverable for the client: actions by priority, clause references,
+> recommended wording, target dates – also as an Excel workbook to work through with
+> procurement."
 
-**Click** *Open executive summary* to show the printable CRO report (keep it brief).
+## 3:30 – Assess a contract from the document (60 s)
 
-## 4:00 – What changed since last year? (30 s)
+**Open** **AR-DE-0057** (Mobilio digital banking) → **Use the sample contract**.
 
-**Go to** the home page and click *Sample: last year vs this year*.
+> "Upload the PDF or Word file and the toolkit pre-assesses it – locally, keyword matching,
+> no AI service, nothing leaves the laptop. 17 provisions look present, 4 are not found:
+> TLPT, the exit transition period, alternative assurance, cooperation in inspections. The
+> audit clause is *possibly partial* – it grants rights to the bank but not to the
+> supervisor."
 
-> "Five new arrangements, one ended – the mainframe outsourcing to *Legacy Mainframe
-> Services* – and spend up from about EUR 46.6m to EUR 52.0m. This is your story for the
-> annual submission."
+**Point at** the yellow banner *Suggestions – not saved yet* and a matched passage:
 
-## 4:30 – Your data, your language (30 s)
+> "Every suggestion shows the clause it matched. Nothing is saved until the reviewer has
+> checked it – and the audit trail keeps what the tool proposed next to what the reviewer
+> decided."
 
-**Click** *Start mapping wizard* → *Use the sample inventory*.
+**Click** *Discard suggestions*.
 
-> "This is what we usually receive: a German Excel inventory with a title row,
-> `31.12.2025` dates and 'unbefristet'. The wizard recognised 14 of the 15 columns by
-> itself and only left the comments column out."
+## 4:30 – A major incident, live (90 s)
 
-**Click** **DE** in the top right to switch the interface to German.
+**Click** *Incidents*.
 
-> "Your business colleagues can work in German; the regulator-facing output stays in the
+> "Five incidents. One is open right now: a cloud-region outage at Nimbus taking down core
+> banking and payments in Germany and Luxembourg."
+
+**Point at** *Next reporting deadline*: **in ~2 h 29 min**. **Click** the incident:
+
+> "The classification follows the RTS criteria: critical services are affected and five of
+> the six other criteria meet their thresholds – 14.6 % of clients, 182 000 clients, 4.5
+> hours of downtime, four Member States, media coverage and an estimated EUR 350 000.
+> Major."
+
+**Scroll** to *Reporting to the competent authority*:
+
+> "Initial notification four hours after classification – at the latest 24 hours after
+> becoming aware; intermediate report 72 hours later; final report a month after that. The
+> countdown runs on the page; recording a submission recalculates the next deadlines."
+
+**Scroll** to the questionnaire and point at *Unknown*:
+
+> "In the first hour you won't know everything. Unknown answers are evaluated both ways –
+> the result says *undetermined* and lists exactly what you still need to find out."
+
+## 6:00 – The incident nobody reported (45 s)
+
+**Go back** to the log; **point at** the yellow banner *Recurring incidents:
+kronos-certificate-rotation*.
+
+> "Two short SEPA instant outages at Kronos in July and November – each below every
+> threshold. Same root cause within six months: together they affect 11.6 % of clients and
+> 2.75 hours of downtime. Under the RTS that is one major incident – and it was never
+> reported."
+
+## 6:45 – Switzerland: one dataset for DORA and FINMA (75 s)
+
+**Click** *Switzerland (FINMA)*.
+
+> "The parent is Swiss. FINMA wants an outsourcing inventory under Circular 2018/3 and
+> critical-function and resilience documentation under 2023/1. Instead of a second
+> spreadsheet: 24 FINMA requirements mapped to the RoI fields, the Art. 30 checklist and the
+> incident log."
+
+**Point at** **56 %** coverage: 5 covered, 17 partly, 2 not covered; then the *Swiss
+context*: six Swiss providers with 38 % of the spend.
+
+> "Provider, sub-providers, locations and terms come straight from the register. What FINMA
+> needs on top – the responsible unit per outsourcing, scenario tests, FINMA named in the
+> audit clause – is listed requirement by requirement."
+
+## 8:00 – One page for the CRO (75 s)
+
+**Click** *DORA readiness*.
+
+> "Everything on one page: register red with 27 errors, contracts red with 18 high-priority
+> gaps and only 16 % of critical contracts assessed, incidents red because of the
+> unreported recurring series, concentration red. Below: the eight actions that matter,
+> each a link to where it is fixed."
+
+**Click** *Open the readiness report* and **press** Ctrl/Cmd + P:
+
+> "The same as a printable report for the risk committee – A4, PDF from the browser, in
+> English or German."
+
+## 9:15 – Your language, your data (30 s)
+
+**Click** **DE**.
+
+> "Your business colleagues work in German; the regulator-facing outputs stay in the
 > official format."
 
-## 5:00 – Close
+## 9:45 – Close
 
-> "Import, fix, analyse, export – the xBRL-CSV package, the corrected workbook and the CRO
-> summary are on the *Export* step. Shall we try it with your own inventory?"
+> "Register, contracts, incidents, concentration and the Swiss view – from one dataset you
+> maintain anyway. Shall we load your inventory next time?"
 
 ---
 
 ### Fallbacks and tips
 
 - **No Docker?** `pip install -e ".[web]" && roi serve` gives the same app.
-- **Projector too small?** Use browser zoom (Ctrl/Cmd +); the layout reflows down to phone
-  width.
-- **Keyboard-only?** Tab from the top: the first stop is *Skip to content*; every action is
-  reachable without a mouse.
-- **Questions on the xBRL-CSV package:** it is clearly labelled *best effort* – see
-  `docs/ASSUMPTIONS.md` (A-XBRL-*) for what must be verified against the EBA taxonomy.
+- **The same story on the command line** (e.g. for a pre-read):
+
+  ```bash
+  roi sample alpenrand.xlsx --assessments assessments.json --incidents incidents.json --contract-document contract.docx
+  ```
+
+  ```bash
+  roi readiness alpenrand.xlsx --assessments assessments.json --incidents incidents.json -o readiness.html --client "Alpenrand Group"
+  ```
+
+  `roi contracts assess`, `roi contracts suggest contract.docx`, `roi incidents summary` and
+  `roi finma` produce each part on its own.
+- **Countdown already past?** Restart the app – the sample incident is re-created relative to
+  now.
+- **Keyboard-only?** Tab from the top: the first stop is *Skip to content*.
+- **Regulatory questions:** checklist wording, thresholds, deadlines and the FINMA mapping
+  are paraphrased and listed as open assumptions in `docs/ASSUMPTIONS.md`.
 - **Reset** between demos: restart the app; all data is in memory.
