@@ -6,7 +6,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from conftest import ENTITY, build_valid_register
 from openpyxl import Workbook, load_workbook
 
 from dora_roi.api import validate_path
@@ -24,6 +23,8 @@ from dora_roi.io.xbrl_csv import (
     read_xbrl_csv,
 )
 from dora_roi.model import TEMPLATE_MODELS, ContractSpecific, RegisterOfInformation
+
+from conftest import ENTITY, build_valid_register
 
 
 def rules(findings: list) -> set[str]:  # type: ignore[type-arg]
@@ -81,7 +82,7 @@ def test_excel_tolerant_import(tmp_path: Path) -> None:
     ws.append(["Register extract – do not edit"])
     ws.append([])
     model = ContractSpecific
-    ws.append([s.label for s in model.columns()][:3] + ["Comment"])  # labels as header
+    ws.append([*[s.label for s in model.columns()][:3], "Comment"])  # labels as header
     ws.append([" C-9 ", ENTITY, None, "ignored"])
     ws.append([None, None, None, None])
     ws.append(["C-10", 12345, None, None])

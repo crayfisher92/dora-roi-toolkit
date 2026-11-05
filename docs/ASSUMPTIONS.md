@@ -64,3 +64,13 @@ to it.
 | A-XBRL-04 | Package name follows `<LEI>.<level>_<country>_<module code>_<module>_<reference date>_<timestamp>` (configurable / overridable). |
 | A-XBRL-05 | Countries are exported as `eba_GA:<ISO code>` and currencies as `eba_CU:<ISO code>`. Other enumerations are exported with **toolkit-internal codes** unless a code map (`--code-map map.json`) supplies the taxonomy member for each value; the exporter warns when this happens. |
 | A-XBRL-06 | Templates without rows are not written and have filing indicator `false`. |
+
+## Analytics
+
+| ID | Assumption |
+|----|------------|
+| A-AN-01 | Spend is taken from B_02.01 c0050 (annual cost of the arrangement) in the reporting currency; arrangements with several direct providers are split equally; other currencies are excluded, not converted. |
+| A-AN-02 | Concentration is measured on the **ultimate parent** of each provider (B_05.01 c0110), so that subsidiaries of the same hyperscaler are aggregated. |
+| A-AN-03 | HHI bands (1 500 / 2 500) are borrowed from competition analysis and used as a communication heuristic; DORA sets no numeric concentration threshold. |
+| A-AN-04 | The "hidden concentration" metric counts the arrangements in whose B_05.02 chain a provider appears at rank ≥ 2. |
+| A-AN-05 | Thresholds for key messages (single group ≥ 25 % of spend, ≥ 3 critical functions per group, ≥ 20 % spend with third-country groups, chain rank ≥ 3, expiry within 365 days) are configurable defaults (`AnalyticsConfig`). |

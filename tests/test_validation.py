@@ -7,7 +7,6 @@ from decimal import Decimal
 
 import pytest
 
-from conftest import ENTITY, PARENT, PROVIDER, SUBCONTRACTOR, build_valid_register
 from dora_roi.io.parse import parse_raw, parse_row
 from dora_roi.io.raw import RawRegister, RawRow, RawTable
 from dora_roi.lei import make_lei
@@ -38,6 +37,8 @@ from dora_roi.validation import (
     validate,
 )
 from dora_roi.validation.references import REFERENCES
+
+from conftest import ENTITY, PARENT, PROVIDER, SUBCONTRACTOR, build_valid_register
 
 Mutation = Callable[[RegisterOfInformation], None]
 
