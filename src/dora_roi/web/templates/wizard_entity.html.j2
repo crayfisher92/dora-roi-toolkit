@@ -1,0 +1,27 @@
+{% extends "wizard_base.html.j2" %}
+{% block wizard %}
+<section class="card" aria-labelledby="h-ent">
+  <h2 id="h-ent">{{ t("wiz.step.entity") }}</h2>
+  <p>{{ t("wiz.entity.lead") }}</p>
+  <form action="/map/{{ wiz.id }}/entity" method="post" class="form-grid" novalidate>
+    {% macro err(name) %}{% if errors.get(name) %}<p id="err-{{ name }}" class="field-error">{{ errors[name] }}</p>{% endif %}{% endmacro %}
+    <div class="field"><label for="lei">{{ t("wiz.entity.lei") }} <span class="req">*</span></label>
+      <input id="lei" name="lei" value="{{ entity.lei }}" maxlength="20" required autocomplete="off" spellcheck="false"
+             {% if errors.lei %}aria-invalid="true" aria-describedby="err-lei"{% endif %}>{{ err("lei") }}</div>
+    <div class="field"><label for="name">{{ t("wiz.entity.name") }} <span class="req">*</span></label>
+      <input id="name" name="name" value="{{ entity.name }}" required autocomplete="organization"
+             {% if errors.name %}aria-invalid="true" aria-describedby="err-name"{% endif %}>{{ err("name") }}</div>
+    <div class="field"><label for="country">{{ t("wiz.entity.country") }} <span class="req">*</span></label>
+      <select id="country" name="country">{% for code, cname in countries.items() %}<option value="{{ code }}" {% if code == entity.country %}selected{% endif %}>{{ code }} – {{ cname }}</option>{% endfor %}</select>{{ err("country") }}</div>
+    <div class="field"><label for="entity_type">{{ t("wiz.entity.type") }}</label>
+      <select id="entity_type" name="entity_type">{% for m in entity_types %}<option value="{{ m.value }}" {% if m.value == entity.entity_type %}selected{% endif %}>{{ m.label }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="competent_authority">{{ t("wiz.entity.authority") }}</label>
+      <input id="competent_authority" name="competent_authority" value="{{ entity.competent_authority }}"></div>
+    <div class="field"><label for="reporting_date">{{ t("wiz.entity.date") }}</label>
+      <input id="reporting_date" name="reporting_date" type="date" value="{{ entity.reporting_date.isoformat() }}">{{ err("reporting_date") }}</div>
+    <div class="field"><label for="currency">{{ t("wiz.entity.currency") }}</label>
+      <select id="currency" name="currency">{% for c in currencies %}<option {% if c == entity.currency %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+    <div class="row actions full"><a class="btn" href="/map/{{ wiz.id }}">{{ t("wiz.back") }}</a><button class="btn primary" type="submit">{{ t("wiz.map.continue") }}</button></div>
+  </form>
+</section>
+{% endblock %}

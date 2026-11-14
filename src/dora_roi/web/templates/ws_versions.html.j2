@@ -1,0 +1,9 @@
+{% extends "ws_base.html.j2" %}
+{% block page_title %}{{ t("ver.title") }}{% endblock %}
+{% block content %}
+<h2>{{ t("ver.title") }}</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th scope="col">{{ t("ver.number") }}</th><th scope="col">{{ t("ver.label") }}</th><th scope="col" class="num">{{ t("col.errors") }}</th><th scope="col" class="num">{{ t("col.warnings") }}</th><th scope="col">{{ t("col.created") }}</th><th scope="col"><span class="visually-hidden">{{ t("cmp.run") }}</span></th></tr></thead>
+  <tbody>{% for v in ws.versions | reverse %}<tr><td>v{{ v.number }}</td><td>{{ v.label }}</td><td class="num">{{ v.errors }}</td><td class="num">{{ v.warnings }}</td>
+    <td class="small muted">{{ v.created.strftime("%H:%M:%S") }}</td><td><a href="/w/{{ ws.id }}/compare?version={{ v.number }}">{{ t("cmp.run") }}</a></td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

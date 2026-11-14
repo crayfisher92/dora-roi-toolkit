@@ -1,0 +1,6 @@
+{% extends "base.html.j2" %}
+{% block content %}
+<h1>{{ code }}</h1>
+<p>{{ t("err.not_found") if code == 404 else detail }}</p>
+<p><a class="btn" href="/">{{ t("nav.home") }}</a></p>
+{% endblock %}

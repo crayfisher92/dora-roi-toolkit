@@ -1,0 +1,15 @@
+{% extends "wizard_base.html.j2" %}
+{% block wizard %}
+<section class="card" aria-labelledby="h-up">
+  <h2 id="h-up">{{ t("wiz.step.upload") }}</h2>
+  <p>{{ t("wiz.upload.lead") }}</p>
+  <form action="/map" method="post" enctype="multipart/form-data" class="stack" data-busy="{{ t('busy.import') }}">
+    <label for="inv-file">{{ t("home.file") }} <span class="muted small">(.xlsx, .csv)</span></label>
+    <input id="inv-file" name="file" type="file" accept=".xlsx,.xlsm,.csv">
+    <div class="row">
+      <button class="btn primary" type="submit">{{ t("wiz.upload.button") }}</button>
+      <button class="btn" type="submit" name="use_sample" value="1" formnovalidate>{{ t("wiz.upload.sample") }}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoI Validation Report</title>
+<style>
+{% include "_style.css.j2" %}
+</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA Register of Information · Validation report</p>
+  <h1>{{ report.maintainer_name or "Register of information" }}</h1>
+  <p class="meta">
+    {% if report.maintainer_lei %}LEI <span class="mono">{{ report.maintainer_lei }}</span> · {% endif %}
+    Reference date {{ report.reference_date or "—" }} ·
+    Source {{ report.source or "—" }} ·
+    Generated {{ report.generated_at.strftime("%Y-%m-%d %H:%M UTC") }} ·
+    {{ report.rules_run }} rules
+  </p>
+</header>
+
+{% set counts = report.severity_counts() %}
+{% if report.passed and counts.warning == 0 %}
+<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span>
+  <div><strong>Passed.</strong> No errors or warnings were found.</div></div>
+{% elif report.passed %}
+<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span>
+  <div><strong>Passed with warnings.</strong> No blocking errors, but {{ counts.warning }}
+  warning{{ "s" if counts.warning != 1 }} should be reviewed.</div></div>
+{% else %}
+<div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
+  <div><strong>Not ready for submission.</strong> {{ counts.error }} error{{ "s" if counts.error != 1 }}
+  must be resolved{% if counts.warning %}; {{ counts.warning }} warning{{ "s" if counts.warning != 1 }} should be reviewed{% endif %}.</div></div>
+{% endif %}
+
+<section class="grid tiles" aria-label="Summary">
+  <div class="card tile"><div class="label"><span class="badge error">Errors</span></div>
+    <div class="value">{{ counts.error }}</div><div class="sub">block submission</div></div>
+  <div class="card tile"><div class="label"><span class="badge warning">Warnings</span></div>
+    <div class="value">{{ counts.warning }}</div><div class="sub">review recommended</div></div>
+  <div class="card tile"><div class="label"><span class="badge info">Info</span></div>
+    <div class="value">{{ counts.info }}</div><div class="sub">for awareness</div></div>
+  <div class="card tile"><div class="label">Records checked</div>
+    <div class="value">{{ "{:,}".format(report.record_counts.values() | sum) }}</div>
+    <div class="sub">across {{ report.record_counts | length }} templates</div></div>
+</section>
+
+<h2>Findings by rule</h2>
+{% if report.by_rule() %}
+<div class="table-wrap"><table>
+  <thead><tr><th>Rule</th><th>Severity</th><th>Title</th><th class="num">Findings</th><th>Supports</th></tr></thead>
+  <tbody>
+  {% for rule, n in report.by_rule() %}
+  <tr><td class="mono">{{ rule.id }}</td><td><span class="badge {{ rule.severity.value }}">{{ rule.severity.value }}</span></td>
+      <td>{{ rule.title }}</td><td class="num">{{ n }}</td>
+      <td class="small muted">{{ rule.references | join("; ") }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% else %}<p class="muted">No findings.</p>{% endif %}
+
+<h2>Findings by template</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Template</th><th class="num">Records</th><th class="num">Errors</th><th class="num">Warnings</th><th class="num">Info</th></tr></thead>
+  <tbody>
+  {% set bt = report.by_template() %}
+  {% for code, n in report.record_counts.items() %}
+  {% set c = bt.get(code, {}) %}
+  <tr><td class="mono">{{ code }}</td><td class="num">{{ n }}</td>
+      <td class="num">{{ c.get("error", 0) }}</td><td class="num">{{ c.get("warning", 0) }}</td>
+      <td class="num">{{ c.get("info", 0) }}</td></tr>
+  {% endfor %}
+  {% if "register" in bt %}
+  <tr><td>Register-level / import</td><td class="num">—</td><td class="num">{{ bt.register.error }}</td>
+      <td class="num">{{ bt.register.warning }}</td><td class="num">{{ bt.register.info }}</td></tr>
+  {% endif %}
+  </tbody>
+</table></div>
+
+<h2>All findings</h2>
+<div class="filter-row" id="filters" hidden>
+  <select id="sev" aria-label="Filter by severity">
+    <option value="">All severities</option><option value="error">Errors</option>
+    <option value="warning">Warnings</option><option value="info">Info</option>
+  </select>
+  <input id="q" type="search" placeholder="Filter by text, rule, template…" aria-label="Filter findings">
+  <span class="muted small" id="shown"></span>
+</div>
+<div class="table-wrap"><table id="findings">
+  <thead><tr><th>Severity</th><th>Rule</th><th>Location</th><th>Record</th><th>Message</th></tr></thead>
+  <tbody>
+  {% for f in findings %}
+  <tr data-sev="{{ f.severity.value }}">
+    <td><span class="badge {{ f.severity.value }}">{{ f.severity.value }}</span></td>
+    <td class="mono">{{ f.rule_id }}</td>
+    <td class="mono small">{{ f.template or "—" }}{% if f.row %} · r{{ f.row }}{% endif %}{% if f.column %} · {{ f.column }}{% endif %}</td>
+    <td class="small">{{ f.record_key or "" }}</td>
+    <td>{{ f.message }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% if truncated %}<p class="muted small">Showing the first {{ findings | length }} of {{ report.findings | length }} findings. The JSON report contains all of them.</p>{% endif %}
+
+{% if report.accepted %}
+<h2>Accepted findings</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Rule</th><th>Location</th><th>Message</th><th>Justification</th></tr></thead>
+  <tbody>{% for f in report.accepted %}
+  <tr><td class="mono">{{ f.rule_id }}</td><td class="mono small">{{ f.location }}</td><td>{{ f.message }}</td><td>{{ f.accepted_reason }}</td></tr>
+  {% endfor %}</tbody></table></div>
+{% endif %}
+{% if report.rule_failures %}
+<div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
+  <div><strong>Validation incomplete.</strong> {{ report.rule_failures | length }} rule(s) failed to run:
+  {% for rf in report.rule_failures %}<span class="mono">{{ rf.rule_id }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</div></div>
+{% endif %}
+
+<h2>Rule reference</h2>
+<details{% if pdf %} open{% endif %}><summary>Show descriptions of the rules that produced findings</summary>
+<div class="table-wrap"><table>
+  <thead><tr><th>Rule</th><th>Description</th></tr></thead>
+  <tbody>
+  {% for rule, n in report.by_rule() %}
+  <tr><td class="mono">{{ rule.id }}</td><td>{{ rule.description }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+</details>
+
+<footer>
+  Generated by dora-roi-toolkit {{ report.toolkit_version }}. Not an official EBA/ESA tool and not
+  legal advice; rule interpretations are documented in docs/ASSUMPTIONS.md.
+</footer>
+</main>
+{% if not pdf %}<script>
+(function () {
+  var f = document.getElementById("filters"); f.hidden = false;
+  var sev = document.getElementById("sev"), q = document.getElementById("q");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#findings tbody tr"));
+  var shown = document.getElementById("shown");
+  function apply() {
+    var s = sev.value, t = q.value.toLowerCase(), n = 0;
+    rows.forEach(function (r) {
+      var ok = (!s || r.dataset.sev === s) && (!t || r.textContent.toLowerCase().indexOf(t) >= 0);
+      r.hidden = !ok; if (ok) n++;
+    });
+    shown.textContent = n + " of " + rows.length + " shown";
+  }
+  sev.addEventListener("change", apply); q.addEventListener("input", apply); apply();
+})();
+</script>{% endif %}
+</body>
+</html>

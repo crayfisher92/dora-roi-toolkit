@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ t("app.name") }}{% endblock %}</title>
+<meta name="color-scheme" content="light dark">
+<script src="/static/theme-init.js?v={{ version }}"></script>
+<style>
+{% include "_style.css.j2" %}
+</style>
+<link rel="stylesheet" href="/static/app.css?v={{ version }}">
+</head>
+<body>
+<a class="skip-link" href="#main">{{ t("nav.skip") }}</a>
+<header class="topbar">
+  <div class="inner">
+    <a class="brand" href="/?lang={{ lang }}"><span class="logo" aria-hidden="true">◆</span>{{ t("app.name") }}</a>
+    <nav class="tools" aria-label="{{ t('nav.language') }} / {{ t('nav.theme') }}">
+      <ul class="lang" role="list">
+        {% for code in languages %}
+        <li><a href="{{ lang_href(code) }}" hreflang="{{ code }}" lang="{{ code }}"
+               {% if code == lang %}aria-current="true"{% endif %}>{{ code | upper }}</a></li>
+        {% endfor %}
+      </ul>
+      <div class="theme" role="group" aria-label="{{ t('nav.theme') }}" hidden>
+        <button type="button" data-theme-set="system">{{ t("theme.system") }}</button>
+        <button type="button" data-theme-set="light">{{ t("theme.light") }}</button>
+        <button type="button" data-theme-set="dark">{{ t("theme.dark") }}</button>
+      </div>
+    </nav>
+  </div>
+</header>
+{% block subheader %}{% endblock %}
+<main id="main" tabindex="-1">
+{% if error %}
+<div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span><div>{{ error }}</div></div>
+{% endif %}
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer"><div class="inner">{{ t("app.name") }} {{ version }} · {{ t("footer.note") }}</div></footer>
+<div id="live" class="visually-hidden" role="status" aria-live="polite"></div>
+<div id="viz-tip" role="tooltip" hidden></div>
+<script src="/static/app.js?v={{ version }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

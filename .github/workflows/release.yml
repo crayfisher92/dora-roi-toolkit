@@ -1,0 +1,178 @@
+# Release: push a version tag (vMAJOR.MINOR.PATCH) on main → tests, wheel + sdist,
+# multi-architecture Docker image on GHCR, GitHub release with the CHANGELOG notes.
+# A manual run (workflow_dispatch) rebuilds an existing tag; it publishes only when asked.
+# Procedure: docs/RELEASING.md
+name: Release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+-*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build, e.g. v0.1.0"
+        required: true
+      publish:
+        description: "Publish the GitHub release and push the image"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+  PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+
+jobs:
+  verify:
+    name: Verify version, notes and tests
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Tag matches the package version; changelog has notes
+        id: version
+        run: |
+          python scripts/release_notes.py --check "$TAG" > release-notes.md
+          version="${TAG#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$version" == *-* ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+      - name: System libraries for PDF reports
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+      - run: pip install -e ".[dev]"
+      - run: ruff check src tests
+      - run: mypy
+      - run: pytest -m "not e2e" --cov=dora_roi --cov-fail-under=85 -q
+
+  python-package:
+    name: Wheel and sdist
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Install the wheel in a clean venv and run it
+        run: |
+          python -m venv /tmp/pkg
+          /tmp/pkg/bin/pip install dist/*.whl
+          cd /tmp
+          /tmp/pkg/bin/roi --version | grep -F "${{ needs.verify.outputs.version }}"
+          /tmp/pkg/bin/roi sample s.xlsx
+          /tmp/pkg/bin/roi validate s.xlsx --fail-on never
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  docker-image:
+    name: Docker image (linux/amd64, linux/arm64)
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.TAG }}
+          flavor: latest=${{ needs.verify.outputs.prerelease == 'false' }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.verify.outputs.version }}
+      - name: Build for the smoke test (amd64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: dora-roi-toolkit:release-test
+      - name: Smoke test (read-only, no capabilities, non-root)
+        run: scripts/docker_smoke.sh dora-roi-toolkit:release-test
+      - name: Log in to GHCR
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build (and push) the multi-architecture image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ env.PUBLISH == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: mode=max
+          sbom: true
+
+  github-release:
+    name: GitHub release
+    needs: [verify, python-package, docker-image]
+    if: ${{ github.event_name == 'push' || inputs.publish }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          PRERELEASE: ${{ needs.verify.outputs.prerelease }}
+        run: |
+          {
+            cat artifacts/release-notes/release-notes.md
+            echo
+            echo "### Install"
+            echo
+            echo '```bash'
+            echo "pip install \"dora_roi_toolkit-${VERSION}-py3-none-any.whl[web,pdf]\""
+            echo "docker run --rm -p 127.0.0.1:8000:8000 --read-only --tmpfs /tmp ghcr.io/${GH_REPO}:${VERSION}"
+            echo '```'
+          } > notes.md
+          flags=()
+          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); fi
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" artifacts/dist/* --clobber
+            gh release edit "$TAG" --notes-file notes.md
+          else
+            gh release create "$TAG" artifacts/dist/* --verify-tag --title "v${VERSION}" \
+              --notes-file notes.md "${flags[@]}"
+          fi

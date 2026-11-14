@@ -1,0 +1,30 @@
+{% macro severity_badge(sev, t) -%}
+<span class="badge {{ sev }}"><span class="visually-hidden">{{ t("fix.filter.severity") }}: </span>{{ t("sev." ~ sev) }}</span>
+{%- endmacro %}
+
+{% macro readiness_badge(q, t) -%}
+<span class="ready ready-{{ q.readiness.value }}" data-bind="readiness">{{ t("ready." ~ q.readiness.value) }}</span>
+{%- endmacro %}
+
+{% macro field_input(name, value, label, id, kind=None, codelist=None, required=False, describedby=None, t=None) -%}
+{% if codelist %}
+<select id="{{ id }}" name="{{ name }}" {% if describedby %}aria-describedby="{{ describedby }}"{% endif %}>
+  <option value="">—</option>
+  {% set matched = namespace(v=False) %}
+  {% for m in codelist %}
+  <option value="{{ m.value }}" {% if m.value == value %}selected{% set matched.v = True %}{% endif %}>{{ m.value }} – {{ m.label }}</option>
+  {% endfor %}
+  {% if value and not matched.v %}<option value="{{ value }}" selected>{{ value }} (?)</option>{% endif %}
+</select>
+{% elif kind == "boolean" %}
+<select id="{{ id }}" name="{{ name }}" {% if describedby %}aria-describedby="{{ describedby }}"{% endif %}>
+  <option value="">—</option>
+  {% for v in ("true", "false") %}<option value="{{ v }}" {% if value == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+  {% if value and value not in ("true", "false") %}<option value="{{ value }}" selected>{{ value }} (?)</option>{% endif %}
+</select>
+{% else %}
+<input id="{{ id }}" name="{{ name }}" value="{{ value }}" autocomplete="off" spellcheck="false"
+       {% if kind == "date" %}placeholder="YYYY-MM-DD" inputmode="numeric"{% endif %}
+       {% if describedby %}aria-describedby="{{ describedby }}"{% endif %}>
+{% endif %}
+{%- endmacro %}
