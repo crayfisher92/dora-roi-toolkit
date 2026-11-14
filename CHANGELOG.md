@@ -20,6 +20,10 @@ EBA material for reporting framework 4.0 (`reference/eba/`, see
 - `dora_roi.model.eba_codes`: the taxonomy member of every code-list value, the B_06.01
   licensed activities and the DPM country/currency lists; `scripts/gen_eba_codes.py`
   regenerates the tables from `reference/eba/`.
+- Template **B_99.01** (definitions from entities making use of the ICT services, DPM 4.0):
+  one optional row with the entity's internal definition of each option of six closed
+  lists (FAQ Q67); imported, validated (FLD-011: at most one row), exported and filled in the
+  synthetic sample. Inputs without a B_99.01 sheet raise no IMP-002 warning.
 - Code list `AlternativesIdentified` (B_07.01 c0110: yes / no / assessment not performed);
   `Impact.NOT_ASSESSED`; `NonSubstitutabilityReason.NOT_APPLICABLE`; entity types
   `OTHER_FINANCIAL` and `NON_FINANCIAL_ICT_INTRAGROUP`; provider code types CRN, VAT, PNR, NIN.
@@ -36,7 +40,7 @@ EBA material for reporting framework 4.0 (`reference/eba/`, see
 ### Changed
 
 - **xBRL-CSV export** – every template is reported (empty ones as header-only files, plus
-  B_99.01) and every filing indicator is `true` (EBA technical check 808); all enumerations are
+  B_99.01, now with its data) and every filing indicator is `true` (EBA technical check 808); all enumerations are
   exported as taxonomy members by default (`--code-map` now only overrides values); booleans
   that the DPM models as enumerations are exported as such; the ESAs' conventions for empty key
   fields are applied ("Not Applicable", `eba_GA:qx2007`, own LEI as parent, own code as rank-1

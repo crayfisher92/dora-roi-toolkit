@@ -152,15 +152,20 @@ def check_duplicates(ctx: ValidationContext) -> Iterator[Finding]:
                                   f"'{dup.key_str()}' already reported in {where}", dup)
 
 
-@rule("FLD-011", "B_01.01 must contain exactly one row", severity=Severity.ERROR,
-      category=Category.FIELD, templates=("B_01.01",),
-      references=("DORA Art. 28(3)", "ITS Annex I"),
-      description="The register is maintained by exactly one entity, reported in B_01.01.")
+@rule("FLD-011", "Single-row template with the wrong number of rows", severity=Severity.ERROR,
+      category=Category.FIELD, templates=("B_01.01", "B_99.01"),
+      references=("DORA Art. 28(3)", "ITS Annex I", "EBA reporting"),
+      description="The register is maintained by exactly one entity, reported in B_01.01; the "
+      "definitions of B_99.01 form a single row (a closed table of the data point model).")
 def check_single_maintainer(ctx: ValidationContext) -> Iterator[Finding]:
     n = len(ctx.register.b_01_01)
     if n != 1:
         yield ctx.finding("FLD-011", f"B_01.01 contains {n} rows; exactly one is expected",
                           template="B_01.01")
+    n = len(ctx.register.b_99_01)
+    if n > 1:
+        yield ctx.finding("FLD-011", f"B_99.01 contains {n} rows; at most one is expected",
+                          template="B_99.01")
 
 
 @rule("FLD-012", "Core template is empty", severity=Severity.ERROR, category=Category.FIELD,

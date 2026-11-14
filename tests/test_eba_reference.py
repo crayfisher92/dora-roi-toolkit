@@ -53,9 +53,9 @@ def layout(gen: ModuleType) -> dict[str, tuple[list[str], set[str]]]:
     return out
 
 
-def test_layout_lists_our_templates_plus_b_99_01(
+def test_layout_lists_exactly_our_templates(
         layout: dict[str, tuple[list[str], set[str]]]) -> None:
-    assert set(layout) == {m.TEMPLATE for m in TEMPLATE_MODELS} | {"B_99.01"}
+    assert set(layout) == {m.TEMPLATE for m in TEMPLATE_MODELS}
 
 
 @pytest.mark.parametrize("model", TEMPLATE_MODELS, ids=lambda m: m.TEMPLATE)

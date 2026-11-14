@@ -8,7 +8,8 @@ templates (Commission Implementing Regulation (EU) 2024/2956).
 
 It gives GRC consultants and ICT third-party risk teams:
 
-- a **typed data model** of all 14 templates (B_01.01 – B_07.01) with column codes,
+- a **typed data model** of all 14 ITS templates (B_01.01 – B_07.01) and the DPM's B_99.01
+  (internal definitions) with column codes,
   mandatory/conditional flags, code lists and cross-template keys;
 - a **validation engine** with 65 rules – field formats (LEI checksum per ISO 17442, ISO
   3166/4217/8601, code lists), cross-template referential integrity, subcontracting-chain

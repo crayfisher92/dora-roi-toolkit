@@ -203,6 +203,32 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 | `c0110` | `alternatives_identified` | Are there alternative ICT third-party service providers identified? | M | Code list `AlternativesIdentified` |  |
 | `c0120` | `alternative_providers` | Identification of alternative ICT third-party service providers | O | Text (max 255) | Additional information when c0110 is YES |
 
+## B_99.01 – Definitions from entities making use of the ICT services
+
+Python model: `InternalDefinitions` · key: 
+
+| Column | Attribute | Label | Req. | Type | Condition |
+|---|---|---|---|---|---|
+| `c0010` | `arrangement_standalone` | Type of contractual arrangement – Standalone arrangement | O | Text (max 255) |  |
+| `c0020` | `arrangement_overarching` | Type of contractual arrangement – Overarching arrangement | O | Text (max 255) |  |
+| `c0030` | `arrangement_subsequent` | Type of contractual arrangement – Subsequent or associated arrangement | O | Text (max 255) |  |
+| `c0040` | `sensitivity_low` | Sensitiveness of the data stored – Low | O | Text (max 255) |  |
+| `c0050` | `sensitivity_medium` | Sensitiveness of the data stored – Medium | O | Text (max 255) |  |
+| `c0060` | `sensitivity_high` | Sensitiveness of the data stored – High | O | Text (max 255) |  |
+| `c0070` | `function_impact_low` | Impact of discontinuing the function – Low | O | Text (max 255) |  |
+| `c0080` | `function_impact_medium` | Impact of discontinuing the function – Medium | O | Text (max 255) |  |
+| `c0090` | `function_impact_high` | Impact of discontinuing the function – High | O | Text (max 255) |  |
+| `c0100` | `substitutability_not` | Substitutability of the provider – Not substitutable | O | Text (max 255) |  |
+| `c0110` | `substitutability_highly_complex` | Substitutability of the provider – Highly complex substitutability | O | Text (max 255) |  |
+| `c0120` | `substitutability_medium` | Substitutability of the provider – Medium complexity in terms of substitutability | O | Text (max 255) |  |
+| `c0130` | `substitutability_easy` | Substitutability of the provider – Easily substitutable | O | Text (max 255) |  |
+| `c0140` | `reintegration_easy` | Possibility of reintegration – Easy | O | Text (max 255) |  |
+| `c0150` | `reintegration_difficult` | Possibility of reintegration – Difficult | O | Text (max 255) |  |
+| `c0160` | `reintegration_highly_complex` | Possibility of reintegration – Highly complex | O | Text (max 255) |  |
+| `c0170` | `service_impact_low` | Impact of discontinuing the ICT services – Low | O | Text (max 255) |  |
+| `c0180` | `service_impact_medium` | Impact of discontinuing the ICT services – Medium | O | Text (max 255) |  |
+| `c0190` | `service_impact_high` | Impact of discontinuing the ICT services – High | O | Text (max 255) |  |
+
 ## Code lists
 
 ### `EntityType`

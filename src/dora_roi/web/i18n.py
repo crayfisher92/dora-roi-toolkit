@@ -28,8 +28,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "home.lead": "Bring the register in, fix what the validator finds, analyse concentration "
                      "risk and export the files for the supervisor and the CRO.",
         "home.import.title": "I have an RoI workbook",
-        "home.import.text": "Excel workbook with one sheet per template (B_01.01 – B_07.01), a zip"
-                            " of CSV files or an xBRL-CSV package.",
+        "home.import.text": "Excel workbook with one sheet per template (B_01.01 – B_07.01, "
+                            "B_99.01), a zip of CSV files or an xBRL-CSV package.",
         "home.import.button": "Upload and validate",
         "home.map.title": "I have our own contract inventory",
         "home.map.text": "Any Excel or CSV list of contracts with your own column names. Map the "
@@ -330,8 +330,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "home.lead": "Register einlesen, Prüfergebnisse beheben, Konzentrationsrisiken analysieren"
                      " und die Dateien für Aufsicht und CRO exportieren.",
         "home.import.title": "Ich habe eine RoI-Arbeitsmappe",
-        "home.import.text": "Excel-Datei mit einem Blatt je Vorlage (B_01.01 – B_07.01), ein Zip "
-                            "mit CSV-Dateien oder ein xBRL-CSV-Paket.",
+        "home.import.text": "Excel-Datei mit einem Blatt je Vorlage (B_01.01 – B_07.01, "
+                            "B_99.01), ein Zip mit CSV-Dateien oder ein xBRL-CSV-Paket.",
         "home.import.button": "Hochladen und prüfen",
         "home.map.title": "Ich habe ein eigenes Vertragsinventar",
         "home.map.text": "Beliebige Excel- oder CSV-Liste mit eigenen Spaltennamen. Ordnen Sie die"

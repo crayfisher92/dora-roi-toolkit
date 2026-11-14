@@ -31,7 +31,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `FLD-008` | error | **Invalid boolean** – Yes/no columns must be true or false. | all templates | ITS Annex II | 1 DPM existence/completeness rules |
 | `FLD-009` | error | **Text too long** – Alphanumeric values are limited to 255 characters. | all templates | ITS Annex II; EBA reporting | — |
 | `FLD-010` | error | **Duplicate record key** – Each template has a primary key (e.g. the contractual arrangement reference number in B_02.01); the same key must not be reported twice. | all templates | ITS Annex II; ITS Art. – consistency | `806` |
-| `FLD-011` | error | **B_01.01 must contain exactly one row** – The register is maintained by exactly one entity, reported in B_01.01. | B_01.01 | DORA Art. 28(3); ITS Annex I | — |
+| `FLD-011` | error | **Single-row template with the wrong number of rows** – The register is maintained by exactly one entity, reported in B_01.01; the definitions of B_99.01 form a single row (a closed table of the data point model). | B_01.01, B_99.01 | DORA Art. 28(3); ITS Annex I; EBA reporting | — |
 | `FLD-012` | error | **Core template is empty** – A register without entities, contracts, providers or functions cannot be submitted. | B_01.02, B_02.01, B_02.02, B_05.01, B_06.01 | DORA Art. 28(3); ITS Annex I | `724` |
 | `FLD-013` | error | **Provider code inconsistent with its code type** – When the type of code is LEI the identification code must be a valid LEI; when it is EUID it must start with an ISO country code followed by the register identifier. Applies to provider, ultimate parent, recipient and additional codes. | B_02.02, B_03.02, B_05.01, B_05.02, B_07.01 | ISO 17442; ITS Art. – identification | `v8821_m`, `VR_71`, `VR_72`, `VR_77`, `VR_78` |
 | `FLD-014` | error | **Conditionally mandatory value missing** – Columns the ITS makes mandatory under a condition: total assets of financial entities and their currency (B_01.02 c0110, c0100); notice periods, governing law, country of provision, storage of data and level of reliance of ICT services supporting critical or important functions (B_02.02 c0100-c0140, c0180); total annual expense of direct ICT third-party service providers and its currency (B_05.01 c0100, c0090). | B_01.02, B_02.02, B_05.01 | DORA Art. 28(3); ITS Annex I; ITS Annex II | `v8803_m`, `v8804_m`, `v8824_m` |
@@ -145,7 +145,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 - **ISO 3166-1**: `FLD-005`
 - **ISO 4217**: `FLD-006`
 - **ISO 8601**: `FLD-003`
-- **EBA reporting**: `FLD-009`, `FLD-015`
+- **EBA reporting**: `FLD-009`, `FLD-011`, `FLD-015`
 - **FAQ Q52**: `BUS-002`, `BUS-003`
 - **FAQ Q58**: `BUS-010`
 - **FAQ Q65**: `SC-004`

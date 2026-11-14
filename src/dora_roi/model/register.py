@@ -20,6 +20,7 @@ from dora_roi.model.templates import (
     EntityMaintainingRegister,
     Function,
     IctThirdPartyProvider,
+    InternalDefinitions,
     IntraGroupContractLink,
     IntraGroupProvidingEntity,
     RoIRecord,
@@ -53,6 +54,7 @@ class RegisterOfInformation(BaseModel):
     b_05_02: list[SupplyChainEntry] = Field(default_factory=list)
     b_06_01: list[Function] = Field(default_factory=list)
     b_07_01: list[ServiceAssessment] = Field(default_factory=list)
+    b_99_01: list[InternalDefinitions] = Field(default_factory=list)
 
     # ------------------------------------------------------------------ generic access
 

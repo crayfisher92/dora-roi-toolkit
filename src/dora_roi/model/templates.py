@@ -694,7 +694,66 @@ class ServiceAssessment(RoIRecord):
         Kind.TEXT, condition="Additional information when c0110 is YES")] = None
 
 
-#: All template models in ITS order.
+class InternalDefinitions(RoIRecord):
+    """B_99.01 – Definitions from entities making use of the ICT services.
+
+    Defined by the EBA data point model 4.0 (not by the ITS annex): one row with the entity's
+    internal definition of each option of six closed lists, e.g. what "high" data sensitivity
+    means for it (EBA RoI FAQ Q67). Optional; reported header-only when empty.
+    """
+
+    TEMPLATE: ClassVar[str] = "B_99.01"
+    TITLE: ClassVar[str] = "Definitions from entities making use of the ICT services"
+    KEY: ClassVar[tuple[str, ...]] = ()
+
+    arrangement_standalone: Annotated[Text | None, Col(
+        "c0010", "Type of contractual arrangement – Standalone arrangement", O, Kind.TEXT)] = None
+    arrangement_overarching: Annotated[Text | None, Col(
+        "c0020", "Type of contractual arrangement – Overarching arrangement", O, Kind.TEXT)] = None
+    arrangement_subsequent: Annotated[Text | None, Col(
+        "c0030", "Type of contractual arrangement – Subsequent or associated arrangement",
+        O, Kind.TEXT)] = None
+    sensitivity_low: Annotated[Text | None, Col(
+        "c0040", "Sensitiveness of the data stored – Low", O, Kind.TEXT)] = None
+    sensitivity_medium: Annotated[Text | None, Col(
+        "c0050", "Sensitiveness of the data stored – Medium", O, Kind.TEXT)] = None
+    sensitivity_high: Annotated[Text | None, Col(
+        "c0060", "Sensitiveness of the data stored – High", O, Kind.TEXT)] = None
+    function_impact_low: Annotated[Text | None, Col(
+        "c0070", "Impact of discontinuing the function – Low", O, Kind.TEXT)] = None
+    function_impact_medium: Annotated[Text | None, Col(
+        "c0080", "Impact of discontinuing the function – Medium", O, Kind.TEXT)] = None
+    function_impact_high: Annotated[Text | None, Col(
+        "c0090", "Impact of discontinuing the function – High", O, Kind.TEXT)] = None
+    substitutability_not: Annotated[Text | None, Col(
+        "c0100", "Substitutability of the provider – Not substitutable", O, Kind.TEXT)] = None
+    substitutability_highly_complex: Annotated[Text | None, Col(
+        "c0110", "Substitutability of the provider – Highly complex substitutability",
+        O, Kind.TEXT)] = None
+    substitutability_medium: Annotated[Text | None, Col(
+        "c0120",
+        "Substitutability of the provider – Medium complexity in terms of substitutability",
+        O, Kind.TEXT)] = None
+    substitutability_easy: Annotated[Text | None, Col(
+        "c0130", "Substitutability of the provider – Easily substitutable", O, Kind.TEXT)] = None
+    reintegration_easy: Annotated[Text | None, Col(
+        "c0140", "Possibility of reintegration – Easy", O, Kind.TEXT)] = None
+    reintegration_difficult: Annotated[Text | None, Col(
+        "c0150", "Possibility of reintegration – Difficult", O, Kind.TEXT)] = None
+    reintegration_highly_complex: Annotated[Text | None, Col(
+        "c0160", "Possibility of reintegration – Highly complex", O, Kind.TEXT)] = None
+    service_impact_low: Annotated[Text | None, Col(
+        "c0170", "Impact of discontinuing the ICT services – Low", O, Kind.TEXT)] = None
+    service_impact_medium: Annotated[Text | None, Col(
+        "c0180", "Impact of discontinuing the ICT services – Medium", O, Kind.TEXT)] = None
+    service_impact_high: Annotated[Text | None, Col(
+        "c0190", "Impact of discontinuing the ICT services – High", O, Kind.TEXT)] = None
+
+
+#: Templates that may be left out of an input file without an IMP-002 warning.
+OPTIONAL_TEMPLATES = frozenset({"B_99.01"})
+
+#: All template models in ITS order, followed by the DPM's B_99.01.
 TEMPLATE_MODELS: tuple[type[RoIRecord], ...] = (
     EntityMaintainingRegister,
     EntityInScope,
@@ -710,6 +769,7 @@ TEMPLATE_MODELS: tuple[type[RoIRecord], ...] = (
     SupplyChainEntry,
     Function,
     ServiceAssessment,
+    InternalDefinitions,
 )
 
 TEMPLATES_BY_CODE: dict[str, type[RoIRecord]] = {m.TEMPLATE: m for m in TEMPLATE_MODELS}

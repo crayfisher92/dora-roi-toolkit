@@ -38,6 +38,7 @@ from dora_roi.model import (
     IctServiceType,
     IctThirdPartyProvider,
     Impact,
+    InternalDefinitions,
     NonSubstitutabilityReason,
     PersonType,
     ProviderCodeType,
@@ -134,6 +135,50 @@ def _build_entities(ctx: _Ctx) -> None:
     ctx.reg.add(EntityMaintainingRegister(
         lei=ctx.entity_lei[de.key], name=de.name, country=de.country, entity_type=de.entity_type,
         competent_authority=de.authority, reporting_date=ctx.ref))
+    ctx.reg.add(InternalDefinitions(**DEFINITIONS))
+
+
+#: The group's internal definitions of the closed-list options (B_99.01, EBA RoI FAQ Q67).
+DEFINITIONS: dict[str, str] = {
+    "arrangement_standalone": "A single contract with a provider that is not concluded under a "
+    "framework agreement.",
+    "arrangement_overarching": "A framework or master services agreement under which orders or "
+    "statements of work are concluded.",
+    "arrangement_subsequent": "An order, statement of work or service schedule concluded under "
+    "an overarching agreement.",
+    "sensitivity_low": "Public or internal data whose disclosure would have no material impact "
+    "(classification Internal).",
+    "sensitivity_medium": "Confidential business or employee data whose disclosure would cause "
+    "limited harm (classification Confidential).",
+    "sensitivity_high": "Customer, payment and authentication data or data under banking secrecy "
+    "(classification Strictly confidential).",
+    "function_impact_low": "A disruption of more than five business days has no material effect "
+    "on customers, the financial position or compliance.",
+    "function_impact_medium": "A disruption of more than one business day noticeably affects "
+    "customers or internal processes without breaching regulatory obligations.",
+    "function_impact_high": "A disruption beyond the recovery time objective threatens the "
+    "continuity of regulated services, customer protection or compliance.",
+    "substitutability_not": "No alternative provider exists, or the service relies on proprietary "
+    "technology that cannot be replaced.",
+    "substitutability_highly_complex": "Replacement takes more than 12 months, a major migration "
+    "project or significant interaction with the supervisor.",
+    "substitutability_medium": "Replacement is possible within 6 to 12 months with a planned "
+    "migration.",
+    "substitutability_easy": "Comparable services are readily available and can be switched within "
+    "6 months.",
+    "reintegration_easy": "The service can be brought in-house within 3 months with existing staff "
+    "and infrastructure.",
+    "reintegration_difficult": "Bringing the service in-house needs new staff, infrastructure or "
+    "licences and takes 3 to 12 months.",
+    "reintegration_highly_complex": "Bringing the service in-house is not realistic within 12 "
+    "months because of specialised technology or scale.",
+    "service_impact_low": "Losing the ICT service is absorbed by workarounds without effect on "
+    "customers or compliance.",
+    "service_impact_medium": "Losing the ICT service degrades functions for some time but recovery "
+    "objectives can be met.",
+    "service_impact_high": "Losing the ICT service stops a critical or important function or puts "
+    "its recovery objectives at risk.",
+}
 
 
 def _add_entity(ctx: _Ctx, spec: EntitySpec, holding: str) -> None:

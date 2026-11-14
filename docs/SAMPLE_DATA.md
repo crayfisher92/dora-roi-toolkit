@@ -22,6 +22,7 @@ Group structure: **Alpenrand Holding AG** (CH, ultimate parent, outside the DORA
 | B_05.02 | 166 |
 | B_06.01 | 31 |
 | B_07.01 | 107 |
+| B_99.01 | 1 |
 
 45 ICT third-party providers including three fictional hyperscaler groups (Nimbus, Stratus, Cirrus – US parents with EU operating subsidiaries), an intra-group Swiss shared-service centre, core banking, payments, KYC, wealth, telecom, data-centre and security providers. Subcontracting chains reach rank 3.
 

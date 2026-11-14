@@ -93,9 +93,12 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "one row and delete or renumber the other.",
                  "Derselbe Datensatz (z. B. dieselbe Vertragsnummer) kommt doppelt vor. Behalten "
                  "Sie eine Zeile und löschen oder nummerieren Sie die andere neu."),
-    "FLD-011": E("B_01.01 muss genau eine Zeile enthalten",
-                 "Exactly one entity maintains the register. Fill in B_01.01 with one row.",
-                 "Genau ein Unternehmen führt das Register. Füllen Sie B_01.01 mit einer Zeile."),
+    "FLD-011": E("Falsche Zeilenzahl in einer einzeiligen Vorlage",
+                 "Exactly one entity maintains the register, so B_01.01 has one row; the "
+                 "definitions in B_99.01 also form a single row. Keep one row.",
+                 "Genau ein Unternehmen führt das Register, daher hat B_01.01 eine Zeile; auch "
+                 "die Definitionen in B_99.01 bilden eine einzige Zeile. Behalten Sie eine "
+                 "Zeile."),
     "FLD-012": E("Zentrale Vorlage ist leer",
                  "Entities, contracts, providers and functions are the core of the register; "
                  "this template must not be empty.",

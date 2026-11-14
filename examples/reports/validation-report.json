@@ -1,7 +1,7 @@
 {
   "schema": "dora-roi-toolkit/validation-report/v1",
   "toolkit_version": "0.1.0",
-  "generated_at": "2026-11-14T22:19:52.430374+00:00",
+  "generated_at": "2026-11-14T22:38:03.100211+00:00",
   "source": "alpenrand-sample.xlsx",
   "reference_date": "2025-12-31",
   "maintainer": {
@@ -30,7 +30,8 @@
       "B_05.01": 46,
       "B_05.02": 166,
       "B_06.01": 31,
-      "B_07.01": 106
+      "B_07.01": 106,
+      "B_99.01": 1
     },
     "by_template": {
       "B_01.02": {

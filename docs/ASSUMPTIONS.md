@@ -36,10 +36,9 @@ as the source of the mandatory fields, and against the DPM existence rules.
 | xBRL-CSV export (A-XBRL) | 4 | 3 | 0 |
 | Analytics, Art. 30, incidents, FINMA | 0 | 0 | all |
 
-Still to do, in this order:
+Still to do:
 
-1. **B_99.01** (A-TPL-11) – model the definitions template instead of reporting it empty.
-2. **Framework version** (A-XBRL-02) – confirm the framework, entry point and filing rules
+1. **Framework version** (A-XBRL-02) – confirm the framework, entry point and filing rules
    valid for each reference date; refresh `reference/eba/` and run
    `python scripts/gen_eba_codes.py` when the EBA publishes a new version.
 
@@ -47,7 +46,7 @@ Still to do, in this order:
 
 | ID | Status | Assumption |
 |----|:---:|------------|
-| A-TPL-01 | ✏️ | The register consists of the 14 templates B_01.01 … B_07.01 modelled by the toolkit **plus B_99.01** (definitions from entities making use of the ICT services), which the DPM 4.0 defines and the official sample reports. See A-TPL-11. |
+| A-TPL-01 | ✏️ | The register consists of the 14 ITS templates B_01.01 … B_07.01 **plus B_99.01** (definitions from entities making use of the ICT services), which the DPM 4.0 defines and the official sample reports. The toolkit models B_99.01 as a 15th template: one optional row of 19 free-text columns with the entity's internal definition of each option of six closed lists (contract type, data sensitivity, impact of discontinuing the function, substitutability, reintegration, impact of discontinuing the ICT services – e.g. how it assesses data sensitivity, FAQ Q67). It is a closed table without key columns; FLD-011 flags more than one row, an input without a B_99.01 sheet raises no IMP-002 warning, and an empty B_99.01 is exported header-only. |
 | A-TPL-02 | ✏️ | Column codes follow the annotated table layout DORA 4.0 exactly. B_03.03 "Link" is **c0031** (was c0030); B_03.02 has **no** "Link" column (the toolkit had c0040). The importer still reads workbooks with the old codes. Labels paraphrase the ITS. |
 | A-TPL-03 | ✏️ | The technical "Link" columns are B_02.03 c0030, B_03.01 c0030 and B_03.03 c0031, reported as `true` (DPM `trueItemType`). |
 | A-TPL-04 | ✏️ | B_02.02 primary key per the data model / annotated layout: c0010, c0020, c0030, c0050, c0060, **c0130, c0150, c0160** – one row per country of provision, storage and processing (FAQ Q37, Q117). The toolkit's key previously omitted the three countries. |

@@ -7,7 +7,7 @@ The package follows the EBA DORA reporting framework 4.0 as published in ``refer
   (extending the DORA module entry point), ``parameters.csv``, ``FilingIndicators.csv`` and
   one ``b_XX.YY.csv`` per template;
 * **every** template is reported – empty templates as a header-only file – and every filing
-  indicator is ``true`` (technical check 808), including ``B_99.01``;
+  indicator is ``true`` (technical check 808), including the optional ``B_99.01``;
 * closed lists are written as taxonomy members (``eba_CT:x12``, ``eba_BT:x28`` …) using the
   official code map in :mod:`dora_roi.model.eba_codes` (overridable per value);
 * the ESAs' conventions for empty key fields are applied (EBA RoI FAQ Q26, Q58–Q65, Q124):
@@ -60,12 +60,6 @@ BEST_EFFORT_NOTICE = (
     "official tool – check the framework version in force for the reference date and run the "
     "competent authority's validation before filing."
 )
-
-#: Templates the DPM defines in addition to the toolkit's 14: B_99.01 (definitions from
-#: entities making use of the ICT services) is reported empty with a ``true`` indicator.
-EXTRA_TEMPLATES: dict[str, list[str]] = {
-    "B_99.01": [f"c{n:04d}" for n in range(10, 200, 10)],
-}
 
 CodeMap = dict[str, dict[str, str]]
 
@@ -297,7 +291,7 @@ def build_package_files(
         f"decimalsInteger,{options.decimals_integer}\n"
         f"decimalsMonetary,{options.decimals_monetary}\n"
     )
-    template_ids = [mdl.TEMPLATE for mdl in TEMPLATE_MODELS] + list(EXTRA_TEMPLATES)
+    template_ids = [mdl.TEMPLATE for mdl in TEMPLATE_MODELS]
     # technical check 808: every filing indicator is true, empty templates are still reported
     indicators = "templateID,reported\n" + "".join(f"{t},true\n" for t in template_ids)
     files: dict[str, str] = {
@@ -309,8 +303,6 @@ def build_package_files(
     }
     for name, text in tables.items():
         files[f"reports/{name}"] = text
-    for template, columns in EXTRA_TEMPLATES.items():
-        files[f"reports/{template.lower()}.csv"] = ",".join(columns) + "\n"
     return files, warnings
 
 
@@ -365,8 +357,7 @@ def is_xbrl_package(path: str | Path) -> bool:
 
 
 #: Files of a package that are not toolkit templates.
-_SKIP = {"parameters.csv", "filingindicators.csv"} | {
-    f"{t.lower()}.csv" for t in EXTRA_TEMPLATES}
+_SKIP = {"parameters.csv", "filingindicators.csv"}
 
 
 def read_xbrl_csv(path: str | Path, code_map: CodeMap | None = None,

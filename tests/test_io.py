@@ -17,6 +17,7 @@ from dora_roi.io.csv_folder import (
 )
 from dora_roi.io.excel import read_workbook, write_blank_template, write_workbook
 from dora_roi.io.loader import InputFormat, UnsupportedInputError, detect_format, load, save
+from dora_roi.io.parse import parse_raw
 from dora_roi.io.tables import column_hint, template_code_for
 from dora_roi.io.xbrl_csv import (
     XbrlCsvOptions,
@@ -34,11 +35,13 @@ from dora_roi.model import (
     TEMPLATE_MODELS,
     ContractSpecific,
     EntityInScope,
+    InternalDefinitions,
     RegisterOfInformation,
     ServiceRecipient,
     SupplyChainEntry,
 )
 from dora_roi.model.eba_codes import CODE_MAP
+from dora_roi.validation import validate
 
 from conftest import ENTITY, PROVIDER, build_valid_register
 
@@ -50,7 +53,8 @@ def rules(findings: list) -> set[str]:  # type: ignore[type-arg]
 @pytest.mark.parametrize(
     ("name", "code"),
     [("B_02.02", "B_02.02"), ("b_02.02.csv", "B_02.02"), ("B0202", "B_02.02"),
-     ("B 07 01", "B_07.01"), ("b_99.01", None), ("README", None), ("B_02.02.CSV", "B_02.02")],
+     ("B 07 01", "B_07.01"), ("b_99.01", "B_99.01"), ("B_99.99", None), ("README", None),
+     ("B_02.02.CSV", "B_02.02")],
 )
 def test_template_code_for(name: str, code: str | None) -> None:
     assert template_code_for(name) == code
@@ -211,7 +215,8 @@ def test_xbrl_package_contents(tmp_path: Path) -> None:
         assert "B_02.02,true" in fi and "B_01.03,true" in fi and "B_99.01,true" in fi
         assert ",false" not in fi
         assert zf.read(f"{root}/reports/b_01.03.csv").decode() == "c0010,c0020,c0030,c0040\n"
-        assert zf.read(f"{root}/reports/b_99.01.csv").decode().startswith("c0010,c0020,")
+        assert zf.read(f"{root}/reports/b_99.01.csv").decode() == ",".join(
+            f"c{n:04d}" for n in range(10, 200, 10)) + "\n"  # optional: header-only when empty
         b0202 = zf.read(f"{root}/reports/b_02.02.csv").decode()
         assert "eba_GA:DE" in b0202 and "eba_TA:S19" in b0202
         assert "eba_BT:x28" in b0202  # storage of data = yes
@@ -337,3 +342,18 @@ def test_detect_format_errors(tmp_path: Path) -> None:
     fake_zip.write_text("not a zip")
     with pytest.raises(UnsupportedInputError):
         detect_format(fake_zip)
+
+
+def test_b_99_01_definitions_round_trip(tmp_path: Path) -> None:
+    """B_99.01 (DPM 4.0) is a single optional row of internal definitions (FAQ Q67)."""
+    reg = build_valid_register()
+    reg.add(InternalDefinitions(sensitivity_high="Customer and payment data",
+                                substitutability_easy="Switchable within 6 months"))
+    pkg = export_xbrl_csv(reg, tmp_path).path
+    back = parse_raw(read_xbrl_csv(pkg)).register
+    assert back.b_99_01[0].sensitivity_high == "Customer and payment data"
+    assert back.b_99_01[0].substitutability_easy == "Switchable within 6 months"
+    raw = read_csv_files([("b_01.01.csv", "c0010\n")], "t")
+    assert "B_99.01" not in {f.template for f in raw.findings if f.rule_id == "IMP-002"}
+    reg.add(InternalDefinitions())
+    assert "FLD-011" in {f.rule_id for f in validate(reg).findings}

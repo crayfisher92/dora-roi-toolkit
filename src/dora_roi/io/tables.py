@@ -8,6 +8,7 @@ from collections.abc import Iterable, Sequence
 from dora_roi.io.limits import check_rows, max_rows_per_table
 from dora_roi.io.raw import RawRow, RawTable, RawValue
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RoIRecord
+from dora_roi.model.templates import OPTIONAL_TEMPLATES
 from dora_roi.model.types import Col, Kind
 from dora_roi.validation.findings import RULES, Category, Finding
 
@@ -172,5 +173,5 @@ def missing_template_findings(found: Iterable[str], source: str) -> list[Finding
         import_finding("IMP-002", f"Template {m.TEMPLATE} ({m.TITLE}) not found in input; "
                        "treated as empty", m.TEMPLATE, source)
         for m in TEMPLATE_MODELS
-        if m.TEMPLATE not in present
+        if m.TEMPLATE not in present and m.TEMPLATE not in OPTIONAL_TEMPLATES
     ]

@@ -36,7 +36,7 @@ def test_all_templates_present() -> None:
     codes = [m.TEMPLATE for m in TEMPLATE_MODELS]
     assert codes == [
         "B_01.01", "B_01.02", "B_01.03", "B_02.01", "B_02.02", "B_02.03", "B_03.01",
-        "B_03.02", "B_03.03", "B_04.01", "B_05.01", "B_05.02", "B_06.01", "B_07.01",
+        "B_03.02", "B_03.03", "B_04.01", "B_05.01", "B_05.02", "B_06.01", "B_07.01", "B_99.01",
     ]
     assert set(TEMPLATES_BY_CODE) == set(codes)
 
