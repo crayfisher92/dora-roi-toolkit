@@ -24,6 +24,10 @@ EBA material for reporting framework 4.0 (`reference/eba/`, see
   one optional row with the entity's internal definition of each option of six closed
   lists (FAQ Q67); imported, validated (FLD-011: at most one row), exported and filled in the
   synthetic sample. Inputs without a B_99.01 sheet raise no IMP-002 warning.
+- **Framework version by reference date** (`FRAMEWORK_VERSIONS`, `framework_for`): the DORA
+  module of framework 4.0 for reference dates up to 31 December 2026; the xBRL-CSV export
+  warns from December 2027, when the EBA plans DORA DPM/taxonomy amendments (framework 4.4
+  phase 2). Sources in `reference/eba/README.md`.
 - Code list `AlternativesIdentified` (B_07.01 c0110: yes / no / assessment not performed);
   `Impact.NOT_ASSESSED`; `NonSubstitutabilityReason.NOT_APPLICABLE`; entity types
   `OTHER_FINANCIAL` and `NON_FINANCIAL_ICT_INTRAGROUP`; provider code types CRN, VAT, PNR, NIN.

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import zipfile
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
@@ -24,6 +24,7 @@ from dora_roi.io.xbrl_csv import (
     _reverse_mapper,
     build_package_files,
     export_xbrl_csv,
+    framework_for,
     is_xbrl_package,
     licensed_activity_code,
     load_code_map,
@@ -357,3 +358,19 @@ def test_b_99_01_definitions_round_trip(tmp_path: Path) -> None:
     assert "B_99.01" not in {f.template for f in raw.findings if f.rule_id == "IMP-002"}
     reg.add(InternalDefinitions())
     assert "FLD-011" in {f.rule_id for f in validate(reg).findings}
+
+
+@pytest.mark.parametrize(("ref", "release", "warned"), [
+    (date(2025, 3, 31), "4.0", False),
+    (date(2025, 12, 31), "4.0", False),
+    (date(2026, 12, 31), "4.0", False),
+    (date(2027, 12, 31), "4.4 phase 2", True),
+])
+def test_framework_version_by_reference_date(ref: date, release: str, warned: bool) -> None:
+    """DORA module 4.0 up to reference date 2026-12-31; the EBA announced DPM/taxonomy
+    amendments (framework 4.4 phase 2) from 12/2027 (A-XBRL-02)."""
+    assert framework_for(ref).name == release
+    reg = build_valid_register()
+    reg.b_01_01[0].reporting_date = ref
+    _, warnings = build_package_files(reg)
+    assert any("4.4 phase 2" in w for w in warnings) is warned

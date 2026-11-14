@@ -25,3 +25,14 @@ Not copied (large or not DORA-specific), consulted from the same page:
 [EBA Filing Rules v5.5](https://www.eba.europa.eu/sites/default/files/2025-01/1f92a6e9-9e5a-41e8-bd44-0dc757f754c2/EBA%20Filing%20Rules%20v5.5_2025_01_14%20%281%29.pdf)
 (SHA-256 `f250b79733c2b2191dfebd3ad5393adcd2c351354a0c244848126ea24ec4d361`), the full
 `annotated_templates.zip` (`3b973e7e…a57d`) and `sample_documents.zip` (`2183cdd2…ecac`).
+
+## Framework version by reference date
+
+Checked on 15 November 2026:
+
+| Reference date | Submission | DORA module | Basis |
+|---|---|---|---|
+| 31 March 2025 | 2025 | Framework 4.0 (`dora/4.0/mod/dora.json`, module `DORA010100`) | [EBA reporting framework 4.0](https://www.eba.europa.eu/risk-and-data-analysis/reporting/reporting-frameworks/reporting-framework-40); RoI FAQ |
+| 31 December 2025 | 2026 | Framework 4.0 | National authorities, e.g. [DNB](https://www.dnb.nl/en/sector-news/supervision-2026/q1/dora-reporting-dora-registers-of-information-in-march-2026/) (taxonomy and Excel template unchanged from 2025); the 4.2 release (November 2025) migrated every module to DPM 2.0 except DORA |
+| 31 December 2026 | 2027 | Framework 4.0 (expected) | No DORA change before 12/2027: [framework 4.3](https://eba.europa.eu/publications-and-media/press-releases/eba-releases-final-technical-package-its-43-reporting-framework-support-third-country-branches) (July 2026) covers third-country branches and AMLA, 4.4 phase 1 covers IFRS 18, resolution, AMLA and Pillar 3. Confirm with the authority's instructions for the 2027 submission. |
+| From December 2027 | 2028 | Framework 4.4 phase 2 (not yet published) | [EBA reporting framework 4.4](https://www.eba.europa.eu/risk-and-data-analysis/reporting/reporting-frameworks/reporting-framework-4.4): "Amendments to DORA reporting – technical amendments to DPM and taxonomy", first reference date 12/2027 |

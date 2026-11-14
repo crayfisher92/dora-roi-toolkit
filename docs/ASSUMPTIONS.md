@@ -38,9 +38,7 @@ as the source of the mandatory fields, and against the DPM existence rules.
 
 Still to do:
 
-1. **Framework version** (A-XBRL-02) – confirm the framework, entry point and filing rules
-   valid for each reference date; refresh `reference/eba/` and run
-   `python scripts/gen_eba_codes.py` when the EBA publishes a new version.
+1. **DORA in framework 4.4 phase 2** (A-XBRL-02) – the EBA plans technical amendments to the DORA DPM and taxonomy from reference date 12/2027. When the package is published, add it to `reference/eba/`, run `python scripts/gen_eba_codes.py`, re-run the reference tests and add its entry point to `FRAMEWORK_VERSIONS` in `dora_roi.io.xbrl_csv`.
 
 ## Templates and columns
 
@@ -92,7 +90,7 @@ Still to do:
 | ID | Status | Assumption |
 |----|:---:|------------|
 | A-XBRL-01 | ✅ | The report package is a zip whose single top-level folder contains `META-INF/reportPackage.json` and `reports/` with `report.json`, `parameters.csv`, `FilingIndicators.csv` and one `b_XX.YY.csv` file per template whose header row is the column codes (official sample; technical check 701). Column order is not significant. |
-| A-XBRL-02 | ✅ | `report.json` extends `http://www.eba.europa.eu/eu/fr/xbrl/crr/fws/dora/4.0/mod/dora.json` (official sample, framework 4.0; configurable). Whether a later framework applies to a given reference date must still be checked. |
+| A-XBRL-02 | ✅ | `report.json` extends `http://www.eba.europa.eu/eu/fr/xbrl/crr/fws/dora/4.0/mod/dora.json` (official sample, framework 4.0; configurable). Checked on 15 November 2026: the DORA module of framework 4.0 applies to the reference dates 31 March 2025 and 31 December 2025 (national authorities state the taxonomy for the 2026 submission is unchanged), and no DORA change is scheduled before 12/2027 – releases 4.1 to 4.3 and 4.4 phase 1 leave the DORA module untouched – so it also applies to 31 December 2026. The EBA's framework 4.4 page lists technical amendments to the DORA DPM and taxonomy in phase 2 with first reference date 12/2027; the export warns for reference dates from December 2027 (`FRAMEWORK_VERSIONS`). Sources in [reference/eba/README.md](../reference/eba/README.md#framework-version-by-reference-date). |
 | A-XBRL-03 | ✅ | `parameters.csv` contains `entityID` (`rs:<LEI>.CON` or `.IND`), `refPeriod`, `baseCurrency` (`iso4217:XXX`), `decimalsInteger` and `decimalsMonetary` (official sample; checks 714, 723). The level is restricted to CON/IND (the toolkit previously also offered `SUB`). |
 | A-XBRL-04 | ✅ | Package name follows `<LEI>.<level>_<country>_<module code>_<module>_<reference date>_<timestamp>` with module code `DORA010100` (official sample; check 105). |
 | A-XBRL-05 | ✏️ | Countries are exported as `eba_GA:<ISO code>`, currencies as `eba_CU:<ISO code>` and **all other enumerations as their taxonomy members** from the official code map (`--code-map` only overrides single values). |

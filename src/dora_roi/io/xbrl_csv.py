@@ -50,6 +50,41 @@ from dora_roi.model.templates import NO_DIRECT_PARENT
 from dora_roi.model.types import Kind
 
 DEFAULT_ENTRY_POINT = "http://www.eba.europa.eu/eu/fr/xbrl/crr/fws/dora/4.0/mod/dora.json"
+
+
+@dataclass(frozen=True)
+class FrameworkVersion:
+    """EBA reporting framework release that carries the DORA module for a range of dates."""
+
+    name: str
+    #: First reference date the release applies to (month precision as published by the EBA).
+    first_reference_date: date
+    #: ``supported`` – the toolkit exports this release; ``announced`` – published plans only.
+    status: str
+    entry_point: str | None
+    source: str
+
+
+#: DORA module by reference date, checked on 15 November 2026 (see docs/ASSUMPTIONS.md,
+#: A-XBRL-02). Framework 4.0 introduced the DORA module; releases 4.1 to 4.3 and 4.4 phase 1
+#: do not change it. The EBA's 4.4 page lists "Amendments to DORA reporting – technical
+#: amendments to DPM and taxonomy" in phase 2 with first reference date 12/2027.
+FRAMEWORK_VERSIONS: tuple[FrameworkVersion, ...] = (
+    FrameworkVersion(
+        "4.0", date.min, "supported", DEFAULT_ENTRY_POINT,
+        "EBA reporting framework 4.0 (DORA module, applicable since 03/2025); unchanged for "
+        "reference dates up to and including 31 December 2026"),
+    FrameworkVersion(
+        "4.4 phase 2", date(2027, 12, 1), "announced", None,
+        "EBA reporting framework 4.4 page: technical amendments to the DORA DPM and taxonomy, "
+        "first reference date 12/2027 (package not yet published)"),
+)
+
+
+def framework_for(reference_date: date) -> FrameworkVersion:
+    """The release carrying the DORA module for ``reference_date``."""
+    return [f for f in FRAMEWORK_VERSIONS if f.first_reference_date <= reference_date][-1]
+
 COUNTRY_PREFIX = "eba_GA:"
 CURRENCY_PREFIX = "eba_CU:"
 #: Consolidation levels accepted in ``entityID`` and the package name (``rs:<LEI>.CON|IND``).
@@ -263,6 +298,12 @@ def build_package_files(
         warnings.append("B_01.01 has no valid LEI; entityID and package name use a placeholder")
     if ref is None:
         warnings.append("B_01.01 has no reporting date; refPeriod parameter left empty")
+    elif framework_for(ref).status != "supported" and options.entry_point == DEFAULT_ENTRY_POINT:
+        release = framework_for(ref)
+        warnings.append(
+            f"reference date {ref.isoformat()} falls under EBA reporting framework "
+            f"{release.name} ({release.source}); a framework 4.0 package will likely be "
+            "rejected – refresh reference/eba and the entry point once the EBA publishes it")
     if mapper.unmapped:
         details = "; ".join(f"{name}: {', '.join(sorted(values))}"
                             for name, values in sorted(mapper.unmapped.items()))
