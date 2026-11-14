@@ -128,7 +128,7 @@ CASES: list[tuple[str, Mutation]] = [
     ("SC-002", _set("b_05_02.1.recipient_code", None)),
     ("SC-002", _set("b_05_02.1.recipient_code_type", None)),
     ("SC-003", _set("b_05_02.1.rank", 3)),
-    ("SC-004", _set("b_05_02.0.recipient_code", PROVIDER)),
+    ("SC-004", _set("b_05_02.0.recipient_code", SUBCONTRACTOR)),
     ("SC-005", _add(lambda: SupplyChainEntry(
         contract_ref="C-001", service_type=IctServiceType.S19, provider_code=PROVIDER,
         provider_code_type=ProviderCodeType.LEI, rank=3, recipient_code=SUBCONTRACTOR,

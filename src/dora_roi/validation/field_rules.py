@@ -162,8 +162,9 @@ def check_provider_code_format(ctx: ValidationContext) -> Iterator[Finding]:
                                       record, code_attr, value=code)
             elif is_valid_lei(code):
                 yield ctx.finding("FLD-013", f"'{code}' is a valid LEI but its code type is "
-                                  "EUID; report the type as LEI", record, type_attr, value=code)
-            elif not EUID_PATTERN.match(code):
+                                  f"{code_type.value}; report the type as LEI", record,
+                                  type_attr, value=code)
+            elif code_type is ProviderCodeType.EUID and not EUID_PATTERN.match(code):
                 yield ctx.finding("FLD-013", f"'{code}' does not look like an EUID "
                                   "(country code + register + registration number)",
                                   record, code_attr, value=code)

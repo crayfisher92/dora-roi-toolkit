@@ -62,7 +62,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `SC-001` | error | **Rank 1 provider is not the direct provider of the arrangement** – The rank 1 entry of a supply chain must be the ICT third-party service provider that provides the service under the arrangement (as reported in B_02.02). | B_05.02, B_02.02 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II |
 | `SC-002` | error | **Subcontractor without recipient** – Entries with rank greater than 1 must identify the recipient of the sub-contracted ICT services (c0060/c0070). | B_05.02 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II |
 | `SC-003` | error | **Subcontracting chain does not resolve** – The recipient of a rank n subcontractor must appear as provider at rank n-1 of the same arrangement and service type; otherwise the chain is broken (missing link). | B_05.02 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II |
-| `SC-004` | warning | **Recipient reported for a rank 1 provider** – The direct provider (rank 1) has no recipient of sub-contracted services. | B_05.02 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II |
+| `SC-004` | warning | **Rank 1 provider reports another recipient** – For the direct provider (rank 1) the recipient (c0060) is the provider itself (EBA RoI FAQ Q65); another code at rank 1 suggests a wrong rank or recipient. | B_05.02 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II; FAQ Q65 |
 | `SC-005` | error | **Circular subcontracting chain** – A provider cannot (directly or indirectly) subcontract to itself within the same chain. | B_05.02 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II |
 | `SC-006` | warning | **No supply chain reported for an ICT service supporting a critical function** – ICT services supporting critical or important functions are expected to have their supply chain (at least the rank 1 provider) reported in B_05.02. | B_05.02, B_02.02, B_06.01 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II; DORA Art. 28(8) |
 
@@ -79,7 +79,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `BUS-007` | error | **Arrangement type inconsistent with overarching reference** – A subsequent/associated arrangement must reference its overarching arrangement (c0030); standalone and overarching arrangements must not. | B_02.01 | ITS Annex II |
 | `BUS-008` | warning | **Currency differs from the reporting currency** – Amounts are expected in the reporting currency of the entity maintaining the register so that they can be aggregated. | B_02.01, B_05.01 | ITS Annex II |
 | `BUS-009` | warning | **Provider total cost lower than sum of its arrangements** – The total annual expense of a provider (B_05.01 c0100) should be at least the sum of the annual cost of its arrangements (B_02.01 c0050), in the same currency. | B_05.01, B_02.01 | ITS Annex II |
-| `BUS-010` | error | **Group hierarchy inconsistent with parent LEI** – Subsidiaries and intermediate parents must report the LEI of their direct parent (c0060); an ultimate parent or stand-alone entity must not. | B_01.02 | ITS Annex II |
+| `BUS-010` | error | **Group hierarchy inconsistent with parent LEI** – Subsidiaries and intermediate parents must report the LEI of their direct parent (c0060). An entity without a direct parent (ultimate parent, not in a group, outsourcing provider) reports its own LEI or leaves c0060 empty in the workbook – the xBRL-CSV export repeats its own LEI (EBA RoI FAQ Q58) – but no other LEI. | B_01.02 | ITS Annex II; FAQ Q58 |
 | `BUS-011` | error | **Deletion date before integration date** – An entity cannot leave the register before it was integrated. | B_01.02 | ITS Annex II |
 | `BUS-012` | warning | **Date after the reference date** – Last update, integration, assessment and audit dates are historical and should not lie after the reporting reference date. | B_01.02, B_06.01, B_07.01 | ITS Annex II |
 | `BUS-013` | error | **Branch code missing for a branch** – When the entity making use of the services is a branch (c0030 = true), its identification code (c0040) is required. | B_04.01 | ITS Annex II |
@@ -90,7 +90,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `BUS-018` | error | **ICT service supporting a critical function not assessed in B_07.01** – Each ICT service supporting a critical or important function must have an assessment (substitutability, exit plan, reintegration) in B_07.01. | B_07.01, B_02.02 | DORA Art. 28(3); DORA Art. 29; ITS Annex I |
 | `BUS-019` | error | **No exit plan for an ICT service supporting a critical function** – Financial entities must have exit strategies for ICT services supporting critical or important functions; B_07.01 c0080 must be true. | B_07.01, B_06.01 | DORA Art. 28(8); DORA Art. 30(3) |
 | `BUS-020` | error | **Reason for non-substitutability missing** – When the provider is not substitutable or highly complex to substitute, the reason (c0060) must be given. | B_07.01 | ITS Annex II; DORA Art. 29 |
-| `BUS-021` | error | **Alternative providers not identified** – When alternative providers are said to be identified (c0110 = true), they must be named (c0120). | B_07.01 | ITS Annex II; DORA Art. 28(8) |
+| `BUS-021` | error | **Alternative providers not identified** – When alternative providers are said to be identified (c0110 = yes), they must be named (c0120). | B_07.01 | ITS Annex II; DORA Art. 28(8) |
 | `BUS-022` | warning | **Provider supporting a critical function not audited recently** – Providers of ICT services supporting critical functions should be audited with a risk-based frequency; no audit date or an audit older than the configured threshold (default 3 years) is flagged. | B_07.01 | DORA Art. 28(6) |
 | `BUS-023` | warning | **Intra-group provider without B_03.03 entry** – When the provider of an arrangement is itself an entity of the group (its LEI is in B_01.02), the providing entity is expected in B_03.03. | B_03.03, B_02.02 | ITS Annex II |
 | `BUS-024` | info | **Indefinite arrangement reported with an unusual end date** – Arrangements without an end date are reported as 9999-12-31; end dates more than 30 years ahead are usually a placeholder that should be normalised. | B_02.02 | ITS Annex II |
@@ -119,6 +119,8 @@ This document links every validation rule of the toolkit to the provision of Reg
 | ISO 4217 | Currency codes. |
 | ISO 8601 | Date format YYYY-MM-DD. |
 | EBA reporting | EBA reporting framework / xBRL-CSV technical requirements (filing rules for DORA RoI). |
+| FAQ Q58 | EBA DORA RoI reporting FAQ (28 March 2025), Q58: an entity without a direct parent undertaking reports its own LEI in B_01.02 c0060. |
+| FAQ Q65 | EBA DORA RoI reporting FAQ (28 March 2025), Q65: for the direct ICT third-party service provider (rank 1), B_05.02 c0060 repeats the value of c0030. |
 
 ## Coverage by provision
 
@@ -141,3 +143,5 @@ This document links every validation rule of the toolkit to the provision of Reg
 - **ISO 4217**: `FLD-006`
 - **ISO 8601**: `FLD-003`
 - **EBA reporting**: `FLD-009`
+- **FAQ Q58**: `BUS-010`
+- **FAQ Q65**: `SC-004`

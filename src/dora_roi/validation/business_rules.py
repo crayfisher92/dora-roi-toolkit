@@ -10,12 +10,14 @@ from datetime import date
 from decimal import Decimal
 
 from dora_roi.model import (
+    AlternativesIdentified,
     ContractType,
     Criticality,
     HierarchyInGroup,
     IctThirdPartyProvider,
     RoIRecord,
 )
+from dora_roi.model.templates import NO_DIRECT_PARENT
 from dora_roi.model.types import INDEFINITE_END_DATE
 from dora_roi.validation.context import ValidationContext
 from dora_roi.validation.findings import Category, Finding, Severity, rule
@@ -162,22 +164,23 @@ def check_provider_totals(ctx: ValidationContext) -> Iterator[Finding]:
 
 
 @rule("BUS-010", "Group hierarchy inconsistent with parent LEI", severity=Severity.ERROR,
-      category=Category.BUSINESS, templates=("B_01.02",), references=ANNEX,
+      category=Category.BUSINESS, templates=("B_01.02",), references=(*ANNEX, "FAQ Q58"),
       description="Subsidiaries and intermediate parents must report the LEI of their direct "
-      "parent (c0060); an ultimate parent or stand-alone entity must not.")
+      "parent (c0060). An entity without a direct parent (ultimate parent, not in a group, "
+      "outsourcing provider) reports its own LEI or leaves c0060 empty in the workbook – the "
+      "xBRL-CSV export repeats its own LEI (EBA RoI FAQ Q58) – but no other LEI.")
 def check_hierarchy(ctx: ValidationContext) -> Iterator[Finding]:
     needs_parent = (HierarchyInGroup.SUBSIDIARY, HierarchyInGroup.PARENT)
-    no_parent = (HierarchyInGroup.ULTIMATE_PARENT, HierarchyInGroup.NOT_IN_GROUP)
     for e in ctx.register.b_01_02:
         if e.hierarchy in needs_parent and _missing(e, "parent_lei"):
             yield ctx.finding("BUS-010", f"{e.hierarchy.label} without direct parent LEI", e,
                               "parent_lei")
-        elif e.hierarchy in no_parent and e.parent_lei:
-            yield ctx.finding("BUS-010", f"{e.hierarchy.label} should not report a parent LEI",
-                              e, "parent_lei", value=e.parent_lei)
-        if e.parent_lei and e.parent_lei == e.lei:
-            yield ctx.finding("BUS-010", "Entity reports itself as its own parent", e,
-                              "parent_lei", value=e.parent_lei)
+        elif e.hierarchy in needs_parent and e.parent_lei and e.parent_lei == e.lei:
+            yield ctx.finding("BUS-010", f"{e.hierarchy.label} reports its own LEI as direct "
+                              "parent", e, "parent_lei", value=e.parent_lei)
+        elif e.hierarchy in NO_DIRECT_PARENT and e.parent_lei and e.parent_lei != e.lei:
+            yield ctx.finding("BUS-010", f"{e.hierarchy.label} has no direct parent but reports "
+                              "another entity's LEI", e, "parent_lei", value=e.parent_lei)
 
 
 @rule("BUS-011", "Deletion date before integration date", severity=Severity.ERROR,
@@ -333,11 +336,12 @@ def check_substitutability_reason(ctx: ValidationContext) -> Iterator[Finding]:
 
 @rule("BUS-021", "Alternative providers not identified", severity=Severity.ERROR,
       category=Category.BUSINESS, templates=("B_07.01",), references=(*ANNEX, "DORA Art. 28(8)"),
-      description="When alternative providers are said to be identified (c0110 = true), they "
+      description="When alternative providers are said to be identified (c0110 = yes), they "
       "must be named (c0120).")
 def check_alternatives(ctx: ValidationContext) -> Iterator[Finding]:
     for a in ctx.register.b_07_01:
-        if a.alternatives_identified and _missing(a, "alternative_providers"):
+        if a.alternatives_identified is AlternativesIdentified.YES and \
+                _missing(a, "alternative_providers"):
             yield ctx.finding("BUS-021", "Alternatives identified but not named", a,
                               "alternative_providers")
 

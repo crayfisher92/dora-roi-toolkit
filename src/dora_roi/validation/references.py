@@ -48,4 +48,8 @@ REFERENCES: dict[str, str] = {
     "ISO 8601": "Date format YYYY-MM-DD.",
     "EBA reporting": "EBA reporting framework / xBRL-CSV technical requirements (filing "
     "rules for DORA RoI).",
+    "FAQ Q58": "EBA DORA RoI reporting FAQ (28 March 2025), Q58: an entity without a direct "
+    "parent undertaking reports its own LEI in B_01.02 c0060.",
+    "FAQ Q65": "EBA DORA RoI reporting FAQ (28 March 2025), Q65: for the direct ICT "
+    "third-party service provider (rank 1), B_05.02 c0060 repeats the value of c0030.",
 }

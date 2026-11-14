@@ -7,6 +7,7 @@ import pytest
 
 from dora_roi.lei import make_lei
 from dora_roi.model import (
+    AlternativesIdentified,
     ContractGeneral,
     ContractSigningEntity,
     ContractSigningProvider,
@@ -88,7 +89,7 @@ def build_valid_register() -> RegisterOfInformation:
         contract_ref="C-001", provider_code=PROVIDER, provider_code_type=ProviderCodeType.LEI,
         service_type=IctServiceType.S19, substitutability=Substitutability.MEDIUM,
         last_audit_date=date(2024, 5, 1), exit_plan=True, reintegration=Reintegration.DIFFICULT,
-        discontinuation_impact=Impact.HIGH, alternatives_identified=True,
+        discontinuation_impact=Impact.HIGH, alternatives_identified=AlternativesIdentified.YES,
         alternative_providers="Vendor B; Vendor C"))
     return reg
 

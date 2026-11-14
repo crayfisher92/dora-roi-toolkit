@@ -3,6 +3,7 @@
 from dora_roi.model.codelists import (
     ALL_CODELISTS,
     AdditionalCodeType,
+    AlternativesIdentified,
     CodeEnum,
     ContractType,
     Criticality,
@@ -50,6 +51,7 @@ __all__ = [
     "TEMPLATE_ATTRS",
     "TEMPLATE_MODELS",
     "AdditionalCodeType",
+    "AlternativesIdentified",
     "Branch",
     "CodeEnum",
     "Col",

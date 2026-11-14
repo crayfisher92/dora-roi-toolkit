@@ -48,8 +48,11 @@ TM:Turkmenistan|TN:Tunisia|TO:Tonga|TR:Türkiye|TT:Trinidad and Tobago|TV:Tuvalu
 TZ:Tanzania|UA:Ukraine|UG:Uganda|UM:United States Minor Outlying Islands|US:United States|
 UY:Uruguay|UZ:Uzbekistan|VA:Holy See|VC:Saint Vincent and the Grenadines|VE:Venezuela|
 VG:Virgin Islands (British)|VI:Virgin Islands (U.S.)|VN:Viet Nam|VU:Vanuatu|WF:Wallis and Futuna|
-WS:Samoa|YE:Yemen|YT:Mayotte|ZA:South Africa|ZM:Zambia|ZW:Zimbabwe
+WS:Samoa|YE:Yemen|YT:Mayotte|ZA:South Africa|ZM:Zambia|ZW:Zimbabwe|
+XK:Kosovo
 """
+# XK (user-assigned, not an official ISO 3166-1 code) is accepted because the EBA DPM country
+# hierarchy used for the register includes it (eba_GA:XK).
 
 
 def _parse_countries(raw: str) -> dict[str, str]:

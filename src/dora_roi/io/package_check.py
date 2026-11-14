@@ -202,10 +202,13 @@ def compare_packages(reference: str | Path, ours: str | Path) -> PackageComparis
         rh, oh = (rr[0] if rr else []), (orows[0] if orows else [])
         if rh == oh:
             out.add("tables", Status.OK, f"{p}: header matches ({len(rh)} columns)")
+        elif set(rh) == set(oh):
+            # columns are identified by their header in xBRL-CSV; the order is not significant
+            # (the official EBA sample lists them in no particular order)
+            out.add("tables", Status.WARN, f"{p}: same {len(rh)} columns, order differs")
         else:
             out.add("tables", Status.FAIL, f"{p}: columns only in reference "
-                    f"{sorted(set(rh) - set(oh))}, only in ours {sorted(set(oh) - set(rh))}"
-                    + (", order differs" if set(rh) == set(oh) else ""))
+                    f"{sorted(set(rh) - set(oh))}, only in ours {sorted(set(oh) - set(rh))}")
         for col in sorted(set(rh) & set(oh)):
             ri, oi = rh.index(col), oh.index(col)
             r_styles = {_value_style(r[ri]) for r in rr[1:] if len(r) > ri} - {"empty"}

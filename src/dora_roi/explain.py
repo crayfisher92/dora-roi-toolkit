@@ -103,10 +103,11 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "Registers; diese Vorlage darf nicht leer sein."),
     "FLD-013": E("Dienstleistercode passt nicht zum Codetyp",
                  "The provider code does not match its type: an LEI must be a valid LEI, an EUID "
-                 "starts with a country code and the register number. Correct the code or its "
-                 "type.",
+                 "starts with a country code and the register number, and a valid LEI must be "
+                 "typed as LEI. Correct the code or its type.",
                  "Der Dienstleistercode passt nicht zum Typ: Ein LEI muss gültig sein, eine EUID "
-                 "beginnt mit Ländercode und Registernummer. Korrigieren Sie Code oder Typ."),
+                 "beginnt mit Ländercode und Registernummer, und ein gültiger LEI ist als LEI "
+                 "zu kennzeichnen. Korrigieren Sie Code oder Typ."),
     # ------------------------------------------------------------------ referential
     "XRF-001": E("Vertrag nicht in B_02.01 erfasst",
                  "This row refers to a contract reference that is not listed in B_02.01. Add the "
@@ -195,10 +196,13 @@ EXPLANATIONS: dict[str, Explanation] = {
                 "Der genannte Empfänger steht nicht auf dem vorherigen Rang derselben Kette; die "
                 "Kette ist unterbrochen. Ergänzen Sie das fehlende Glied oder korrigieren Sie "
                 "den Empfänger."),
-    "SC-004": E("Empfänger bei Rang 1 angegeben",
-                "The direct provider (rank 1) has no recipient; leave the field empty.",
-                "Der direkte Dienstleister (Rang 1) hat keinen Empfänger; lassen Sie das Feld "
-                "leer."),
+    "SC-004": E("Anderer Empfänger bei Rang 1",
+                "For the direct provider (rank 1) the recipient is the provider itself (EBA "
+                "FAQ Q65). Leave the field empty or repeat the provider's code – the export "
+                "writes it – or correct the rank.",
+                "Beim direkten Dienstleister (Rang 1) ist der Empfänger der Dienstleister selbst "
+                "(EBA-FAQ Q65). Lassen Sie das Feld leer oder wiederholen Sie dessen Code – der "
+                "Export trägt ihn ein – oder korrigieren Sie den Rang."),
     "SC-005": E("Zirkuläre Unterauftragskette",
                 "A provider appears as its own subcontractor in the chain. Correct the ranks.",
                 "Ein Dienstleister erscheint in der Kette als eigener Unterauftragnehmer. "
@@ -247,10 +251,12 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "Die Gesamtkosten des Dienstleisters liegen unter der Summe seiner Verträge. "
                  "Einer der Beträge ist vermutlich falsch."),
     "BUS-010": E("Konzernhierarchie passt nicht zum Mutter-LEI",
-                 "Subsidiaries need the LEI of their direct parent; an ultimate parent must not "
-                 "have one.",
-                 "Tochtergesellschaften benötigen den LEI der direkten Mutter; eine oberste "
-                 "Muttergesellschaft darf keinen haben."),
+                 "Subsidiaries need the LEI of their direct parent. An entity without a direct "
+                 "parent reports its own LEI or leaves the field empty (the export repeats its "
+                 "own LEI, EBA FAQ Q58) – never another entity's LEI.",
+                 "Tochtergesellschaften benötigen den LEI der direkten Mutter. Ein Unternehmen "
+                 "ohne direkte Mutter meldet seinen eigenen LEI oder lässt das Feld leer (der "
+                 "Export wiederholt den eigenen LEI, EBA-FAQ Q58) – nie einen fremden LEI."),
     "BUS-011": E("Löschdatum vor Aufnahmedatum",
                  "The entity cannot leave the register before it joined.",
                  "Ein Unternehmen kann das Register nicht vor seiner Aufnahme verlassen."),

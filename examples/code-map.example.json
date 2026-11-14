@@ -1,11 +1,11 @@
 {
-  "_comment": "Illustrative structure only. Replace the right-hand values with the EBA DORA taxonomy members in force (see docs/ASSUMPTIONS.md A-XBRL-05). Keys are code-list class names, then toolkit-internal codes.",
+  "_comment": "Optional overrides only. The exporter already uses the official EBA code map of reporting framework 4.0 (src/dora_roi/model/eba_codes.py); list here just the values that differ in a later framework version. Keys are code-list class names, then toolkit-internal codes.",
   "IctServiceType": {
-    "S01": "eba_XX:REPLACE_ME"
+    "S01": "eba_TA:S01"
   },
   "Criticality": {
-    "CRITICAL": "eba_XX:REPLACE_ME",
-    "NOT_CRITICAL": "eba_XX:REPLACE_ME",
-    "NOT_ASSESSED": "eba_XX:REPLACE_ME"
+    "CRITICAL": "eba_BT:x28",
+    "NOT_CRITICAL": "eba_BT:x29",
+    "NOT_ASSESSED": "eba_BT:x21"
   }
 }

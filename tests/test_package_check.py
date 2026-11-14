@@ -49,7 +49,8 @@ def test_identical_packages_pass(tmp_path: Path) -> None:
 
 
 def test_differences_detected(tmp_path: Path) -> None:
-    ours = _pkg(tmp_path)
+    # without the official code map, so that enumerations differ in style from the reference
+    ours = _pkg(tmp_path, use_default_code_map=False)
     ref = _mutated_reference(ours, tmp_path / "ref.zip")
     result = compare_packages(ref, ours)
     text = result.to_markdown()
@@ -60,6 +61,22 @@ def test_differences_detected(tmp_path: Path) -> None:
     assert "c0060: ours ['text'] vs reference ['eba_TA:*']" in text
     assert "b_99.99.csv in reference but not in ours" in text
     assert result.failures
+
+
+OFFICIAL_SAMPLE = (Path(__file__).resolve().parent.parent / "reference" / "eba"
+                   / "DUMMYLEI123456789012.CON_FR_DORA010100_DORA_2024-12-31_20241213174803429.zip")
+
+
+def test_matches_official_eba_sample(tmp_path: Path) -> None:
+    """Layout, parameters, filing indicators, table headers and value styles of our export
+    agree with the official EBA DORA xBRL-CSV sample instance (reporting framework 4.0)."""
+    ours = _pkg(tmp_path)
+    result = compare_packages(OFFICIAL_SAMPLE, ours)
+    assert not result.failures, result.to_markdown()
+    tables = [c for c in result.checks if c.area == "tables"]
+    assert not any("in reference but not in ours" in c.message for c in tables)
+    indicators = [c for c in result.checks if c.area == "filing indicators"]
+    assert all(c.status is Status.OK for c in indicators)
 
 
 def test_read_folder_package_and_naming(tmp_path: Path) -> None:

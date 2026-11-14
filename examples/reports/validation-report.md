@@ -3,7 +3,7 @@
 - **Entity:** Alpenrand Bank (Europe) AG (`3912RO6DCAXX71K9W972`)
 - **Reference date:** 2025-12-31
 - **Source:** alpenrand-sample.xlsx
-- **Generated:** 2026-11-05 02:29 UTC (dora-roi-toolkit 0.1.0, 62 rules)
+- **Generated:** 2026-11-14 18:18 UTC (dora-roi-toolkit 0.1.0, 63 rules)
 
 **Result: ❌ FAILED** — 27 error(s), 5 warning(s), 1 info.
 
@@ -65,19 +65,19 @@
 | error | `FLD-006` | B_02.01 / row 23 / c0040 | AR-LU-0020 | c0040 'Currency of the amount reported': 'EURO' is not an active ISO 4217 currency code |
 | error | `FLD-010` | B_02.01 / row 123 | CO-AT-0006 | Duplicate key (contract_ref) = 'CO-AT-0006' already reported in row 9 |
 | error | `XRF-006` | B_02.01 / row 124 / c0010 | AR-LU-9002 | Contractual arrangement 'AR-LU-9002' has no row in B_02.02 |
-| error | `BUS-004` | B_02.02 / row 4 / c0150 | MSA-DE-0001 \| 3912RO6DCAXX71K9W972 \| 5299XGE5RGK9SNVGG353 \| F-DE-02 \| S17 | Data is stored but the location of data at rest is not reported |
-| error | `XRF-004` | B_02.02 / row 7 / c0050 | CO-LU-0002 \| 6354ZX2X914MZGYMMB68 \| 5299XGE5RGK9SNVGG353 \| F-LU-1 \| S17 | Function 'F-LU-1' is not identified in B_06.01 |
-| error | `BUS-018` | B_02.02 / row 18 / c0010 | MSA-DE-0007 \| 3912RO6DCAXX71K9W972 \| 2138C2U0YRY1CYEQVJ54 \| F-DE-06 \| S17 | 'MSA-DE-0007' supports critical function 'F-DE-06' but has no assessment in B_07.01 |
-| error | `FLD-013` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 | '21381VQL0Y482P2BV900' is typed as LEI but LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 56 |
-| error | `XRF-003` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 | Provider '21381VQL0Y482P2BV900' is not listed in B_05.01 |
-| error | `FLD-003` | B_02.02 / row 40 / c0080 | AR-AT-0021 \| 8156AYQ5YUFTZEC92R45 \| 21381VQL0Y482P2BV956 \| F-AT-07 \| S03 | c0080 'End date of the contractual arrangement': '31/12/2027' is not a valid ISO 8601 date (YYYY-MM-DD) |
-| error | `FLD-005` | B_02.02 / row 54 / c0120 | AR-DE-0034 \| 3912RO6DCAXX71K9W972 \| 63540HLDS88ODR38X136 \| F-DE-05 \| S19 | c0120 'Country of the governing law of the contractual arrangement': 'UK' is not an ISO 3166-1 alpha-2 country code (did you mean 'GB'?) |
-| error | `FLD-004` | B_02.02 / row 71 / c0060 | AR-LU-0050 \| 6354ZX2X914MZGYMMB68 \| 8945J54J0JEU0CJ1E554 \| F-LU-07 \|  | c0060 'Type of ICT services': 'S20' is not a valid IctServiceType code (allowed: S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19) |
-| error | `FLD-001` | B_02.02 / row 77 / c0120 | AR-AT-0056 \| 8156AYQ5YUFTZEC92R45 \| 7245TLYA2OZHE7KGQP74 \| F-AT-05 \| S19 | Mandatory column c0120 'Country of the governing law of the contractual arrangement' is empty |
-| error | `BUS-001` | B_02.02 / row 84 / c0080 | AR-LU-0062 \| 6354ZX2X914MZGYMMB68 \| 8156RHZ6DZDLTDXWN816 \| F-LU-08 \| S19 | End date 2023-04-30 is before start date 2024-05-01 |
-| error | `BUS-002` | B_02.02 / row 84 / c0090 | AR-LU-0062 \| 6354ZX2X914MZGYMMB68 \| 8156RHZ6DZDLTDXWN816 \| F-LU-08 \| S19 | Arrangement ended on 2023-04-30 but no termination reason is reported |
-| error | `BUS-002` | B_02.02 / row 86 / c0090 | AR-DE-0064 \| 3912RO6DCAXX71K9W972 \| 9845TQAG2OMFUSPMDI73 \| F-DE-11 \| S19 | Arrangement ended on 2025-10-31 but no termination reason is reported |
-| error | `XRF-003` | B_02.02 / row 154 / c0030 | AR-DE-9001 \| 8156AYQ5YUFTZEC92R45 \| 8156YII8DXJIQ6LZZ583 \| F-AT-07 \| S10 | Provider '8156YII8DXJIQ6LZZ583' is not listed in B_05.01 |
+| error | `BUS-004` | B_02.02 / row 4 / c0150 | MSA-DE-0001 \| 3912RO6DCAXX71K9W972 \| 5299XGE5RGK9SNVGG353 \| F-DE-02 \| S17 \| IE \|  \| US | Data is stored but the location of data at rest is not reported |
+| error | `XRF-004` | B_02.02 / row 7 / c0050 | CO-LU-0002 \| 6354ZX2X914MZGYMMB68 \| 5299XGE5RGK9SNVGG353 \| F-LU-1 \| S17 \| IE \| US \| US | Function 'F-LU-1' is not identified in B_06.01 |
+| error | `BUS-018` | B_02.02 / row 18 / c0010 | MSA-DE-0007 \| 3912RO6DCAXX71K9W972 \| 2138C2U0YRY1CYEQVJ54 \| F-DE-06 \| S17 \| LU \| US \| US | 'MSA-DE-0007' supports critical function 'F-DE-06' but has no assessment in B_07.01 |
+| error | `FLD-013` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 \| CH \|  \|  | '21381VQL0Y482P2BV900' is typed as LEI but LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 56 |
+| error | `XRF-003` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 \| CH \|  \|  | Provider '21381VQL0Y482P2BV900' is not listed in B_05.01 |
+| error | `FLD-003` | B_02.02 / row 40 / c0080 | AR-AT-0021 \| 8156AYQ5YUFTZEC92R45 \| 21381VQL0Y482P2BV956 \| F-AT-07 \| S03 \| CH \|  \|  | c0080 'End date of the contractual arrangement': '31/12/2027' is not a valid ISO 8601 date (YYYY-MM-DD) |
+| error | `FLD-005` | B_02.02 / row 54 / c0120 | AR-DE-0034 \| 3912RO6DCAXX71K9W972 \| 63540HLDS88ODR38X136 \| F-DE-05 \| S19 \| GB \| IE \| IE | c0120 'Country of the governing law of the contractual arrangement': 'UK' is not an ISO 3166-1 alpha-2 country code (did you mean 'GB'?) |
+| error | `FLD-004` | B_02.02 / row 71 / c0060 | AR-LU-0050 \| 6354ZX2X914MZGYMMB68 \| 8945J54J0JEU0CJ1E554 \| F-LU-07 \|  \| GB \| DE \| DE | c0060 'Type of ICT services': 'S20' is not a valid IctServiceType code (allowed: S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19) |
+| error | `FLD-001` | B_02.02 / row 77 / c0120 | AR-AT-0056 \| 8156AYQ5YUFTZEC92R45 \| 7245TLYA2OZHE7KGQP74 \| F-AT-05 \| S19 \| LU \| LU \| LU | Mandatory column c0120 'Country of the governing law of the contractual arrangement' is empty |
+| error | `BUS-001` | B_02.02 / row 84 / c0080 | AR-LU-0062 \| 6354ZX2X914MZGYMMB68 \| 8156RHZ6DZDLTDXWN816 \| F-LU-08 \| S19 \| US \| US \| US | End date 2023-04-30 is before start date 2024-05-01 |
+| error | `BUS-002` | B_02.02 / row 84 / c0090 | AR-LU-0062 \| 6354ZX2X914MZGYMMB68 \| 8156RHZ6DZDLTDXWN816 \| F-LU-08 \| S19 \| US \| US \| US | Arrangement ended on 2023-04-30 but no termination reason is reported |
+| error | `BUS-002` | B_02.02 / row 86 / c0090 | AR-DE-0064 \| 3912RO6DCAXX71K9W972 \| 9845TQAG2OMFUSPMDI73 \| F-DE-11 \| S19 \| DE \| DE \| DE | Arrangement ended on 2025-10-31 but no termination reason is reported |
+| error | `XRF-003` | B_02.02 / row 154 / c0030 | AR-DE-9001 \| 8156AYQ5YUFTZEC92R45 \| 8156YII8DXJIQ6LZZ583 \| F-AT-07 \| S10 \| CH \|  \|  | Provider '8156YII8DXJIQ6LZZ583' is not listed in B_05.01 |
 | error | `FLD-002` | B_03.01 / row 11 / c0020 | CO-LU-0008 \|  | c0020 'LEI of the entity signing the contractual arrangement': '6354ZX2X914MZGYMMB99' is not a valid LEI: LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 68 |
 | error | `XRF-001` | B_04.01 / row 147 / c0010 | AR-AT-0000 \| 8156AYQ5YUFTZEC92R45 \|  | Contractual arrangement 'AR-AT-0000' is not reported in B_02.01 |
 | error | `SC-003` | B_05.02 / row 6 / c0060 | MSA-DE-0001 \| S17 \| 5299KSAC8PGOY2WZG688 \| 3 \| 7245LHPDBFHF0V7L0532 | In 'MSA-DE-0001', recipient '7245LHPDBFHF0V7L0532' of rank 3 subcontractor '5299KSAC8PGOY2WZG688' is not reported at rank 2 |
@@ -90,8 +90,8 @@
 | error | `BUS-020` | B_07.01 / row 22 / c0060 | AR-DE-0022 \| 81567Y1C50614Y00S578 \| S13 | Substitutability is 'Not substitutable' but no reason is given |
 | error | `XRF-013` | B_07.01 / row 50 / c0010 | AR-LU-0050 \| 8945J54J0JEU0CJ1E554 \| S19 | No B_02.02 row for arrangement 'AR-LU-0050', provider '8945J54J0JEU0CJ1E554', service S19 |
 | warning | `BUS-008` | B_02.01 / row 19 / c0040 | AR-LU-0016 | Amount reported in CHF, reporting currency is EUR |
-| warning | `XRF-008` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 | Provider '21381VQL0Y482P2BV900' of 'AR-DE-0019' is not reported in B_03.02 |
-| warning | `XRF-008` | B_02.02 / row 154 / c0030 | AR-DE-9001 \| 8156AYQ5YUFTZEC92R45 \| 8156YII8DXJIQ6LZZ583 \| F-AT-07 \| S10 | Provider '8156YII8DXJIQ6LZZ583' of 'AR-DE-9001' is not reported in B_03.02 |
+| warning | `XRF-008` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 \| CH \|  \|  | Provider '21381VQL0Y482P2BV900' of 'AR-DE-0019' is not reported in B_03.02 |
+| warning | `XRF-008` | B_02.02 / row 154 / c0030 | AR-DE-9001 \| 8156AYQ5YUFTZEC92R45 \| 8156YII8DXJIQ6LZZ583 \| F-AT-07 \| S10 \| CH \|  \|  | Provider '8156YII8DXJIQ6LZZ583' of 'AR-DE-9001' is not reported in B_03.02 |
 | warning | `XRF-010` | B_05.01 / row 49 / c0010 | 2138QO7IUC1RRV1FDZ58 | Provider '2138QO7IUC1RRV1FDZ58' (Legacy Mainframe Services GmbH) is not referenced by any arrangement or supply chain |
 | warning | `BUS-016` | B_06.01 / row 33 / c0050 | F-AT-06 \| 8156AYQ5YUFTZEC92R45 | Function 'F-AT-06' has not been assessed |
 | info | `XRF-014` | B_01.02 / row 4 / c0060 | 3912RO6DCAXX71K9W972 | Parent '5299NRPC2H5F3BPYBP79' of Alpenrand Bank (Europe) AG is not listed in B_01.02 |

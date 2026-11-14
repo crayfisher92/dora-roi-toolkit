@@ -8,8 +8,12 @@ Design notes (see ``docs/DECISIONS.md`` D-002):
   of failing on the first missing value.
 * Format checks (LEI checksum, ISO codes, ISO dates, code lists) are enforced by the field
   types and therefore by Pydantic.
-* Column codes and labels follow the ITS on RoI templates as understood by this toolkit; see
-  ``docs/ASSUMPTIONS.md`` for the parts that must be checked against the published text.
+* Column codes, primary keys and data types were reconciled against the EBA *Annotated Table
+  Layout DORA 4.0* and the official xBRL-CSV sample package (``reference/eba/``); labels
+  paraphrase the ITS. See ``docs/ASSUMPTIONS.md`` for what remains to be verified.
+* "Not applicable" (EBA RoI FAQ Q26, Q58–Q65, Q124) is held as an *empty* value inside the
+  toolkit: the importer turns "Not Applicable", a repeated own LEI or own provider code back
+  into ``None``, and the xBRL-CSV exporter writes the convention the ESAs expect.
 """
 
 from __future__ import annotations
@@ -22,6 +26,7 @@ from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator
 
 from dora_roi.model.codelists import (
     AdditionalCodeType,
+    AlternativesIdentified,
     CodeEnum,
     ContractType,
     Criticality,
@@ -90,6 +95,13 @@ _TEXTUAL_ATTRS: dict[type[BaseModel], frozenset[str]] = {}
 
 _TEXTUAL_KINDS = {Kind.TEXT, Kind.LEI, Kind.PROVIDER_CODE, Kind.COUNTRY, Kind.CURRENCY,
                   Kind.CODELIST}
+
+#: Spellings of the ESAs' "Not Applicable" convention, read as an empty value (casefolded).
+NOT_APPLICABLE_VALUES = frozenset({"not applicable", "n/a"})
+
+#: Hierarchy values of entities without a direct parent undertaking (EBA RoI FAQ Q58, Q100).
+NO_DIRECT_PARENT = frozenset({HierarchyInGroup.ULTIMATE_PARENT, HierarchyInGroup.NOT_IN_GROUP,
+                              HierarchyInGroup.OUTSOURCING})
 
 
 class RoIRecord(BaseModel):
@@ -196,6 +208,8 @@ class RoIRecord(BaseModel):
             t = type(value)
             if t is str:
                 value = value.strip() or None
+                if value is not None and value.casefold() in NOT_APPLICABLE_VALUES:
+                    value = None
             elif (t is int or t is float) and key in textual:
                 value = str(int(value)) if float(value).is_integer() else str(value)
             out[key] = value
@@ -269,7 +283,8 @@ class EntityInScope(RoIRecord):
                              Kind.CODELIST, HierarchyInGroup)] = None
     parent_lei: Annotated[Lei | None, Col(
         "c0060", "LEI of the direct parent undertaking", C, Kind.LEI,
-        condition="Required unless the entity is the ultimate parent or not part of a group",
+        condition="Required unless the entity has no direct parent (ultimate parent, not in a "
+        "group); the xBRL-CSV export then repeats the entity's own LEI (EBA RoI FAQ Q58)",
     )] = None
     last_update: Annotated[IsoDate | None, Col("c0070", "Date of last update", M,
                                                Kind.DATE)] = None
@@ -282,6 +297,14 @@ class EntityInScope(RoIRecord):
     currency: Annotated[Currency | None, Col("c0100", "Currency", M, Kind.CURRENCY)] = None
     total_assets: Annotated[AmountT | None, Col("c0110", "Value of total assets", M,
                                                 Kind.MONETARY)] = None
+
+    @model_validator(mode="after")
+    def _own_lei_means_no_parent(self) -> EntityInScope:
+        # FAQ Q58: an entity without a direct parent reports its own LEI in c0060
+        if self.parent_lei is not None and self.parent_lei == self.lei and \
+                self.hierarchy in NO_DIRECT_PARENT:
+            self.parent_lei = None
+        return self
 
 
 class Branch(RoIRecord):
@@ -317,7 +340,8 @@ class ContractGeneral(RoIRecord):
                                  ContractType)] = None
     overarching_ref: Annotated[Text | None, Col(
         "c0030", "Overarching contractual arrangement reference number", C, Kind.TEXT,
-        condition="Required when the arrangement is a subsequent/associated arrangement",
+        condition="Required when the arrangement is a subsequent/associated arrangement; "
+        "otherwise exported as 'Not Applicable' (foreign key, EBA RoI FAQ Q124)",
     )] = None
     currency: Annotated[Currency | None, Col("c0040", "Currency of the amount reported", M,
                                              Kind.CURRENCY)] = None
@@ -331,8 +355,12 @@ class ContractSpecific(RoIRecord):
 
     TEMPLATE: ClassVar[str] = "B_02.02"
     TITLE: ClassVar[str] = "Contractual arrangements – specific information"
+    #: Primary key per the EBA data model / annotated table layout (c0010, c0020, c0030,
+    #: c0050, c0060, c0130, c0150, c0160): one row per country of provision, storage and
+    #: processing (EBA RoI FAQ Q37, Q117).
     KEY: ClassVar[tuple[str, ...]] = (
         "contract_ref", "entity_lei", "provider_code", "function_id", "service_type",
+        "service_country", "data_location_storage", "data_location_processing",
     )
 
     contract_ref: Annotated[Text | None, Col("c0010", "Contractual arrangement reference number",
@@ -369,14 +397,18 @@ class ContractSpecific(RoIRecord):
         "c0120", "Country of the governing law of the contractual arrangement", M,
         Kind.COUNTRY)] = None
     service_country: Annotated[Country | None, Col(
-        "c0130", "Country of provision of the ICT services", M, Kind.COUNTRY)] = None
+        "c0130", "Country of provision of the ICT services", C, Kind.COUNTRY,
+        condition="Required when the service supports a critical or important function; "
+        "otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q59)")] = None
     data_storage: Annotated[Flag | None, Col("c0140", "Storage of data", M, Kind.BOOLEAN)] = None
     data_location_storage: Annotated[Country | None, Col(
         "c0150", "Location of the data at rest (storage)", C, Kind.COUNTRY,
-        condition="Required when storage of data (c0140) is true")] = None
+        condition="Required when storage of data (c0140) is true; otherwise exported as "
+        "'Not applicable' (key, EBA RoI FAQ Q61)")] = None
     data_location_processing: Annotated[Country | None, Col(
         "c0160", "Location of management of the data (processing)", C, Kind.COUNTRY,
-        condition="Required when the ICT service involves processing of data")] = None
+        condition="Required when the ICT service involves processing of data; otherwise "
+        "exported as 'Not applicable' (key, EBA RoI FAQ Q63)")] = None
     data_sensitivity: Annotated[DataSensitivity | None, cl(DataSensitivity), Col(
         "c0170", "Sensitiveness of the data stored by the ICT third-party service provider", C,
         Kind.CODELIST, DataSensitivity,
@@ -433,7 +465,7 @@ class ContractSigningProvider(RoIRecord):
     provider_code_type: Annotated[ProviderCodeType | None, cl(ProviderCodeType), Col(
         "c0030", "Type of code to identify the ICT third-party service provider", M,
         Kind.CODELIST, ProviderCodeType)] = None
-    link: Annotated[Flag | None, Col("c0040", "Link", M, Kind.BOOLEAN)] = True
+    # B_03.02 has no "Link" column in DPM 4.0 (annotated table layout, official sample)
 
 
 class IntraGroupProvidingEntity(RoIRecord):
@@ -447,7 +479,8 @@ class IntraGroupProvidingEntity(RoIRecord):
                                              M, Kind.TEXT)] = None
     entity_lei: Annotated[Lei | None, Col("c0020", "LEI of the entity providing ICT services",
                                           M, Kind.LEI)] = None
-    link: Annotated[Flag | None, Col("c0030", "Link", M, Kind.BOOLEAN)] = True
+    # the DPM column code is c0031, not c0030 (annotated table layout, EBA Q&A 2025_7362)
+    link: Annotated[Flag | None, Col("c0031", "Link", M, Kind.BOOLEAN)] = True
 
 
 # =========================================================================== B_04
@@ -465,11 +498,12 @@ class ServiceRecipient(RoIRecord):
     entity_lei: Annotated[Lei | None, Col("c0020", "LEI of the entity making use of the ICT "
                                           "services", M, Kind.LEI)] = None
     is_branch: Annotated[Flag | None, Col(
-        "c0030", "Nature of the entity making use of the ICT services (true = branch)", M,
-        Kind.BOOLEAN)] = None
+        "c0030", "Nature of the entity making use of the ICT services (true = branch of a "
+        "financial entity, false = not a branch)", M, Kind.BOOLEAN)] = None
     branch_code: Annotated[Text | None, Col(
         "c0040", "Identification code of the branch", C, Kind.TEXT,
-        condition="Required when c0030 is true (the user is a branch)")] = None
+        condition="Required when c0030 is true (the user is a branch); otherwise exported as "
+        "'Not Applicable' (key, EBA RoI FAQ Q64)")] = None
 
 
 # =========================================================================== B_05
@@ -540,10 +574,20 @@ class SupplyChainEntry(RoIRecord):
     rank: Annotated[PositiveInt | None, Col("c0050", "Rank", M, Kind.INTEGER)] = None
     recipient_code: Annotated[CodeT | None, Col(
         "c0060", "Identification code of the recipient of sub-contracted ICT services", C,
-        Kind.PROVIDER_CODE, condition="Required when rank > 1")] = None
+        Kind.PROVIDER_CODE, condition="Required when rank > 1; at rank 1 the xBRL-CSV export "
+        "repeats the provider's own code (key, EBA RoI FAQ Q65)")] = None
     recipient_code_type: Annotated[ProviderCodeType | None, cl(ProviderCodeType), Col(
         "c0070", "Type of code to identify the recipient of sub-contracted ICT services", C,
         Kind.CODELIST, ProviderCodeType, condition="Required when rank > 1")] = None
+
+    @model_validator(mode="after")
+    def _rank_one_recipient_is_itself(self) -> SupplyChainEntry:
+        # FAQ Q65: the direct provider (rank 1) reports its own code as recipient
+        if self.rank == 1 and self.recipient_code is not None and \
+                self.recipient_code == self.provider_code:
+            self.recipient_code = None
+            self.recipient_code_type = None
+        return self
 
 
 # =========================================================================== B_06
@@ -557,8 +601,10 @@ class Function(RoIRecord):
     KEY: ClassVar[tuple[str, ...]] = ("function_id", "entity_lei")
 
     function_id: Annotated[Text | None, Col("c0010", "Function identifier", M, Kind.TEXT)] = None
-    licensed_activity: Annotated[Text | None, Col("c0020", "Licensed activity", M,
-                                                  Kind.TEXT)] = None
+    licensed_activity: Annotated[Text | None, Col(
+        "c0020", "Licensed activity", M, Kind.TEXT,
+        condition="An activity of the EBA list (ITS Annex IV), as code (e.g. eba_TA:x28) or "
+        "label (e.g. 'Payment services'); the xBRL-CSV export writes the code")] = None
     function_name: Annotated[Text | None, Col("c0030", "Function name", M, Kind.TEXT)] = None
     entity_lei: Annotated[Lei | None, Col("c0040", "LEI of the financial entity", M,
                                           Kind.LEI)] = None
@@ -623,12 +669,14 @@ class ServiceAssessment(RoIRecord):
         Kind.CODELIST, Reintegration)] = None
     discontinuation_impact: Annotated[Impact | None, cl(Impact), Col(
         "c0100", "Impact of discontinuing the ICT services", M, Kind.CODELIST, Impact)] = None
-    alternatives_identified: Annotated[Flag | None, Col(
-        "c0110", "Are there alternative ICT third-party service providers identified?", M,
-        Kind.BOOLEAN)] = None
+    alternatives_identified: Annotated[
+        AlternativesIdentified | None, cl(AlternativesIdentified), Col(
+            "c0110", "Are there alternative ICT third-party service providers identified?", M,
+            Kind.CODELIST, AlternativesIdentified),
+    ] = None
     alternative_providers: Annotated[Text | None, Col(
         "c0120", "Identification of alternative ICT third-party service providers", C,
-        Kind.TEXT, condition="Required when c0110 is true")] = None
+        Kind.TEXT, condition="Required when c0110 is YES")] = None
 
 
 #: All template models in ITS order.

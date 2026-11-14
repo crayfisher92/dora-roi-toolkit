@@ -61,9 +61,17 @@ def _norm(value: object) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().casefold()
 
 
+#: Column codes written by toolkit versions before the reconciliation with DPM 4.0:
+#: renamed codes are read under their new code, removed columns are skipped silently.
+LEGACY_COLUMN_CODES: dict[str, dict[str, str]] = {"B_03.03": {"c0030": "c0031"}}
+LEGACY_DROPPED_COLUMNS: dict[str, frozenset[str]] = {"B_03.02": frozenset({"c0040"})}
+
+
 def header_mapping(model: type[RoIRecord], cells: Sequence[RawValue]) -> dict[int, str] | None:
     """Return ``{cell index: column code}`` if ``cells`` look like a header row."""
     by_label = {_norm(s.label): s.code for s in model.columns()}
+    renamed = LEGACY_COLUMN_CODES.get(model.TEMPLATE, {})
+    dropped = LEGACY_DROPPED_COLUMNS.get(model.TEMPLATE, frozenset())
     mapping: dict[int, str] = {}
     hits = 0
     for idx, cell in enumerate(cells):
@@ -71,8 +79,11 @@ def header_mapping(model: type[RoIRecord], cells: Sequence[RawValue]) -> dict[in
             continue
         text = str(cell).strip()
         if _CODE_RE.match(text):
-            mapping[idx] = text.lower()
+            code = text.lower()
             hits += 1
+            if code in dropped:
+                continue
+            mapping[idx] = renamed.get(code, code)
         elif _norm(text) in by_label:
             mapping[idx] = by_label[_norm(text)]
             hits += 1

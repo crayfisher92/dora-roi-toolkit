@@ -6,9 +6,10 @@ the ITS wording). Importers accept the code, the label or any registered alias,
 case-insensitively, so that both "S19" and "Cloud services: SaaS" load correctly.
 
 The official EBA taxonomy identifies enumerated values with qualified names (e.g.
-``eba_GA:DE`` for countries). The mapping from internal codes to taxonomy members used by
-the xBRL-CSV exporter lives in :mod:`dora_roi.io.xbrl_csv` and is documented as an
-assumption, because it must be checked against the taxonomy release in force.
+``eba_CT:x12`` for a credit institution). Every member of every code list below has its
+taxonomy member in :data:`dora_roi.model.eba_codes.CODE_MAP`, taken from the EBA *List of
+possible values for all data fields with drop downs* (reporting framework 4.0); the code lists
+and labels were reconciled against it and the *Annotated Table Layout DORA 4.0*.
 """
 
 from __future__ import annotations
@@ -77,7 +78,11 @@ class CodeEnum(StrEnum):
 
 
 class EntityType(CodeEnum):
-    """Type of financial entity (DORA Art. 2(1)) plus a residual value for group entities."""
+    """Type of entity (B_01.01 / B_01.02 c0040; DPM hierarchies CT6 and CT61).
+
+    The 22 financial-entity types follow DORA Art. 2(1) as listed by the EBA; the last two
+    values are the non-financial group entities that may only appear in B_01.02.
+    """
 
     CREDIT_INSTITUTION = "CREDIT_INSTITUTION", "Credit institution"
     PAYMENT_INSTITUTION = "PAYMENT_INSTITUTION", "Payment institution"
@@ -91,31 +96,61 @@ class EntityType(CodeEnum):
     TRADING_VENUE = "TRADING_VENUE", "Trading venue"
     TRADE_REPOSITORY = "TRADE_REPOSITORY", "Trade repository"
     AIFM = "AIFM", "Manager of alternative investment funds"
-    UCITS_MANCO = "UCITS_MANCO", "UCITS management company"
+    UCITS_MANCO = "UCITS_MANCO", "Management company (UCITS)"
     DRSP = "DRSP", "Data reporting service provider"
-    INSURANCE_UNDERTAKING = "INSURANCE_UNDERTAKING", "Insurance undertaking"
-    REINSURANCE_UNDERTAKING = "REINSURANCE_UNDERTAKING", "Reinsurance undertaking"
-    INSURANCE_INTERMEDIARY = "INSURANCE_INTERMEDIARY", "Insurance or reinsurance intermediary"
+    INSURANCE_UNDERTAKING = "INSURANCE_UNDERTAKING", "Insurance and reinsurance undertaking"
+    INSURANCE_INTERMEDIARY = "INSURANCE_INTERMEDIARY", (
+        "Insurance, reinsurance or ancillary insurance intermediary")
     IORP = "IORP", "Institution for occupational retirement provision"
     CRA = "CRA", "Credit rating agency"
     BENCHMARK_ADMINISTRATOR = "BENCHMARK_ADMINISTRATOR", "Administrator of critical benchmarks"
     CROWDFUNDING_SP = "CROWDFUNDING_SP", "Crowdfunding service provider"
     SECURITISATION_REPOSITORY = "SECURITISATION_REPOSITORY", "Securitisation repository"
-    OTHER = "OTHER", "Other entity (not a financial entity under DORA Art. 2(1))"
+    OTHER_FINANCIAL = "OTHER_FINANCIAL", "Other financial entity"
+    NON_FINANCIAL_ICT_INTRAGROUP = "NON_FINANCIAL_ICT_INTRAGROUP", (
+        "Non-financial entity: ICT intra-group service provider")
+    OTHER = "OTHER", "Non-financial entity: other than ICT intra-group service provider"
+
+    @property
+    def is_financial(self) -> bool:
+        """False for the two non-financial values (only allowed in B_01.02)."""
+        return self not in (EntityType.NON_FINANCIAL_ICT_INTRAGROUP, EntityType.OTHER)
 
     @classmethod
     def aliases(cls) -> dict[str, str]:
-        return {"bank": "CREDIT_INSTITUTION", "CI": "CREDIT_INSTITUTION", "IF": "INVESTMENT_FIRM"}
+        return {
+            "bank": "CREDIT_INSTITUTION",
+            "CI": "CREDIT_INSTITUTION",
+            "IF": "INVESTMENT_FIRM",
+            # labels used by the EBA list of possible values
+            "credit institutions": "CREDIT_INSTITUTION",
+            "investment firms": "INVESTMENT_FIRM",
+            "asset management companies": "UCITS_MANCO",
+            "management companies": "UCITS_MANCO",
+            "central security depository": "CSD",
+            "central counterparties (CCPs)": "CCP",
+            "insurance and reinsurance undertakings": "INSURANCE_UNDERTAKING",
+            # earlier toolkit versions split insurance and reinsurance undertakings
+            "REINSURANCE_UNDERTAKING": "INSURANCE_UNDERTAKING",
+            "reinsurance undertaking": "INSURANCE_UNDERTAKING",
+        }
 
 
 class HierarchyInGroup(CodeEnum):
-    """Hierarchy of the entity within the group (B_01.02 c0050)."""
+    """Hierarchy of the entity within the group (B_01.02 c0050; DPM hierarchy RP8)."""
 
-    ULTIMATE_PARENT = "ULTIMATE_PARENT", "Ultimate parent undertaking"
-    PARENT = "PARENT", "Parent undertaking (other than ultimate parent)"
+    ULTIMATE_PARENT = "ULTIMATE_PARENT", "Ultimate parent"
+    PARENT = "PARENT", "Parent other than ultimate parent"
     SUBSIDIARY = "SUBSIDIARY", "Subsidiary"
-    NOT_IN_GROUP = "NOT_IN_GROUP", "Entity not part of a group"
-    OTHER = "OTHER", "Other (e.g. entity linked by a common management)"
+    NOT_IN_GROUP = "NOT_IN_GROUP", "Entities other than entities of the group"
+    OUTSOURCING = "OUTSOURCING", (
+        "Service provider to which the financial entity outsources all its operational "
+        "activities")
+
+    @classmethod
+    def aliases(cls) -> dict[str, str]:
+        # "OTHER" was this toolkit's earlier (incorrect) code for the outsourcing option
+        return {"OTHER": "OUTSOURCING", "outsourcing": "OUTSOURCING"}
 
 
 class ContractType(CodeEnum):
@@ -130,22 +165,49 @@ class ContractType(CodeEnum):
         return {"master": "OVERARCHING", "associated": "SUBSEQUENT", "call-off": "SUBSEQUENT"}
 
 
-class ProviderCodeType(CodeEnum):
-    """Type of code identifying an ICT third-party service provider (LEI or EUID)."""
+_CODE_TYPE_ALIASES = {
+    "legal entity identifier": "LEI",
+    "legal entity identfier (LEI)": "LEI",  # sic, EBA list of possible values
+    "european unified id (EUID)": "EUID",
+    "national code": "NIN",
+    "company registration number (CRN)": "CRN",
+    "value added tax identification number (VAT)": "VAT",
+    "passport number": "PNR",
+}
 
-    LEI = "LEI", "Legal Entity Identifier (ISO 17442)"
-    EUID = "EUID", "European Unique Identifier"
+
+class ProviderCodeType(CodeEnum):
+    """Type of code identifying a provider (DPM hierarchy qCO:new_CO2).
+
+    LEI or EUID for legal persons; the other codes for providers without either, e.g. natural
+    persons acting in a business capacity (EBA FAQ on RoI reporting).
+    """
+
+    LEI = "LEI", "Legal Entity Identifier (LEI)"
+    EUID = "EUID", "European Unique Identifier (EUID)"
+    CRN = "CRN", "Company registration number"
+    VAT = "VAT", "Value added tax identification number"
+    PNR = "PNR", "Passport number"
+    NIN = "NIN", "National identity number (national code)"
+
+    @classmethod
+    def aliases(cls) -> dict[str, str]:
+        return _CODE_TYPE_ALIASES
 
 
 class AdditionalCodeType(CodeEnum):
-    """Type of additional identification code for a provider (B_05.01 c0040)."""
+    """Type of additional identification code for a provider (B_05.01 c0040; qCO:new_CO2)."""
 
-    CRN = "CRN", "Corporate registration number"
-    VAT = "VAT", "VAT number"
+    LEI = "LEI", "Legal Entity Identifier (LEI)"
+    EUID = "EUID", "European Unique Identifier (EUID)"
+    CRN = "CRN", "Company registration number"
+    VAT = "VAT", "Value added tax identification number"
     PNR = "PNR", "Passport number"
-    NIN = "NIN", "National identity number"
-    BIC = "BIC", "Business Identifier Code (ISO 9362)"
-    OTHER = "OTHER", "Other identification code"
+    NIN = "NIN", "National identity number (national code)"
+
+    @classmethod
+    def aliases(cls) -> dict[str, str]:
+        return _CODE_TYPE_ALIASES
 
 
 class PersonType(CodeEnum):
@@ -242,6 +304,7 @@ class Impact(CodeEnum):
     LOW = "LOW", "Low impact"
     MEDIUM = "MEDIUM", "Medium impact"
     HIGH = "HIGH", "High impact"
+    NOT_ASSESSED = "NOT_ASSESSED", "Assessment not performed"
 
 
 class Substitutability(CodeEnum):
@@ -261,8 +324,9 @@ class NonSubstitutabilityReason(CodeEnum):
     """Reason the provider is (difficult to be) not substitutable (B_07.01 c0060)."""
 
     NO_ALTERNATIVES = "NO_ALTERNATIVES", "Lack of real alternatives"
-    MIGRATION = "MIGRATION", "Difficulties relating to partial or full migration"
-    BOTH = "BOTH", "Both lack of alternatives and migration difficulties"
+    MIGRATION = "MIGRATION", "Difficulties in migrating or reintegrating"
+    BOTH = "BOTH", "Lack of real alternatives and difficulties in migrating or reintegrating"
+    NOT_APPLICABLE = "NOT_APPLICABLE", "Not applicable"
 
 
 class Reintegration(CodeEnum):
@@ -271,6 +335,19 @@ class Reintegration(CodeEnum):
     EASY = "EASY", "Easy"
     DIFFICULT = "DIFFICULT", "Difficult"
     HIGHLY_COMPLEX = "HIGHLY_COMPLEX", "Highly complex"
+
+
+class AlternativesIdentified(CodeEnum):
+    """Are alternative ICT third-party service providers identified? (B_07.01 c0110; BT13)."""
+
+    YES = "YES", "Yes"
+    NO = "NO", "No"
+    NOT_ASSESSED = "NOT_ASSESSED", "Assessment not performed"
+
+    @classmethod
+    def aliases(cls) -> dict[str, str]:
+        # earlier toolkit versions modelled this column as a boolean
+        return {"true": "YES", "y": "YES", "1": "YES", "false": "NO", "n": "NO", "0": "NO"}
 
 
 ALL_CODELISTS: tuple[type[CodeEnum], ...] = (
@@ -289,4 +366,5 @@ ALL_CODELISTS: tuple[type[CodeEnum], ...] = (
     Substitutability,
     NonSubstitutabilityReason,
     Reintegration,
+    AlternativesIdentified,
 )

@@ -50,7 +50,7 @@ from dora_roi.model import (
     SupplyChainEntry,
     TerminationReason,
 )
-from dora_roi.model.codelists import AdditionalCodeType
+from dora_roi.model.codelists import AdditionalCodeType, AlternativesIdentified
 from dora_roi.model.refdata import EEA_COUNTRIES
 from dora_roi.model.types import INDEFINITE_END_DATE
 from dora_roi.sample.catalogue import (
@@ -311,7 +311,8 @@ def _add_assessment(ctx: _Ctx, ref: str, offering: OfferingSpec, critical: bool)
         rng.choice([Reintegration.EASY, Reintegration.DIFFICULT]),
         discontinuation_impact=Impact.HIGH if critical and hard else
         Impact.MEDIUM if critical else Impact.LOW,
-        alternatives_identified=alternatives,
+        alternatives_identified=AlternativesIdentified.YES if alternatives else
+        AlternativesIdentified.NO,
         alternative_providers="Two alternative providers short-listed in the exit plan"
         if alternatives else None,
     ))

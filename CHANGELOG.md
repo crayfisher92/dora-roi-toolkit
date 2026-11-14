@@ -8,6 +8,49 @@ format; they are listed under **Changed** with migration notes.
 
 ## [Unreleased]
 
+Reconciliation of the register data model, code lists and xBRL-CSV export with the official
+EBA material for reporting framework 4.0 (`reference/eba/`, see
+[`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md#reconciliation-status)).
+
+### Added
+
+- `reference/eba/`: the official EBA files (annotated table layout, list of possible values,
+  technical checks and validation rules, licensed activities, DORA xBRL-CSV sample instance,
+  RoI reporting FAQ, data model) with provenance and checksums.
+- `dora_roi.model.eba_codes`: the taxonomy member of every code-list value, the B_06.01
+  licensed activities and the DPM country/currency lists; `scripts/gen_eba_codes.py`
+  regenerates the tables from `reference/eba/`.
+- Code list `AlternativesIdentified` (B_07.01 c0110: yes / no / assessment not performed);
+  `Impact.NOT_ASSESSED`; `NonSubstitutabilityReason.NOT_APPLICABLE`; entity types
+  `OTHER_FINANCIAL` and `NON_FINANCIAL_ICT_INTRAGROUP`; provider code types CRN, VAT, PNR, NIN.
+- Tests against the official files: column codes and primary keys of every template
+  (`tests/test_eba_reference.py`) and our package against the official sample instance.
+
+### Changed
+
+- **xBRL-CSV export** – every template is reported (empty ones as header-only files, plus
+  B_99.01) and every filing indicator is `true` (EBA technical check 808); all enumerations are
+  exported as taxonomy members by default (`--code-map` now only overrides values); booleans
+  that the DPM models as enumerations are exported as such; the ESAs' conventions for empty key
+  fields are applied ("Not Applicable", `eba_GA:qx2007`, own LEI as parent, own code as rank-1
+  recipient); licensed activities are exported as `eba_TA:` members; warnings for values
+  outside the DPM country/currency lists; `--level` accepts only `CON` and `IND`; the
+  non-standard `x-dora-roi-toolkit` member was removed from `report.json`.
+- **Templates** – B_03.03 "Link" is `c0031` (was `c0030`); B_03.02 has no "Link" column
+  (was `c0040`) – old workbooks still import; the B_02.02 key includes c0130, c0150 and c0160;
+  B_02.02 c0130 is conditional; B_07.01 c0110 is a code list instead of a boolean.
+- **Code lists** – `HierarchyInGroup.OTHER` is now `OUTSOURCING` (old code still accepted);
+  `EntityType.REINSURANCE_UNDERTAKING` merged into `INSURANCE_UNDERTAKING` (old code still
+  accepted); `EntityType.OTHER` means a non-financial entity other than an ICT intra-group
+  service provider; `AdditionalCodeType` lost BIC and OTHER and gained LEI and EUID.
+- **Validation** – BUS-010 accepts an entity's own LEI as parent when it has no direct parent
+  (FAQ Q58); SC-004 accepts the provider itself as rank-1 recipient (FAQ Q65); FLD-013 applies
+  the EUID format only to EUIDs. "Not Applicable", an own LEI as parent and an own code as
+  rank-1 recipient are read as empty values on import.
+- Country `XK` (Kosovo) is accepted, as in the EBA list.
+- `roi check-package` reports a different column order as a warning, not a failure.
+- The synthetic sample uses the EBA labels for licensed activities.
+
 ## [0.1.0] - 2026-11-05
 
 First public release: a working toolkit for preparing, checking and analysing a DORA Register

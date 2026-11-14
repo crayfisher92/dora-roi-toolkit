@@ -76,7 +76,8 @@ def _summary_line(report: ValidationReport) -> str:
 input_arg = click.argument("input_path", metavar="INPUT", type=click.Path(path_type=Path))
 code_map_opt = click.option("--code-map", type=click.Path(exists=True, dir_okay=False,
                                                           path_type=Path),
-                            help="JSON map of code-list values to EBA taxonomy members.")
+                            help="JSON overrides of the built-in EBA code map (code-list values "
+                            "to taxonomy members), e.g. for a newer framework version.")
 ref_date_opt = click.option("--reference-date", type=click.DateTime(["%Y-%m-%d"]), default=None,
                             help="Override the reference date used by date-relative rules.")
 
@@ -191,7 +192,7 @@ def report(input_path: Path, output: Path, client_name: str | None, prepared_by:
               default="xbrl-csv", show_default=True)
 @click.option("--unzipped", is_flag=True, help="xbrl-csv: write the package folder, not a zip.")
 @click.option("--strict", is_flag=True, help="Refuse to export when validation finds errors.")
-@click.option("--level", type=click.Choice(["CON", "IND", "SUB"]), default="CON",
+@click.option("--level", type=click.Choice(["CON", "IND"]), default="CON",
               show_default=True, help="xbrl-csv: consolidation level used in entityID/name.")
 @click.option("--entry-point", default=None, help="xbrl-csv: taxonomy entry point URL.")
 @code_map_opt

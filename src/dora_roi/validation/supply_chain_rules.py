@@ -1,8 +1,10 @@
 """ICT service supply chain (subcontracting) rules (SC-*), template B_05.02.
 
-Interpretation (``docs/ASSUMPTIONS.md`` A-TPL-07): within one arrangement and service type the
-direct provider is at rank 1 and has no recipient; a rank *n* > 1 subcontractor names, as its
-recipient, a provider present at rank *n − 1* of the same chain.
+Interpretation (``docs/ASSUMPTIONS.md`` A-TPL-07, EBA RoI FAQ Q65 and Q81): within one
+arrangement and service type the direct provider is at rank 1 and is its own recipient (held
+as an empty recipient inside the toolkit, written out as its own code by the xBRL-CSV
+export); a rank *n* > 1 subcontractor names, as its recipient, a provider present at rank
+*n − 1* of the same chain.
 """
 
 from __future__ import annotations
@@ -81,13 +83,16 @@ def check_chain_resolves(ctx: ValidationContext) -> Iterator[Finding]:
                                   value=e.recipient_code)
 
 
-@rule("SC-004", "Recipient reported for a rank 1 provider", severity=Severity.WARNING,
-      category=Category.SUPPLY_CHAIN, templates=("B_05.02",), references=REFS,
-      description="The direct provider (rank 1) has no recipient of sub-contracted services.")
+@rule("SC-004", "Rank 1 provider reports another recipient", severity=Severity.WARNING,
+      category=Category.SUPPLY_CHAIN, templates=("B_05.02",), references=(*REFS, "FAQ Q65"),
+      description="For the direct provider (rank 1) the recipient (c0060) is the provider "
+      "itself (EBA RoI FAQ Q65); another code at rank 1 suggests a wrong rank or recipient.")
 def check_rank_one_recipient(ctx: ValidationContext) -> Iterator[Finding]:
     for e in ctx.register.b_05_02:
-        if e.rank == 1 and e.recipient_code is not None:
-            yield ctx.finding("SC-004", "Rank 1 entry should not report a recipient", e,
+        if e.rank == 1 and e.recipient_code is not None and \
+                e.recipient_code != e.provider_code:
+            yield ctx.finding("SC-004", f"Rank 1 entry names '{e.recipient_code}' as recipient; "
+                              "for the direct provider the recipient is the provider itself", e,
                               "recipient_code", value=e.recipient_code)
 
 
@@ -99,6 +104,8 @@ def check_cycles(ctx: ValidationContext) -> Iterator[Finding]:
     for (contract_ref, _service), entries in chains(ctx).items():
         edges: dict[str, set[str]] = defaultdict(set)  # recipient -> subcontractors
         for e in entries:
+            if e.rank == 1:
+                continue  # the direct provider is its own recipient (FAQ Q65), not a cycle
             if e.recipient_code and e.provider_code:
                 edges[e.recipient_code].add(e.provider_code)
         reported: set[str] = set()

@@ -89,12 +89,13 @@ def suggest(finding: Finding) -> FixSuggestion | None:
                 return FixSuggestion(fixed, Confidence.HIGH if fixed == cleaned
                                      else Confidence.LOW, note)
     if rid == "FLD-001" and kind is Kind.BOOLEAN and finding.column and \
-            finding.template in ("B_02.03", "B_03.01", "B_03.02", "B_03.03"):
+            finding.template in ("B_02.03", "B_03.01", "B_03.03"):
         return FixSuggestion("true", Confidence.HIGH, "Link columns are always true")
     if rid == "BUS-024":
         return FixSuggestion("9999-12-31", Confidence.HIGH, "Convention for open-ended contracts")
     if rid == "SC-004":
-        return FixSuggestion("", Confidence.HIGH, "Rank 1 has no recipient")
+        return FixSuggestion("", Confidence.HIGH,
+                             "Rank 1 is its own recipient; the export writes the provider's code")
     return None
 
 

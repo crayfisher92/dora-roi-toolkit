@@ -28,7 +28,7 @@ Python model: `EntityInScope` · key: `lei`
 | `c0030` | `country` | Country of the entity | M | Country (ISO 3166-1 alpha-2, e.g. DE) |  |
 | `c0040` | `entity_type` | Type of entity | M | Code list `EntityType` |  |
 | `c0050` | `hierarchy` | Hierarchy of the entity within the group | M | Code list `HierarchyInGroup` |  |
-| `c0060` | `parent_lei` | LEI of the direct parent undertaking | C | LEI (20 characters, ISO 17442) | Required unless the entity is the ultimate parent or not part of a group |
+| `c0060` | `parent_lei` | LEI of the direct parent undertaking | C | LEI (20 characters, ISO 17442) | Required unless the entity has no direct parent (ultimate parent, not in a group); the xBRL-CSV export then repeats the entity's own LEI (EBA RoI FAQ Q58) |
 | `c0070` | `last_update` | Date of last update | M | Date (YYYY-MM-DD) |  |
 | `c0080` | `integration_date` | Date of integration in the register | M | Date (YYYY-MM-DD) |  |
 | `c0090` | `deletion_date` | Date of deletion in the register | O | Date (YYYY-MM-DD) | Reported only when the entity left the scope |
@@ -54,13 +54,13 @@ Python model: `ContractGeneral` · key: `contract_ref`
 |---|---|---|---|---|---|
 | `c0010` | `contract_ref` | Contractual arrangement reference number | M | Text (max 255) |  |
 | `c0020` | `contract_type` | Type of contractual arrangement | M | Code list `ContractType` |  |
-| `c0030` | `overarching_ref` | Overarching contractual arrangement reference number | C | Text (max 255) | Required when the arrangement is a subsequent/associated arrangement |
+| `c0030` | `overarching_ref` | Overarching contractual arrangement reference number | C | Text (max 255) | Required when the arrangement is a subsequent/associated arrangement; otherwise exported as 'Not Applicable' (foreign key, EBA RoI FAQ Q124) |
 | `c0040` | `currency` | Currency of the amount reported | M | Currency (ISO 4217, e.g. EUR) |  |
 | `c0050` | `annual_cost` | Annual expense or estimated cost of the contractual arrangement | M | Amount ≥ 0 |  |
 
 ## B_02.02 – Contractual arrangements – specific information
 
-Python model: `ContractSpecific` · key: `contract_ref`, `entity_lei`, `provider_code`, `function_id`, `service_type`
+Python model: `ContractSpecific` · key: `contract_ref`, `entity_lei`, `provider_code`, `function_id`, `service_type`, `service_country`, `data_location_storage`, `data_location_processing`
 
 | Column | Attribute | Label | Req. | Type | Condition |
 |---|---|---|---|---|---|
@@ -76,10 +76,10 @@ Python model: `ContractSpecific` · key: `contract_ref`, `entity_lei`, `provider
 | `c0100` | `notice_period_entity` | Notice period for the financial entity (calendar days) | M | Whole number ≥ 0 |  |
 | `c0110` | `notice_period_provider` | Notice period for the ICT third-party service provider (calendar days) | M | Whole number ≥ 0 |  |
 | `c0120` | `governing_law_country` | Country of the governing law of the contractual arrangement | M | Country (ISO 3166-1 alpha-2, e.g. DE) |  |
-| `c0130` | `service_country` | Country of provision of the ICT services | M | Country (ISO 3166-1 alpha-2, e.g. DE) |  |
+| `c0130` | `service_country` | Country of provision of the ICT services | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when the service supports a critical or important function; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q59) |
 | `c0140` | `data_storage` | Storage of data | M | true / false |  |
-| `c0150` | `data_location_storage` | Location of the data at rest (storage) | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when storage of data (c0140) is true |
-| `c0160` | `data_location_processing` | Location of management of the data (processing) | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when the ICT service involves processing of data |
+| `c0150` | `data_location_storage` | Location of the data at rest (storage) | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when storage of data (c0140) is true; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q61) |
+| `c0160` | `data_location_processing` | Location of management of the data (processing) | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when the ICT service involves processing of data; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q63) |
 | `c0170` | `data_sensitivity` | Sensitiveness of the data stored by the ICT third-party service provider | C | Code list `DataSensitivity` | Required when storage of data (c0140) is true |
 | `c0180` | `reliance_level` | Level of reliance on the ICT service | M | Code list `RelianceLevel` |  |
 
@@ -112,7 +112,6 @@ Python model: `ContractSigningProvider` · key: `contract_ref`, `provider_code`
 | `c0010` | `contract_ref` | Contractual arrangement reference number | M | Text (max 255) |  |
 | `c0020` | `provider_code` | Identification code of the ICT third-party service provider | M | LEI or EUID |  |
 | `c0030` | `provider_code_type` | Type of code to identify the ICT third-party service provider | M | Code list `ProviderCodeType` |  |
-| `c0040` | `link` | Link | M | true / false |  |
 
 ## B_03.03 – Entities signing the contractual arrangements (providing)
 
@@ -122,7 +121,7 @@ Python model: `IntraGroupProvidingEntity` · key: `contract_ref`, `entity_lei`
 |---|---|---|---|---|---|
 | `c0010` | `contract_ref` | Contractual arrangement reference number | M | Text (max 255) |  |
 | `c0020` | `entity_lei` | LEI of the entity providing ICT services | M | LEI (20 characters, ISO 17442) |  |
-| `c0030` | `link` | Link | M | true / false |  |
+| `c0031` | `link` | Link | M | true / false |  |
 
 ## B_04.01 – Entities making use of the ICT services
 
@@ -132,8 +131,8 @@ Python model: `ServiceRecipient` · key: `contract_ref`, `entity_lei`, `branch_c
 |---|---|---|---|---|---|
 | `c0010` | `contract_ref` | Contractual arrangement reference number | M | Text (max 255) |  |
 | `c0020` | `entity_lei` | LEI of the entity making use of the ICT services | M | LEI (20 characters, ISO 17442) |  |
-| `c0030` | `is_branch` | Nature of the entity making use of the ICT services (true = branch) | M | true / false |  |
-| `c0040` | `branch_code` | Identification code of the branch | C | Text (max 255) | Required when c0030 is true (the user is a branch) |
+| `c0030` | `is_branch` | Nature of the entity making use of the ICT services (true = branch of a financial entity, false = not a branch) | M | true / false |  |
+| `c0040` | `branch_code` | Identification code of the branch | C | Text (max 255) | Required when c0030 is true (the user is a branch); otherwise exported as 'Not Applicable' (key, EBA RoI FAQ Q64) |
 
 ## B_05.01 – ICT third-party service providers
 
@@ -165,7 +164,7 @@ Python model: `SupplyChainEntry` · key: `contract_ref`, `service_type`, `provid
 | `c0030` | `provider_code` | Identification code of the ICT third-party service provider | M | LEI or EUID |  |
 | `c0040` | `provider_code_type` | Type of code to identify the ICT third-party service provider | M | Code list `ProviderCodeType` |  |
 | `c0050` | `rank` | Rank | M | Whole number ≥ 0 |  |
-| `c0060` | `recipient_code` | Identification code of the recipient of sub-contracted ICT services | C | LEI or EUID | Required when rank > 1 |
+| `c0060` | `recipient_code` | Identification code of the recipient of sub-contracted ICT services | C | LEI or EUID | Required when rank > 1; at rank 1 the xBRL-CSV export repeats the provider's own code (key, EBA RoI FAQ Q65) |
 | `c0070` | `recipient_code_type` | Type of code to identify the recipient of sub-contracted ICT services | C | Code list `ProviderCodeType` | Required when rank > 1 |
 
 ## B_06.01 – Functions identification
@@ -175,7 +174,7 @@ Python model: `Function` · key: `function_id`, `entity_lei`
 | Column | Attribute | Label | Req. | Type | Condition |
 |---|---|---|---|---|---|
 | `c0010` | `function_id` | Function identifier | M | Text (max 255) |  |
-| `c0020` | `licensed_activity` | Licensed activity | M | Text (max 255) |  |
+| `c0020` | `licensed_activity` | Licensed activity | M | Text (max 255) | An activity of the EBA list (ITS Annex IV), as code (e.g. eba_TA:x28) or label (e.g. 'Payment services'); the xBRL-CSV export writes the code |
 | `c0030` | `function_name` | Function name | M | Text (max 255) |  |
 | `c0040` | `entity_lei` | LEI of the financial entity | M | LEI (20 characters, ISO 17442) |  |
 | `c0050` | `criticality` | Criticality or importance assessment | M | Code list `Criticality` |  |
@@ -201,8 +200,8 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 | `c0080` | `exit_plan` | Existence of an exit plan | M | true / false |  |
 | `c0090` | `reintegration` | Possibility of reintegration of the contracted ICT service | M | Code list `Reintegration` |  |
 | `c0100` | `discontinuation_impact` | Impact of discontinuing the ICT services | M | Code list `Impact` |  |
-| `c0110` | `alternatives_identified` | Are there alternative ICT third-party service providers identified? | M | true / false |  |
-| `c0120` | `alternative_providers` | Identification of alternative ICT third-party service providers | C | Text (max 255) | Required when c0110 is true |
+| `c0110` | `alternatives_identified` | Are there alternative ICT third-party service providers identified? | M | Code list `AlternativesIdentified` |  |
+| `c0120` | `alternative_providers` | Identification of alternative ICT third-party service providers | C | Text (max 255) | Required when c0110 is YES |
 
 ## Code lists
 
@@ -222,27 +221,28 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 | `TRADING_VENUE` | Trading venue |
 | `TRADE_REPOSITORY` | Trade repository |
 | `AIFM` | Manager of alternative investment funds |
-| `UCITS_MANCO` | UCITS management company |
+| `UCITS_MANCO` | Management company (UCITS) |
 | `DRSP` | Data reporting service provider |
-| `INSURANCE_UNDERTAKING` | Insurance undertaking |
-| `REINSURANCE_UNDERTAKING` | Reinsurance undertaking |
-| `INSURANCE_INTERMEDIARY` | Insurance or reinsurance intermediary |
+| `INSURANCE_UNDERTAKING` | Insurance and reinsurance undertaking |
+| `INSURANCE_INTERMEDIARY` | Insurance, reinsurance or ancillary insurance intermediary |
 | `IORP` | Institution for occupational retirement provision |
 | `CRA` | Credit rating agency |
 | `BENCHMARK_ADMINISTRATOR` | Administrator of critical benchmarks |
 | `CROWDFUNDING_SP` | Crowdfunding service provider |
 | `SECURITISATION_REPOSITORY` | Securitisation repository |
-| `OTHER` | Other entity (not a financial entity under DORA Art. 2(1)) |
+| `OTHER_FINANCIAL` | Other financial entity |
+| `NON_FINANCIAL_ICT_INTRAGROUP` | Non-financial entity: ICT intra-group service provider |
+| `OTHER` | Non-financial entity: other than ICT intra-group service provider |
 
 ### `HierarchyInGroup`
 
 | Code | Label |
 |---|---|
-| `ULTIMATE_PARENT` | Ultimate parent undertaking |
-| `PARENT` | Parent undertaking (other than ultimate parent) |
+| `ULTIMATE_PARENT` | Ultimate parent |
+| `PARENT` | Parent other than ultimate parent |
 | `SUBSIDIARY` | Subsidiary |
-| `NOT_IN_GROUP` | Entity not part of a group |
-| `OTHER` | Other (e.g. entity linked by a common management) |
+| `NOT_IN_GROUP` | Entities other than entities of the group |
+| `OUTSOURCING` | Service provider to which the financial entity outsources all its operational activities |
 
 ### `ContractType`
 
@@ -256,19 +256,23 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 
 | Code | Label |
 |---|---|
-| `LEI` | Legal Entity Identifier (ISO 17442) |
-| `EUID` | European Unique Identifier |
+| `LEI` | Legal Entity Identifier (LEI) |
+| `EUID` | European Unique Identifier (EUID) |
+| `CRN` | Company registration number |
+| `VAT` | Value added tax identification number |
+| `PNR` | Passport number |
+| `NIN` | National identity number (national code) |
 
 ### `AdditionalCodeType`
 
 | Code | Label |
 |---|---|
-| `CRN` | Corporate registration number |
-| `VAT` | VAT number |
+| `LEI` | Legal Entity Identifier (LEI) |
+| `EUID` | European Unique Identifier (EUID) |
+| `CRN` | Company registration number |
+| `VAT` | Value added tax identification number |
 | `PNR` | Passport number |
-| `NIN` | National identity number |
-| `BIC` | Business Identifier Code (ISO 9362) |
-| `OTHER` | Other identification code |
+| `NIN` | National identity number (national code) |
 
 ### `PersonType`
 
@@ -344,6 +348,7 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 | `LOW` | Low impact |
 | `MEDIUM` | Medium impact |
 | `HIGH` | High impact |
+| `NOT_ASSESSED` | Assessment not performed |
 
 ### `Substitutability`
 
@@ -359,8 +364,9 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 | Code | Label |
 |---|---|
 | `NO_ALTERNATIVES` | Lack of real alternatives |
-| `MIGRATION` | Difficulties relating to partial or full migration |
-| `BOTH` | Both lack of alternatives and migration difficulties |
+| `MIGRATION` | Difficulties in migrating or reintegrating |
+| `BOTH` | Lack of real alternatives and difficulties in migrating or reintegrating |
+| `NOT_APPLICABLE` | Not applicable |
 
 ### `Reintegration`
 
@@ -369,3 +375,11 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 | `EASY` | Easy |
 | `DIFFICULT` | Difficult |
 | `HIGHLY_COMPLEX` | Highly complex |
+
+### `AlternativesIdentified`
+
+| Code | Label |
+|---|---|
+| `YES` | Yes |
+| `NO` | No |
+| `NOT_ASSESSED` | Assessment not performed |

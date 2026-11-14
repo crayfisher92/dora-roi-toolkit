@@ -24,6 +24,9 @@ from dora_roi.io.tables import (
 from dora_roi.model import TEMPLATE_MODELS, RegisterOfInformation
 
 ValueMapper = Callable[[str, str, str], str]
+#: ``filler(template, row)`` may complete a serialised row (``{column code: text or None}``)
+#: before values are mapped, e.g. with the ESAs' "Not Applicable" conventions.
+RowFiller = Callable[[str, dict[str, str | None]], dict[str, str | None]]
 
 
 def _sniff(text: str) -> str:
@@ -83,6 +86,7 @@ def register_to_csv_texts(
     register: RegisterOfInformation,
     value_mapper: ValueMapper | None = None,
     include_empty: bool = True,
+    row_filler: RowFiller | None = None,
 ) -> dict[str, str]:
     """Serialise each template to CSV text keyed by file name."""
     out: dict[str, str] = {}
@@ -96,6 +100,8 @@ def register_to_csv_texts(
         writer.writerow(codes)
         for rec in records:
             row = rec.to_row()
+            if row_filler is not None:
+                row = row_filler(model.TEMPLATE, row)
             values: list[str] = []
             for code in codes:
                 v = row[code]

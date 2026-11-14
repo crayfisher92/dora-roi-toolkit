@@ -1,16 +1,24 @@
-"""**Best-effort** export to (and re-import from) an xBRL-CSV report package.
+"""Export to (and re-import from) an xBRL-CSV report package for the DORA register.
+
+The package follows the EBA DORA reporting framework 4.0 as published in ``reference/eba/``
+(official sample instance, annotated table layout, list of possible values, technical checks):
+
+* a zip containing ``META-INF/reportPackage.json`` and ``reports/`` with ``report.json``
+  (extending the DORA module entry point), ``parameters.csv``, ``FilingIndicators.csv`` and
+  one ``b_XX.YY.csv`` per template;
+* **every** template is reported – empty templates as a header-only file – and every filing
+  indicator is ``true`` (technical check 808), including ``B_99.01``;
+* closed lists are written as taxonomy members (``eba_CT:x12``, ``eba_BT:x28`` …) using the
+  official code map in :mod:`dora_roi.model.eba_codes` (overridable per value);
+* the ESAs' conventions for empty key fields are applied (EBA RoI FAQ Q26, Q58–Q65, Q124):
+  "Not Applicable", ``eba_GA:qx2007``, the entity's own LEI as parent and the provider's own
+  code as rank-1 recipient.
 
 .. warning::
 
-   The EBA publishes the authoritative DPM, taxonomy and filing rules for the DORA register of
-   information. This module reproduces the *structure* of an xBRL-CSV report package as the
-   authors understand it (``docs/ASSUMPTIONS.md`` A-XBRL-*): a zip containing
-   ``META-INF/reportPackage.json`` and a ``reports`` folder with ``report.json``,
-   ``parameters.csv``, ``FilingIndicators.csv`` and one CSV per template. Taxonomy entry
-   point, package naming, parameter values and – above all – the mapping of enumerated values
-   to taxonomy members **must be checked and configured** before any supervisory submission.
-   A package produced with the default settings is suitable for testing pipelines and
-   reviewing content, not for filing.
+   This is still not an official EBA/ESA tool. The framework version, entry point and
+   parameters must match what the competent authority accepts for the reference date, and the
+   package should be run through the authority's own validation before filing.
 """
 
 from __future__ import annotations
@@ -23,31 +31,56 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
-from dora_roi import __version__
 from dora_roi.io.csv_folder import read_csv_files, register_to_csv_texts
 from dora_roi.io.limits import check_archive
 from dora_roi.io.raw import RawRegister
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RegisterOfInformation
+from dora_roi.model.eba_codes import (
+    BOOLEAN_MEMBERS,
+    CODE_MAP,
+    COUNTRY_NOT_APPLICABLE,
+    EBA_COUNTRIES,
+    EBA_CURRENCIES,
+    FRAMEWORK,
+    LICENSED_ACTIVITIES,
+    TEXT_NOT_APPLICABLE,
+)
+from dora_roi.model.templates import NO_DIRECT_PARENT
 from dora_roi.model.types import Kind
 
 DEFAULT_ENTRY_POINT = "http://www.eba.europa.eu/eu/fr/xbrl/crr/fws/dora/4.0/mod/dora.json"
 COUNTRY_PREFIX = "eba_GA:"
 CURRENCY_PREFIX = "eba_CU:"
+#: Consolidation levels accepted in ``entityID`` and the package name (``rs:<LEI>.CON|IND``).
+REPORTING_LEVELS = ("CON", "IND")
 BEST_EFFORT_NOTICE = (
-    "BEST-EFFORT EXPORT: package structure, naming, parameters and enumeration mapping follow "
-    "the toolkit's assumptions (docs/ASSUMPTIONS.md A-XBRL-*) and must be verified against the "
-    "EBA DORA taxonomy and filing rules in force before submission."
+    f"BEST-EFFORT EXPORT: package layout, code lists and conventions follow the {FRAMEWORK} "
+    "as published by the EBA (see reference/eba and docs/ASSUMPTIONS.md); this is not an "
+    "official tool – check the framework version in force for the reference date and run the "
+    "competent authority's validation before filing."
 )
 
+#: Templates the DPM defines in addition to the toolkit's 14: B_99.01 (definitions from
+#: entities making use of the ICT services) is reported empty with a ``true`` indicator.
+EXTRA_TEMPLATES: dict[str, list[str]] = {
+    "B_99.01": [f"c{n:04d}" for n in range(10, 200, 10)],
+}
+
 CodeMap = dict[str, dict[str, str]]
+
+_LICENSED_BY_LABEL = {label.casefold(): code for code, label in LICENSED_ACTIVITIES}
+_LICENSED_LABEL_BY_CODE: dict[str, str] = {}
+for _code, _label in LICENSED_ACTIVITIES:
+    _LICENSED_LABEL_BY_CODE.setdefault(_code, _label)
+_LICENSED_COLUMN = ("B_06.01", "c0020")
 
 
 @dataclass
 class XbrlCsvOptions:
-    """Parameters of the generated package. Every default is an assumption (see module doc)."""
+    """Parameters of the generated package."""
 
     entry_point: str = DEFAULT_ENTRY_POINT
-    #: Consolidation level suffix used in entityID and package name (CON, IND or SUB).
+    #: Consolidation level suffix used in entityID and package name (CON or IND).
     reporting_level: str = "CON"
     #: Prefix of the entityID parameter value.
     entity_scheme: str = "rs"
@@ -56,13 +89,29 @@ class XbrlCsvOptions:
     module_name: str = "DORA"
     decimals_monetary: int = 0
     decimals_integer: int = 0
-    #: ``{code list name: {internal code: taxonomy member}}`` overrides, e.g.
-    #: ``{"IctServiceType": {"S01": "eba_TA:S01"}}``.
+    #: ``{code list name: {internal code: taxonomy member}}`` overrides applied on top of the
+    #: official code map (:data:`dora_roi.model.eba_codes.CODE_MAP`).
     code_map: CodeMap = field(default_factory=dict)
+    #: Start from the official code map (switch off only to test custom maps in isolation).
+    use_default_code_map: bool = True
     #: Fixed timestamp for reproducible packages (defaults to now, UTC).
     created_at: datetime | None = None
     #: Override of the package (zip) base name.
     package_name: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.reporting_level not in REPORTING_LEVELS:
+            raise ValueError(f"reporting level must be one of {', '.join(REPORTING_LEVELS)}, "
+                             f"not {self.reporting_level!r}")
+
+    def effective_code_map(self) -> CodeMap:
+        base: CodeMap = (
+            {name: dict(values) for name, values in CODE_MAP.items()}
+            if self.use_default_code_map else {}
+        )
+        for name, values in self.code_map.items():
+            base.setdefault(name, {}).update(values)
+        return base
 
 
 @dataclass
@@ -74,7 +123,7 @@ class ExportResult:
 
 
 def load_code_map(path: str | Path) -> CodeMap:
-    """Load a JSON code map ``{"CodeListName": {"CODE": "eba_XX:xNN"}}``."""
+    """Load a JSON code map ``{"CodeListName": {"CODE": "eba_XX:xNN"}}`` (overrides)."""
     from dora_roi.model import ALL_CODELISTS
 
     data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -96,20 +145,76 @@ def load_code_map(path: str | Path) -> CodeMap:
     return out
 
 
+def licensed_activity_code(value: str) -> str | None:
+    """EBA member for a B_06.01 c0020 value given as member, bare code or label."""
+    text = value.strip()
+    if text.startswith("eba_TA:") and text in _LICENSED_LABEL_BY_CODE:
+        return text
+    if f"eba_TA:{text}" in _LICENSED_LABEL_BY_CODE:
+        return f"eba_TA:{text}"
+    return _LICENSED_BY_LABEL.get(text.casefold())
+
+
+# --------------------------------------------------------------------------- conventions
+
+
+def _fill_conventions(template: str, row: dict[str, str | None]) -> dict[str, str | None]:
+    """Apply the ESAs' conventions for empty key / foreign-key fields to a serialised row."""
+    out = dict(row)
+    if template == "B_01.02":
+        # FAQ Q58: an entity without a direct parent repeats its own LEI
+        no_parent = {h.value for h in NO_DIRECT_PARENT}
+        if not out.get("c0060") and out.get("c0050") in no_parent:
+            out["c0060"] = out.get("c0010")
+    elif template == "B_02.01":
+        if not out.get("c0030"):  # FAQ Q124 (foreign key)
+            out["c0030"] = TEXT_NOT_APPLICABLE
+    elif template == "B_02.02":
+        for col in ("c0130", "c0150", "c0160"):  # FAQ Q59, Q61, Q63 (keys)
+            if not out.get(col):
+                out[col] = COUNTRY_NOT_APPLICABLE
+    elif template == "B_04.01":
+        if not out.get("c0040"):  # FAQ Q64 (key)
+            out["c0040"] = TEXT_NOT_APPLICABLE
+    elif template == "B_05.02" and out.get("c0050") == "1" and not out.get("c0060"):
+        # FAQ Q65: the direct provider is its own recipient
+        out["c0060"] = out.get("c0030")
+        out["c0070"] = out.get("c0070") or out.get("c0040")
+    return out
+
+
 class _ValueMapper:
     def __init__(self, code_map: CodeMap) -> None:
         self.code_map = code_map
         self.unmapped: dict[str, set[str]] = {}
+        self.outside_dpm: set[str] = set()
 
     def __call__(self, template: str, column: str, value: str) -> str:
+        if template == _LICENSED_COLUMN[0] and column == _LICENSED_COLUMN[1]:
+            code = licensed_activity_code(value)
+            if code is None:
+                self.unmapped.setdefault("licensed activity (B_06.01 c0020)", set()).add(value)
+                return value
+            return code
         spec = TEMPLATES_BY_CODE[template].column_by_code(column)
         if spec is None:
             return value
         kind = spec.col.kind
         if kind is Kind.COUNTRY:
+            if value == COUNTRY_NOT_APPLICABLE:
+                return COUNTRY_PREFIX + value
+            if value not in EBA_COUNTRIES:
+                self.outside_dpm.add(f"country {value}")
             return COUNTRY_PREFIX + value
         if kind is Kind.CURRENCY:
+            if value not in EBA_CURRENCIES:
+                self.outside_dpm.add(f"currency {value}")
             return CURRENCY_PREFIX + value
+        if kind is Kind.BOOLEAN:
+            members = BOOLEAN_MEMBERS.get((template, column))
+            if members is None:
+                return value  # technical "Link" columns: true
+            return members[0] if value == "true" else members[1]
         if kind is Kind.CODELIST and spec.col.codelist is not None:
             name = spec.col.codelist.__name__
             mapped = self.code_map.get(name, {}).get(value)
@@ -122,20 +227,30 @@ class _ValueMapper:
 
 def _reverse_mapper(code_map: CodeMap) -> Any:
     inverse = {name: {v: k for k, v in m.items()} for name, m in code_map.items()}
+    booleans = {key: {t: "true", f: "false"} for key, (t, f) in BOOLEAN_MEMBERS.items()}
 
     def mapper(template: str, column: str, value: str) -> str:
+        if template == _LICENSED_COLUMN[0] and column == _LICENSED_COLUMN[1]:
+            return _LICENSED_LABEL_BY_CODE.get(value, value)
         spec = TEMPLATES_BY_CODE[template].column_by_code(column)
         if spec is None:
             return value
         kind = spec.col.kind
+        if kind is Kind.COUNTRY and value == COUNTRY_PREFIX + COUNTRY_NOT_APPLICABLE:
+            return ""
         for prefix, k in ((COUNTRY_PREFIX, Kind.COUNTRY), (CURRENCY_PREFIX, Kind.CURRENCY)):
             if kind is k and value.startswith(prefix):
                 return value[len(prefix):]
+        if kind is Kind.BOOLEAN:
+            return booleans.get((template, column), {}).get(value, value)
         if kind is Kind.CODELIST and spec.col.codelist is not None:
             return inverse.get(spec.col.codelist.__name__, {}).get(value, value)
         return value
 
     return mapper
+
+
+# --------------------------------------------------------------------------- export
 
 
 def package_name(register: RegisterOfInformation, options: XbrlCsvOptions) -> str:
@@ -155,8 +270,9 @@ def build_package_files(
 ) -> tuple[dict[str, str], list[str]]:
     """Return ``{relative path inside 'reports/' or 'META-INF/': text}`` and warnings."""
     options = options or XbrlCsvOptions()
-    mapper = _ValueMapper(options.code_map)
-    tables = register_to_csv_texts(register, value_mapper=mapper, include_empty=False)
+    mapper = _ValueMapper(options.effective_code_map())
+    tables = register_to_csv_texts(register, value_mapper=mapper, include_empty=True,
+                                   row_filler=_fill_conventions)
     m = register.maintainer
     lei = (m.lei if m else None) or "UNKNOWNLEI"
     ref = register.reference_date
@@ -167,20 +283,23 @@ def build_package_files(
     if ref is None:
         warnings.append("B_01.01 has no reporting date; refPeriod parameter left empty")
     if mapper.unmapped:
+        details = "; ".join(f"{name}: {', '.join(sorted(values))}"
+                            for name, values in sorted(mapper.unmapped.items()))
         warnings.append(
-            f"{len(mapper.unmapped)} code list(s) exported with toolkit-internal codes because no "
-            f"taxonomy mapping was supplied ({', '.join(sorted(mapper.unmapped))}); pass a code "
-            "map (--code-map) with the EBA taxonomy members"
-        )
+            f"value(s) without a taxonomy member, exported as given and likely to fail EBA "
+            f"check 503 – {details}")
+    if mapper.outside_dpm:
+        warnings.append(
+            "value(s) not in the DPM country/currency hierarchies of the framework, likely to "
+            f"fail EBA check 503: {', '.join(sorted(mapper.outside_dpm))}")
+    empty = [mdl.TEMPLATE for mdl in TEMPLATE_MODELS if not register.records(mdl.TEMPLATE)]
+    if empty:
+        warnings.append(f"template(s) reported empty: {', '.join(empty)}")
 
     report_json = {
         "documentInfo": {
             "documentType": "https://xbrl.org/2021/xbrl-csv",
             "extends": [options.entry_point],
-        },
-        "x-dora-roi-toolkit": {
-            "version": __version__,
-            "notice": BEST_EFFORT_NOTICE,
         },
     }
     parameters = (
@@ -191,10 +310,9 @@ def build_package_files(
         f"decimalsInteger,{options.decimals_integer}\n"
         f"decimalsMonetary,{options.decimals_monetary}\n"
     )
-    indicators = "templateID,reported\n" + "".join(
-        f"{mdl.TEMPLATE},{'true' if register.records(mdl.TEMPLATE) else 'false'}\n"
-        for mdl in TEMPLATE_MODELS
-    )
+    template_ids = [mdl.TEMPLATE for mdl in TEMPLATE_MODELS] + list(EXTRA_TEMPLATES)
+    # technical check 808: every filing indicator is true, empty templates are still reported
+    indicators = "templateID,reported\n" + "".join(f"{t},true\n" for t in template_ids)
     files: dict[str, str] = {
         "META-INF/reportPackage.json": json.dumps(
             {"documentInfo": {"documentType": "https://xbrl.org/report-package/2023"}}, indent=2),
@@ -204,6 +322,8 @@ def build_package_files(
     }
     for name, text in tables.items():
         files[f"reports/{name}"] = text
+    for template, columns in EXTRA_TEMPLATES.items():
+        files[f"reports/{template.lower()}.csv"] = ",".join(columns) + "\n"
     return files, warnings
 
 
@@ -244,6 +364,9 @@ def export_xbrl_csv(
     return ExportResult(target, name, sorted(files), warnings)
 
 
+# --------------------------------------------------------------------------- import
+
+
 def is_xbrl_package(path: str | Path) -> bool:
     p = Path(path)
     if p.is_dir():
@@ -254,18 +377,29 @@ def is_xbrl_package(path: str | Path) -> bool:
     return False
 
 
-def read_xbrl_csv(path: str | Path, code_map: CodeMap | None = None) -> RawRegister:
-    """Read a package written by :func:`export_xbrl_csv` (zip or folder) back to raw tables."""
+#: Files of a package that are not toolkit templates.
+_SKIP = {"parameters.csv", "filingindicators.csv"} | {
+    f"{t.lower()}.csv" for t in EXTRA_TEMPLATES}
+
+
+def read_xbrl_csv(path: str | Path, code_map: CodeMap | None = None,
+                  *, use_default_code_map: bool = True) -> RawRegister:
+    """Read an xBRL-CSV package (zip or folder) back to raw tables.
+
+    Taxonomy members are translated back with the official code map plus ``code_map``
+    overrides; the "Not Applicable" conventions are read as empty values by the model.
+    """
+    effective = XbrlCsvOptions(code_map=code_map or {},
+                               use_default_code_map=use_default_code_map).effective_code_map()
     p = Path(path)
     files: list[tuple[str, str]] = []
-    skip = {"parameters.csv", "filingindicators.csv"}
     indicators = ""
     if p.is_dir():
         for f in sorted(p.rglob("reports/*.csv")):
             text = f.read_text(encoding="utf-8-sig")
             if f.name.lower() == "filingindicators.csv":
                 indicators = text
-            elif f.name.lower() not in skip:
+            elif f.name.lower() not in _SKIP:
                 files.append((f.name, text))
     else:
         check_archive(p)
@@ -277,9 +411,9 @@ def read_xbrl_csv(path: str | Path, code_map: CodeMap | None = None) -> RawRegis
                 text = io.TextIOWrapper(zf.open(n), encoding="utf-8-sig").read()
                 if base.lower() == "filingindicators.csv":
                     indicators = text
-                elif base.lower() not in skip:
+                elif base.lower() not in _SKIP:
                     files.append((base, text))
-    raw = read_csv_files(files, p.name, mapper=_reverse_mapper(code_map or {}))
+    raw = read_csv_files(files, p.name, mapper=_reverse_mapper(effective))
     not_reported = _not_reported(indicators)
     raw.findings = [
         f for f in raw.findings if not (f.rule_id == "IMP-002" and f.template in not_reported)
@@ -292,6 +426,6 @@ def _not_reported(indicators: str) -> set[str]:
     out: set[str] = set()
     for line in indicators.splitlines()[1:]:
         parts = [x.strip() for x in line.split(",")]
-        if len(parts) >= 2 and parts[1].lower() == "false":
+        if len(parts) >= 2 and parts[1].lower() in {"false", "0"}:
             out.add(parts[0])
     return out

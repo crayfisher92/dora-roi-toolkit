@@ -80,59 +80,63 @@ ENTITIES: tuple[EntitySpec, ...] = (
                410_000_000, "DE"),
 )
 
+#: Licensed activities (B_06.01 c0020) as labelled in the EBA list (ITS Annex IV, DPM 4.0).
+PAYMENTS = "Payment services"  # eba_TA:x28
+DEPOSITS = "Taking deposits and other repayable funds"  # eba_TA:x162
+LENDING = "Lending activities"  # eba_TA:x163
+OWN_ACCOUNT = "Trading for own account or for account of customers"  # eba_TA:x168
+CUSTODY = "Safe custody services"  # eba_TA:x178
+PORTFOLIO = "Portfolio management"  # eba_TA:x136
+UCITS_MGMT = "management of portfolios of investments (UCITSD)"  # eba_TA:x184
+
 FUNCTIONS: dict[str, tuple[FunctionSpec, ...]] = {
     "DE": (
         FunctionSpec("payments", "Payment processing (SEPA, instant, cross-border)",
-                     "Payment services", True, 4, 0),
-        FunctionSpec("core", "Core banking and account management", "Deposit taking", True, 4, 1),
-        FunctionSpec("lending", "Lending and credit decisioning", "Lending", True, 24, 4),
-        FunctionSpec("treasury", "Treasury and liquidity management", "Own-account dealing",
+                     PAYMENTS, True, 4, 0),
+        FunctionSpec("core", "Core banking and account management", DEPOSITS, True, 4, 1),
+        FunctionSpec("lending", "Lending and credit decisioning", LENDING, True, 24, 4),
+        FunctionSpec("treasury", "Treasury and liquidity management", OWN_ACCOUNT,
                      True, 8, 1),
-        FunctionSpec("aml", "AML/KYC and sanctions screening", "Deposit taking", True, 8, 2),
-        FunctionSpec("regrep", "Regulatory and statutory reporting", "Deposit taking", True,
+        FunctionSpec("aml", "AML/KYC and sanctions screening", DEPOSITS, True, 8, 2),
+        FunctionSpec("regrep", "Regulatory and statutory reporting", DEPOSITS, True,
                      72, 24),
-        FunctionSpec("digital", "Digital and mobile banking channels", "Payment services", True,
+        FunctionSpec("digital", "Digital and mobile banking channels", PAYMENTS, True,
                      4, 1),
-        FunctionSpec("cards", "Card issuing and processing", "Payment services", True, 4, 0),
+        FunctionSpec("cards", "Card issuing and processing", PAYMENTS, True, 4, 0),
         FunctionSpec("secops", "IT security operations and identity management",
-                     "Deposit taking", True, 4, 1),
-        FunctionSpec("crm", "Customer relationship management", "Deposit taking", False, 48, 24),
-        FunctionSpec("hr", "Human resources and payroll", "Deposit taking", False, 120, 24),
-        FunctionSpec("marketdata", "Market data and pricing", "Own-account dealing", False, 24, 8),
-        FunctionSpec("archive", "Document management and archiving", "Deposit taking", False,
+                     DEPOSITS, True, 4, 1),
+        FunctionSpec("crm", "Customer relationship management", DEPOSITS, False, 48, 24),
+        FunctionSpec("hr", "Human resources and payroll", DEPOSITS, False, 120, 24),
+        FunctionSpec("marketdata", "Market data and pricing", OWN_ACCOUNT, False, 24, 8),
+        FunctionSpec("archive", "Document management and archiving", DEPOSITS, False,
                      120, 24),
-        FunctionSpec("workplace", "Workplace collaboration and e-mail", "Deposit taking", False,
+        FunctionSpec("workplace", "Workplace collaboration and e-mail", DEPOSITS, False,
                      24, 4),
     ),
     "LU": (
-        FunctionSpec("core", "Core banking and custody accounts", "Deposit taking", True, 4, 1),
+        FunctionSpec("core", "Core banking and custody accounts", DEPOSITS, True, 4, 1),
         FunctionSpec("pms", "Portfolio management and investment advice",
-                     "Portfolio management", True, 8, 4),
-        FunctionSpec("payments", "Payment processing", "Payment services", True, 4, 0),
-        FunctionSpec("aml", "Client onboarding, KYC and AML", "Deposit taking", True, 8, 2),
-        FunctionSpec("custody", "Custody and securities settlement", "Safekeeping", True, 8, 1),
-        FunctionSpec("regrep", "Regulatory reporting", "Deposit taking", True, 72, 24),
-        FunctionSpec("clientrep", "Client reporting", "Portfolio management", False, 72, 24),
-        FunctionSpec("crm", "Client relationship management", "Deposit taking", False, 48, 24),
-        FunctionSpec("workplace", "Workplace collaboration and e-mail", "Deposit taking", False,
+                     PORTFOLIO, True, 8, 4),
+        FunctionSpec("payments", "Payment processing", PAYMENTS, True, 4, 0),
+        FunctionSpec("aml", "Client onboarding, KYC and AML", DEPOSITS, True, 8, 2),
+        FunctionSpec("custody", "Custody and securities settlement", CUSTODY, True, 8, 1),
+        FunctionSpec("regrep", "Regulatory reporting", DEPOSITS, True, 72, 24),
+        FunctionSpec("clientrep", "Client reporting", PORTFOLIO, False, 72, 24),
+        FunctionSpec("crm", "Client relationship management", DEPOSITS, False, 48, 24),
+        FunctionSpec("workplace", "Workplace collaboration and e-mail", DEPOSITS, False,
                      24, 4),
-        FunctionSpec("secops", "IT security operations", "Deposit taking", True, 4, 1),
+        FunctionSpec("secops", "IT security operations", DEPOSITS, True, 4, 1),
     ),
     "AT": (
-        FunctionSpec("pms", "Portfolio management of UCITS funds", "Collective portfolio "
-                     "management", True, 8, 4),
-        FunctionSpec("fundacct", "Fund accounting and NAV calculation", "Collective portfolio "
-                     "management", True, 24, 4),
-        FunctionSpec("trading", "Order management and trade execution", "Collective portfolio "
-                     "management", True, 4, 1),
-        FunctionSpec("risk", "Investment risk management", "Collective portfolio management",
+        FunctionSpec("pms", "Portfolio management of UCITS funds", UCITS_MGMT, True, 8, 4),
+        FunctionSpec("fundacct", "Fund accounting and NAV calculation", UCITS_MGMT, True, 24, 4),
+        FunctionSpec("trading", "Order management and trade execution", UCITS_MGMT, True, 4, 1),
+        FunctionSpec("risk", "Investment risk management", UCITS_MGMT,
                      True, 24, 8),
-        FunctionSpec("regrep", "Regulatory reporting", "Collective portfolio management", False,
+        FunctionSpec("regrep", "Regulatory reporting", UCITS_MGMT, False,
                      72, 24),
-        FunctionSpec("crm", "Distribution and client management", "Collective portfolio "
-                     "management", False, 72, 24),
-        FunctionSpec("workplace", "Workplace collaboration and e-mail", "Collective portfolio "
-                     "management", False, 24, 4),
+        FunctionSpec("crm", "Distribution and client management", UCITS_MGMT, False, 72, 24),
+        FunctionSpec("workplace", "Workplace collaboration and e-mail", UCITS_MGMT, False, 24, 4),
     ),
 }
 

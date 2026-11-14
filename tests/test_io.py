@@ -9,22 +9,38 @@ import pytest
 from openpyxl import Workbook, load_workbook
 
 from dora_roi.api import validate_path
-from dora_roi.io.csv_folder import read_csv_folder, register_to_csv_texts, write_csv_folder
+from dora_roi.io.csv_folder import (
+    read_csv_files,
+    read_csv_folder,
+    register_to_csv_texts,
+    write_csv_folder,
+)
 from dora_roi.io.excel import read_workbook, write_blank_template, write_workbook
 from dora_roi.io.loader import InputFormat, UnsupportedInputError, detect_format, load, save
 from dora_roi.io.tables import column_hint, template_code_for
 from dora_roi.io.xbrl_csv import (
     XbrlCsvOptions,
+    _reverse_mapper,
     build_package_files,
     export_xbrl_csv,
     is_xbrl_package,
+    licensed_activity_code,
     load_code_map,
     package_name,
     read_xbrl_csv,
 )
-from dora_roi.model import TEMPLATE_MODELS, ContractSpecific, RegisterOfInformation
+from dora_roi.model import (
+    ALL_CODELISTS,
+    TEMPLATE_MODELS,
+    ContractSpecific,
+    EntityInScope,
+    RegisterOfInformation,
+    ServiceRecipient,
+    SupplyChainEntry,
+)
+from dora_roi.model.eba_codes import CODE_MAP
 
-from conftest import ENTITY, build_valid_register
+from conftest import ENTITY, PROVIDER, build_valid_register
 
 
 def rules(findings: list) -> set[str]:  # type: ignore[type-arg]
@@ -191,15 +207,83 @@ def test_xbrl_package_contents(tmp_path: Path) -> None:
         assert f"entityID,rs:{ENTITY}.CON" in params and "refPeriod,2025-12-31" in params
         assert "baseCurrency,iso4217:EUR" in params
         fi = zf.read(f"{root}/reports/FilingIndicators.csv").decode()
-        assert "B_02.02,true" in fi and "B_01.03,false" in fi
+        # EBA technical check 808: all indicators true, empty templates still reported
+        assert "B_02.02,true" in fi and "B_01.03,true" in fi and "B_99.01,true" in fi
+        assert ",false" not in fi
+        assert zf.read(f"{root}/reports/b_01.03.csv").decode() == "c0010,c0020,c0030,c0040\n"
+        assert zf.read(f"{root}/reports/b_99.01.csv").decode().startswith("c0010,c0020,")
         b0202 = zf.read(f"{root}/reports/b_02.02.csv").decode()
         assert "eba_GA:DE" in b0202 and "eba_TA:S19" in b0202
-        assert f"{root}/reports/b_01.03.csv" not in names
+        assert "eba_BT:x28" in b0202  # storage of data = yes
+        assert "eba_qCO:qx2000" in b0202 and "eba_ZZ:x793" in b0202 and "eba_ZZ:x797" in b0202
+        # FAQ conventions for empty key / foreign-key fields
+        b0102 = zf.read(f"{root}/reports/b_01.02.csv").decode()
+        assert f"{ENTITY},Test Bank AG" in b0102 and b0102.count(ENTITY) == 2  # own LEI as parent
+        assert "eba_RP:x53" in b0102 and "eba_CT:x12" in b0102
+        assert "Not Applicable" in zf.read(f"{root}/reports/b_02.01.csv").decode()
+        b0401 = zf.read(f"{root}/reports/b_04.01.csv").decode()
+        assert "eba_ZZ:x839,Not Applicable" in b0401
+        b0502 = zf.read(f"{root}/reports/b_05.02.csv").decode().splitlines()
+        rank1 = next(r for r in b0502[1:] if ",1," in r)
+        assert rank1.count(PROVIDER) == 2  # the direct provider is its own recipient
+        b0601 = zf.read(f"{root}/reports/b_06.01.csv").decode()
+        assert "eba_TA:x28" in b0601 and "eba_BT:x28" in b0601  # payment services, critical
+        b0701 = zf.read(f"{root}/reports/b_07.01.csv").decode()
+        assert "eba_ZZ:x961" in b0701 and "eba_ZZ:x966" in b0701
+        assert zf.read(f"{root}/reports/b_03.03.csv").decode() == "c0010,c0020,c0031\n"
+        assert zf.read(f"{root}/reports/b_03.02.csv").decode().splitlines()[0] == \
+            "c0010,c0020,c0030"
+        assert "x-dora-roi-toolkit" not in zf.read(f"{root}/reports/report.json").decode()
+    assert not any("taxonomy member" in w for w in result.warnings)
     assert is_xbrl_package(result.path)
     loaded = load(result.path, code_map=opts.code_map)
     assert loaded.input_format is InputFormat.XBRL_CSV
     assert loaded.register.model_dump() == reg.model_dump()
-    assert not loaded.findings  # filing indicators explain the absent templates
+    assert not loaded.findings
+
+
+def test_xbrl_conventions_read_back_as_empty() -> None:
+    """'Not Applicable', eba_GA:qx2007, own LEI as parent and own code as rank-1 recipient
+    are the ESAs' spellings of an empty value (EBA RoI FAQ Q26, Q58–Q65, Q124)."""
+    entity = EntityInScope.model_validate({"lei": ENTITY, "hierarchy": "ULTIMATE_PARENT",
+                                           "parent_lei": ENTITY})
+    assert entity.parent_lei is None
+    sub = EntityInScope.model_validate({"lei": ENTITY, "hierarchy": "SUBSIDIARY",
+                                        "parent_lei": ENTITY})
+    assert sub.parent_lei == ENTITY  # kept, so that BUS-010 reports it
+    chain = SupplyChainEntry.model_validate({"rank": "1", "provider_code": PROVIDER,
+                                             "recipient_code": PROVIDER,
+                                             "recipient_code_type": "LEI"})
+    assert chain.recipient_code is None and chain.recipient_code_type is None
+    recipient = ServiceRecipient.model_validate({"contract_ref": "C-1", "entity_lei": ENTITY,
+                                                 "is_branch": "false",
+                                                 "branch_code": "Not Applicable"})
+    assert recipient.branch_code is None
+    raw = read_csv_files([("b_02.02.csv", "c0010,c0130,c0150,c0140\n"
+                                          "C-1,eba_GA:qx2007,eba_GA:DE,eba_BT:x29\n")],
+                         "pkg", mapper=_reverse_mapper(CODE_MAP))
+    row = raw.tables["B_02.02"].rows[0].values
+    assert row["c0130"] == "" and row["c0150"] == "DE" and row["c0140"] == "false"
+
+
+def test_xbrl_reporting_level_and_overrides() -> None:
+    with pytest.raises(ValueError, match="reporting level"):
+        XbrlCsvOptions(reporting_level="SUB")
+    opts = XbrlCsvOptions(code_map={"Criticality": {"CRITICAL": "eba_BT:x99"}})
+    eff = opts.effective_code_map()
+    assert eff["Criticality"]["CRITICAL"] == "eba_BT:x99"
+    assert eff["Criticality"]["NOT_CRITICAL"] == "eba_BT:x29"  # rest of the official map kept
+    assert XbrlCsvOptions(use_default_code_map=False).effective_code_map() == {}
+    assert licensed_activity_code("payment services") == "eba_TA:x28"
+    assert licensed_activity_code("x28") == "eba_TA:x28"
+    assert licensed_activity_code("Something else") is None
+
+
+def test_official_code_map_covers_every_code_list() -> None:
+    for cl in ALL_CODELISTS:
+        mapped = CODE_MAP.get(cl.__name__, {})
+        assert set(mapped) == {m.value for m in cl}, cl.__name__
+        assert all(v.startswith("eba_") for v in mapped.values()), cl.__name__
 
 
 def test_xbrl_unzipped_and_explicit_zip(tmp_path: Path) -> None:

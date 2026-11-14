@@ -18,7 +18,15 @@ from dora_roi.model import (
     Substitutability,
     serialise_value,
 )
-from dora_roi.model.codelists import ALL_CODELISTS, ContractType
+from dora_roi.model.codelists import (
+    ALL_CODELISTS,
+    AlternativesIdentified,
+    ContractType,
+    EntityType,
+    HierarchyInGroup,
+    ProviderCodeType,
+)
+from dora_roi.model.eba_codes import EBA_COUNTRIES
 from dora_roi.model.refdata import COUNTRIES, CURRENCIES, country_name, region_of
 
 LEI = "529900T8BM49AURSDO55"
@@ -55,7 +63,8 @@ def test_columns_metadata_consistent(model: type) -> None:
 
 
 def test_refdata() -> None:
-    assert len(COUNTRIES) == 249
+    assert len(COUNTRIES) == 250  # 249 ISO 3166-1 codes + XK (in the EBA DPM country list)
+    assert set(COUNTRIES) == EBA_COUNTRIES
     assert "EUR" in CURRENCIES and "HRK" not in CURRENCIES
     assert country_name("CH") == "Switzerland" and country_name(None) == "—"
     assert country_name("ZZ") == "ZZ"
@@ -74,6 +83,14 @@ def test_codelist_lookup_by_code_label_alias_and_prefix() -> None:
     assert IctServiceType.lookup("S20") is None
     assert Criticality.lookup("Yes") is Criticality.CRITICAL
     assert ContractType.lookup("master") is ContractType.OVERARCHING
+    # values renamed or merged when reconciling with the EBA list of possible values
+    assert HierarchyInGroup.lookup("OTHER") is HierarchyInGroup.OUTSOURCING
+    assert EntityType.lookup("REINSURANCE_UNDERTAKING") is EntityType.INSURANCE_UNDERTAKING
+    assert EntityType.lookup("Asset management companies") is EntityType.UCITS_MANCO
+    assert not EntityType.OTHER.is_financial and EntityType.OTHER_FINANCIAL.is_financial
+    assert ProviderCodeType.lookup("National code") is ProviderCodeType.NIN
+    assert ProviderCodeType.lookup("Legal Entity Identfier (LEI)") is ProviderCodeType.LEI
+    assert AlternativesIdentified.lookup("true") is AlternativesIdentified.YES
     assert IctServiceType.S17.is_cloud and not IctServiceType.S01.is_cloud
     assert Substitutability.HIGHLY_COMPLEX.is_hard
     for cl in ALL_CODELISTS:

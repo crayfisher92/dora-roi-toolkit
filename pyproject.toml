@@ -108,6 +108,8 @@ ignore = ["RUF001", "RUF002", "RUF003", "SIM905"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PTH", "N802"]
+# official EBA labels, reproduced verbatim
+"src/dora_roi/model/eba_codes.py" = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["dora_roi"]

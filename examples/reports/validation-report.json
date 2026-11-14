@@ -1,7 +1,7 @@
 {
   "schema": "dora-roi-toolkit/validation-report/v1",
   "toolkit_version": "0.1.0",
-  "generated_at": "2026-11-05T02:29:10.663295+00:00",
+  "generated_at": "2026-11-14T18:18:07.519091+00:00",
   "source": "alpenrand-sample.xlsx",
   "reference_date": "2025-12-31",
   "maintainer": {
@@ -15,7 +15,7 @@
       "warning": 5,
       "info": 1
     },
-    "rules_run": 62,
+    "rules_run": 63,
     "record_counts": {
       "B_01.01": 1,
       "B_01.02": 3,
@@ -289,7 +289,7 @@
       "template": "B_02.02",
       "row": 4,
       "column": "c0150",
-      "record_key": "MSA-DE-0001 | 3912RO6DCAXX71K9W972 | 5299XGE5RGK9SNVGG353 | F-DE-02 | S17",
+      "record_key": "MSA-DE-0001 | 3912RO6DCAXX71K9W972 | 5299XGE5RGK9SNVGG353 | F-DE-02 | S17 | IE |  | US",
       "value": null,
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -301,7 +301,7 @@
       "template": "B_02.02",
       "row": 7,
       "column": "c0050",
-      "record_key": "CO-LU-0002 | 6354ZX2X914MZGYMMB68 | 5299XGE5RGK9SNVGG353 | F-LU-1 | S17",
+      "record_key": "CO-LU-0002 | 6354ZX2X914MZGYMMB68 | 5299XGE5RGK9SNVGG353 | F-LU-1 | S17 | IE | US | US",
       "value": "F-LU-1",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -313,7 +313,7 @@
       "template": "B_02.02",
       "row": 18,
       "column": "c0010",
-      "record_key": "MSA-DE-0007 | 3912RO6DCAXX71K9W972 | 2138C2U0YRY1CYEQVJ54 | F-DE-06 | S17",
+      "record_key": "MSA-DE-0007 | 3912RO6DCAXX71K9W972 | 2138C2U0YRY1CYEQVJ54 | F-DE-06 | S17 | LU | US | US",
       "value": null,
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -325,7 +325,7 @@
       "template": "B_02.02",
       "row": 38,
       "column": "c0030",
-      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03",
+      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03 | CH |  | ",
       "value": "21381VQL0Y482P2BV900",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -337,7 +337,7 @@
       "template": "B_02.02",
       "row": 38,
       "column": "c0030",
-      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03",
+      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03 | CH |  | ",
       "value": "21381VQL0Y482P2BV900",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -349,7 +349,7 @@
       "template": "B_02.02",
       "row": 40,
       "column": "c0080",
-      "record_key": "AR-AT-0021 | 8156AYQ5YUFTZEC92R45 | 21381VQL0Y482P2BV956 | F-AT-07 | S03",
+      "record_key": "AR-AT-0021 | 8156AYQ5YUFTZEC92R45 | 21381VQL0Y482P2BV956 | F-AT-07 | S03 | CH |  | ",
       "value": "31/12/2027",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -361,7 +361,7 @@
       "template": "B_02.02",
       "row": 54,
       "column": "c0120",
-      "record_key": "AR-DE-0034 | 3912RO6DCAXX71K9W972 | 63540HLDS88ODR38X136 | F-DE-05 | S19",
+      "record_key": "AR-DE-0034 | 3912RO6DCAXX71K9W972 | 63540HLDS88ODR38X136 | F-DE-05 | S19 | GB | IE | IE",
       "value": "UK",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -373,7 +373,7 @@
       "template": "B_02.02",
       "row": 71,
       "column": "c0060",
-      "record_key": "AR-LU-0050 | 6354ZX2X914MZGYMMB68 | 8945J54J0JEU0CJ1E554 | F-LU-07 | ",
+      "record_key": "AR-LU-0050 | 6354ZX2X914MZGYMMB68 | 8945J54J0JEU0CJ1E554 | F-LU-07 |  | GB | DE | DE",
       "value": "S20",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -385,7 +385,7 @@
       "template": "B_02.02",
       "row": 77,
       "column": "c0120",
-      "record_key": "AR-AT-0056 | 8156AYQ5YUFTZEC92R45 | 7245TLYA2OZHE7KGQP74 | F-AT-05 | S19",
+      "record_key": "AR-AT-0056 | 8156AYQ5YUFTZEC92R45 | 7245TLYA2OZHE7KGQP74 | F-AT-05 | S19 | LU | LU | LU",
       "value": null,
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -397,7 +397,7 @@
       "template": "B_02.02",
       "row": 84,
       "column": "c0080",
-      "record_key": "AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19",
+      "record_key": "AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19 | US | US | US",
       "value": "2023-04-30",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -409,7 +409,7 @@
       "template": "B_02.02",
       "row": 84,
       "column": "c0090",
-      "record_key": "AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19",
+      "record_key": "AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19 | US | US | US",
       "value": null,
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -421,7 +421,7 @@
       "template": "B_02.02",
       "row": 86,
       "column": "c0090",
-      "record_key": "AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19",
+      "record_key": "AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19 | DE | DE | DE",
       "value": null,
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -433,7 +433,7 @@
       "template": "B_02.02",
       "row": 154,
       "column": "c0030",
-      "record_key": "AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10",
+      "record_key": "AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10 | CH |  | ",
       "value": "8156YII8DXJIQ6LZZ583",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -589,7 +589,7 @@
       "template": "B_02.02",
       "row": 38,
       "column": "c0030",
-      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03",
+      "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03 | CH |  | ",
       "value": "21381VQL0Y482P2BV900",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -601,7 +601,7 @@
       "template": "B_02.02",
       "row": 154,
       "column": "c0030",
-      "record_key": "AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10",
+      "record_key": "AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10 | CH |  | ",
       "value": "8156YII8DXJIQ6LZZ583",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
@@ -642,5 +642,6 @@
       "source": "alpenrand-sample.xlsx:B_01.02"
     }
   ],
+  "accepted": [],
   "rule_failures": []
 }

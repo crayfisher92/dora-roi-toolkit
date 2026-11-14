@@ -31,16 +31,16 @@ The default (non-clean) dataset contains the following deliberate defects; a tes
 
 | # | Expected rule(s) | Template | Record | Defect |
 |---:|---|---|---|---|
-| 1 | `FLD-013`, `XRF-003` | B_02.02 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 | Provider LEI on one arrangement row has wrong check digits (typo) |
-| 2 | `FLD-005` | B_02.02 | AR-DE-0034 \| 3912RO6DCAXX71K9W972 \| 63540HLDS88ODR38X136 \| F-DE-05 \| S19 | Governing law country reported as 'UK' |
+| 1 | `FLD-013`, `XRF-003` | B_02.02 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 \| CH \|  \|  | Provider LEI on one arrangement row has wrong check digits (typo) |
+| 2 | `FLD-005` | B_02.02 | AR-DE-0034 \| 3912RO6DCAXX71K9W972 \| 63540HLDS88ODR38X136 \| F-DE-05 \| S19 \| GB \| IE \| IE | Governing law country reported as 'UK' |
 | 3 | `FLD-006` | B_02.01 | AR-LU-0020 | Currency reported as 'EURO' |
-| 4 | `FLD-003` | B_02.02 | AR-AT-0021 \| 8156AYQ5YUFTZEC92R45 \| 21381VQL0Y482P2BV956 \| F-AT-07 \| S03 | End date in DD/MM/YYYY format |
-| 5 | `FLD-004` | B_02.02 | AR-LU-0050 \| 6354ZX2X914MZGYMMB68 \| 8945J54J0JEU0CJ1E554 \| F-LU-07 \| S20 | ICT service type 'S20' does not exist |
-| 6 | `FLD-001` | B_02.02 | AR-AT-0056 \| 8156AYQ5YUFTZEC92R45 \| 7245TLYA2OZHE7KGQP74 \| F-AT-05 \| S19 | Governing law country left empty |
-| 7 | `BUS-001` | B_02.02 | AR-LU-0062 \| 6354ZX2X914MZGYMMB68 \| 8156RHZ6DZDLTDXWN816 \| F-LU-08 \| S19 | End date precedes start date |
-| 8 | `BUS-002` | B_02.02 | AR-DE-0064 \| 3912RO6DCAXX71K9W972 \| 9845TQAG2OMFUSPMDI73 \| F-DE-11 \| S19 | Arrangement ended in 2025 without reason |
-| 9 | `BUS-004` | B_02.02 | MSA-DE-0001 \| 3912RO6DCAXX71K9W972 \| 5299XGE5RGK9SNVGG353 \| F-DE-02 \| S17 | Data storage = true but no storage location |
-| 10 | `XRF-004` | B_02.02 | CO-LU-0002 \| 6354ZX2X914MZGYMMB68 \| 5299XGE5RGK9SNVGG353 \| F-LU-1 \| S17 | Function identifier typo (leading zero dropped, e.g. F-LU-1 for F-LU-01) |
+| 4 | `FLD-003` | B_02.02 | AR-AT-0021 \| 8156AYQ5YUFTZEC92R45 \| 21381VQL0Y482P2BV956 \| F-AT-07 \| S03 \| CH \|  \|  | End date in DD/MM/YYYY format |
+| 5 | `FLD-004` | B_02.02 | AR-LU-0050 \| 6354ZX2X914MZGYMMB68 \| 8945J54J0JEU0CJ1E554 \| F-LU-07 \| S20 \| GB \| DE \| DE | ICT service type 'S20' does not exist |
+| 6 | `FLD-001` | B_02.02 | AR-AT-0056 \| 8156AYQ5YUFTZEC92R45 \| 7245TLYA2OZHE7KGQP74 \| F-AT-05 \| S19 \| LU \| LU \| LU | Governing law country left empty |
+| 7 | `BUS-001` | B_02.02 | AR-LU-0062 \| 6354ZX2X914MZGYMMB68 \| 8156RHZ6DZDLTDXWN816 \| F-LU-08 \| S19 \| US \| US \| US | End date precedes start date |
+| 8 | `BUS-002` | B_02.02 | AR-DE-0064 \| 3912RO6DCAXX71K9W972 \| 9845TQAG2OMFUSPMDI73 \| F-DE-11 \| S19 \| DE \| DE \| DE | Arrangement ended in 2025 without reason |
+| 9 | `BUS-004` | B_02.02 | MSA-DE-0001 \| 3912RO6DCAXX71K9W972 \| 5299XGE5RGK9SNVGG353 \| F-DE-02 \| S17 \| IE \|  \| US | Data storage = true but no storage location |
+| 10 | `XRF-004` | B_02.02 | CO-LU-0002 \| 6354ZX2X914MZGYMMB68 \| 5299XGE5RGK9SNVGG353 \| F-LU-1 \| S17 \| IE \| US \| US | Function identifier typo (leading zero dropped, e.g. F-LU-1 for F-LU-01) |
 | 11 | `XRF-003`, `XRF-008` | B_02.02 | AR-DE-9001 | Arrangement with a provider that is not listed in B_05.01 (shadow IT) |
 | 12 | `FLD-010` | B_02.01 | CO-AT-0006 | Arrangement reference reported twice |
 | 13 | `XRF-006` | B_02.01 | AR-LU-9002 | Arrangement without specific information |

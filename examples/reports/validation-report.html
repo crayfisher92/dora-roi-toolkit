@@ -158,10 +158,53 @@ footer { margin-top: 48px; color: var(--text-muted); font-size: 12.5px; }
 .filter-row input, .filter-row select { font: inherit; font-size: 14px; padding: 6px 10px;
   border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1);
   color: var(--text-primary); }
+/* ------------------------------------------------------------------ print / PDF
+   Used by the browser's "Print → Save as PDF" and by the PDF export (WeasyPrint), so both
+   produce the same A4 document: light colours, page numbers, repeated table headers, no
+   interactive controls. */
+@page {
+  size: A4;
+  margin: 16mm 14mm 18mm;
+  @bottom-left { content: string(doc-title); font: 8pt sans-serif; color: #6f6d68; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt sans-serif;
+    color: #6f6d68; }
+}
+h1 { string-set: doc-title content(); }
 @media print {
-  body { background: #fff; }
-  .card, .table-wrap { break-inside: avoid; }
-  .filter-row { display: none; }
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+    color-scheme: light;
+    --page: #ffffff; --surface-1: #ffffff; --surface-2: #f3f2ee;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #6f6d68;
+    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11, 11, 11, 0.16);
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+    --ord-1: #86b6ef; --ord-2: #3987e5; --ord-3: #1c5cab; --ord-4: #0d366b;
+    --series-muted: #c3c2b7; --accent-ink: #1c5cab; --good-ink: #006300;
+  }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; font-size: 9.5pt; line-height: 1.45; }
+  main { max-width: none; padding: 0; margin: 0; }
+  h1 { font-size: 20pt; }
+  h2 { font-size: 13.5pt; margin: 20pt 0 8pt; break-after: avoid; }
+  h3 { font-size: 11pt; margin: 12pt 0 6pt; break-after: avoid; }
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 8pt; }
+  .two { grid-template-columns: 1fr; gap: 10pt; }  /* charts stay legible at full width */
+  svg.chart { max-width: 150mm; }
+  .tile .value { font-size: 18pt; }
+  .card { padding: 9pt 11pt; }
+  .card, .tile, .banner, .kf li, tr, .seg-bar, .legend, svg.chart { break-inside: avoid; }
+  .table-wrap { overflow: visible; border-radius: 4pt; }
+  table { font-size: 8.5pt; }
+  thead { display: table-header-group; }
+  th { position: static; }
+  th, td { padding: 4pt 6pt; overflow-wrap: break-word; hyphens: auto; }
+  td .small, td.small, .mono, code { font-size: 8pt; }
+  .section-lead { break-after: avoid; }
+  th.num { white-space: normal; }  /* long numeric headers wrap instead of widening the table */
+  .badge { display: inline-block; padding: 1pt 6pt 1pt 5pt; }
+  .badge::before { display: inline-block; margin-right: 4pt; vertical-align: 0; }
+  a { color: inherit; text-decoration: none; }
+  .filter-row, #viz-tip, .no-print { display: none !important; }
+  footer { margin-top: 18pt; }
 }</style>
 </head>
 <body>
@@ -172,8 +215,8 @@ footer { margin-top: 48px; color: var(--text-muted); font-size: 12.5px; }
   <p class="meta">
 LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12-31 ·
     Source alpenrand-sample.xlsx ·
-    Generated 2026-11-05 02:29 UTC ·
-    62 rules
+    Generated 2026-11-14 18:18 UTC ·
+    63 rules
   </p>
 </header>
 
@@ -367,91 +410,91 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
     <td><span class="badge error">error</span></td>
     <td class="mono">BUS-004</td>
     <td class="mono small">B_02.02 · r4 · c0150</td>
-    <td class="small">MSA-DE-0001 | 3912RO6DCAXX71K9W972 | 5299XGE5RGK9SNVGG353 | F-DE-02 | S17</td>
+    <td class="small">MSA-DE-0001 | 3912RO6DCAXX71K9W972 | 5299XGE5RGK9SNVGG353 | F-DE-02 | S17 | IE |  | US</td>
     <td>Data is stored but the location of data at rest is not reported</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">XRF-004</td>
     <td class="mono small">B_02.02 · r7 · c0050</td>
-    <td class="small">CO-LU-0002 | 6354ZX2X914MZGYMMB68 | 5299XGE5RGK9SNVGG353 | F-LU-1 | S17</td>
+    <td class="small">CO-LU-0002 | 6354ZX2X914MZGYMMB68 | 5299XGE5RGK9SNVGG353 | F-LU-1 | S17 | IE | US | US</td>
     <td>Function &#39;F-LU-1&#39; is not identified in B_06.01</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">BUS-018</td>
     <td class="mono small">B_02.02 · r18 · c0010</td>
-    <td class="small">MSA-DE-0007 | 3912RO6DCAXX71K9W972 | 2138C2U0YRY1CYEQVJ54 | F-DE-06 | S17</td>
+    <td class="small">MSA-DE-0007 | 3912RO6DCAXX71K9W972 | 2138C2U0YRY1CYEQVJ54 | F-DE-06 | S17 | LU | US | US</td>
     <td>&#39;MSA-DE-0007&#39; supports critical function &#39;F-DE-06&#39; but has no assessment in B_07.01</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">FLD-013</td>
     <td class="mono small">B_02.02 · r38 · c0030</td>
-    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03</td>
+    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03 | CH |  | </td>
     <td>&#39;21381VQL0Y482P2BV900&#39; is typed as LEI but LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 56</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">XRF-003</td>
     <td class="mono small">B_02.02 · r38 · c0030</td>
-    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03</td>
+    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03 | CH |  | </td>
     <td>Provider &#39;21381VQL0Y482P2BV900&#39; is not listed in B_05.01</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">FLD-003</td>
     <td class="mono small">B_02.02 · r40 · c0080</td>
-    <td class="small">AR-AT-0021 | 8156AYQ5YUFTZEC92R45 | 21381VQL0Y482P2BV956 | F-AT-07 | S03</td>
+    <td class="small">AR-AT-0021 | 8156AYQ5YUFTZEC92R45 | 21381VQL0Y482P2BV956 | F-AT-07 | S03 | CH |  | </td>
     <td>c0080 &#39;End date of the contractual arrangement&#39;: &#39;31/12/2027&#39; is not a valid ISO 8601 date (YYYY-MM-DD)</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">FLD-005</td>
     <td class="mono small">B_02.02 · r54 · c0120</td>
-    <td class="small">AR-DE-0034 | 3912RO6DCAXX71K9W972 | 63540HLDS88ODR38X136 | F-DE-05 | S19</td>
+    <td class="small">AR-DE-0034 | 3912RO6DCAXX71K9W972 | 63540HLDS88ODR38X136 | F-DE-05 | S19 | GB | IE | IE</td>
     <td>c0120 &#39;Country of the governing law of the contractual arrangement&#39;: &#39;UK&#39; is not an ISO 3166-1 alpha-2 country code (did you mean &#39;GB&#39;?)</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">FLD-004</td>
     <td class="mono small">B_02.02 · r71 · c0060</td>
-    <td class="small">AR-LU-0050 | 6354ZX2X914MZGYMMB68 | 8945J54J0JEU0CJ1E554 | F-LU-07 | </td>
+    <td class="small">AR-LU-0050 | 6354ZX2X914MZGYMMB68 | 8945J54J0JEU0CJ1E554 | F-LU-07 |  | GB | DE | DE</td>
     <td>c0060 &#39;Type of ICT services&#39;: &#39;S20&#39; is not a valid IctServiceType code (allowed: S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19)</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">FLD-001</td>
     <td class="mono small">B_02.02 · r77 · c0120</td>
-    <td class="small">AR-AT-0056 | 8156AYQ5YUFTZEC92R45 | 7245TLYA2OZHE7KGQP74 | F-AT-05 | S19</td>
+    <td class="small">AR-AT-0056 | 8156AYQ5YUFTZEC92R45 | 7245TLYA2OZHE7KGQP74 | F-AT-05 | S19 | LU | LU | LU</td>
     <td>Mandatory column c0120 &#39;Country of the governing law of the contractual arrangement&#39; is empty</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">BUS-001</td>
     <td class="mono small">B_02.02 · r84 · c0080</td>
-    <td class="small">AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19</td>
+    <td class="small">AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19 | US | US | US</td>
     <td>End date 2023-04-30 is before start date 2024-05-01</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">BUS-002</td>
     <td class="mono small">B_02.02 · r84 · c0090</td>
-    <td class="small">AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19</td>
+    <td class="small">AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19 | US | US | US</td>
     <td>Arrangement ended on 2023-04-30 but no termination reason is reported</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">BUS-002</td>
     <td class="mono small">B_02.02 · r86 · c0090</td>
-    <td class="small">AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19</td>
+    <td class="small">AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19 | DE | DE | DE</td>
     <td>Arrangement ended on 2025-10-31 but no termination reason is reported</td>
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
     <td class="mono">XRF-003</td>
     <td class="mono small">B_02.02 · r154 · c0030</td>
-    <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10</td>
+    <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10 | CH |  | </td>
     <td>Provider &#39;8156YII8DXJIQ6LZZ583&#39; is not listed in B_05.01</td>
   </tr>
   <tr data-sev="error">
@@ -542,14 +585,14 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
     <td><span class="badge warning">warning</span></td>
     <td class="mono">XRF-008</td>
     <td class="mono small">B_02.02 · r38 · c0030</td>
-    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03</td>
+    <td class="small">AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03 | CH |  | </td>
     <td>Provider &#39;21381VQL0Y482P2BV900&#39; of &#39;AR-DE-0019&#39; is not reported in B_03.02</td>
   </tr>
   <tr data-sev="warning">
     <td><span class="badge warning">warning</span></td>
     <td class="mono">XRF-008</td>
     <td class="mono small">B_02.02 · r154 · c0030</td>
-    <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10</td>
+    <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10 | CH |  | </td>
     <td>Provider &#39;8156YII8DXJIQ6LZZ583&#39; of &#39;AR-DE-9001&#39; is not reported in B_03.02</td>
   </tr>
   <tr data-sev="warning">
@@ -575,6 +618,7 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
   </tr>
   </tbody>
 </table></div>
+
 
 <h2>Rule reference</h2>
 <details><summary>Show descriptions of the rules that produced findings</summary>
@@ -633,6 +677,5 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
   }
   sev.addEventListener("change", apply); q.addEventListener("input", apply); apply();
 })();
-</script>
-</body>
+</script></body>
 </html>
