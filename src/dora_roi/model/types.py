@@ -69,6 +69,14 @@ O = Requirement.OPTIONAL  # noqa: E741 - mirrors the M/C/O notation used in the 
 
 TEXT_MAX_LENGTH = 255
 INDEFINITE_END_DATE = date(9999, 12, 31)
+#: The ITS reports "no such date" as 9999-12-31: open-ended arrangements (B_02.02 c0080), entities
+#: not deleted (B_01.02 c0090), assessments not performed (B_06.01 c0070), no audit (B_07.01 c0070).
+NO_DATE = INDEFINITE_END_DATE
+
+
+def actual_date(value: date | None) -> date | None:
+    """``value`` unless it is empty or the ITS placeholder 9999-12-31."""
+    return None if value is None or value == NO_DATE else value
 
 
 # --------------------------------------------------------------------------- validators

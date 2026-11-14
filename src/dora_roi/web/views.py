@@ -17,7 +17,7 @@ from dora_roi.model import (
     serialise_value,
 )
 from dora_roi.model.refdata import country_name, region_of
-from dora_roi.model.types import INDEFINITE_END_DATE
+from dora_roi.model.types import INDEFINITE_END_DATE, actual_date
 from dora_roi.validation import Finding
 from dora_roi.workspace import Workspace
 
@@ -121,7 +121,7 @@ def provider_profile(ws: Workspace, code: str, t: Callable[..., str]) -> Provide
             profile.flags.append(Flag("medium", t("prov.flag.expiring", ref=e.contract_ref,
                                                   days=e.days_left)))
     if exposure and exposure.critical_functions and profile.assessments and all(
-            x.last_audit_date is None for x in profile.assessments):
+            actual_date(x.last_audit_date) is None for x in profile.assessments):
         profile.flags.append(Flag("medium", t("prov.flag.no_audit")))
     keys = {s.key_str() for s in profile.services} | {x.key_str() for x in profile.assessments}
     profile.findings = [f for f in ws.report.findings

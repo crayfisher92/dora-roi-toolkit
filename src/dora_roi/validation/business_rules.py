@@ -18,7 +18,7 @@ from dora_roi.model import (
     RoIRecord,
 )
 from dora_roi.model.templates import NO_DIRECT_PARENT
-from dora_roi.model.types import INDEFINITE_END_DATE
+from dora_roi.model.types import INDEFINITE_END_DATE, actual_date
 from dora_roi.validation.context import ValidationContext
 from dora_roi.validation.findings import Category, Finding, Severity, rule
 
@@ -85,11 +85,11 @@ def check_storage_location(ctx: ValidationContext) -> Iterator[Finding]:
 
 @rule("BUS-005", "Data sensitivity missing", severity=Severity.ERROR,
       category=Category.BUSINESS, templates=("B_02.02",), references=ANNEX,
-      description="When the ICT service includes storage of data, the sensitiveness of the data "
-      "(c0170) must be reported.")
+      description="When the ICT service supports a critical or important function and includes "
+      "storage of data, the sensitiveness of the data (c0170) must be reported.")
 def check_sensitivity(ctx: ValidationContext) -> Iterator[Finding]:
     for s in ctx.register.b_02_02:
-        if s.data_storage and _missing(s, "data_sensitivity"):
+        if s.data_storage and ctx.supports_critical(s) and _missing(s, "data_sensitivity"):
             yield ctx.finding("BUS-005", "Data is stored but its sensitiveness is not reported",
                               s, "data_sensitivity")
 
@@ -209,7 +209,7 @@ def check_future_dates(ctx: ValidationContext) -> Iterator[Finding]:
     checks += [(f, "last_assessment_date") for f in ctx.register.b_06_01]
     checks += [(a, "last_audit_date") for a in ctx.register.b_07_01]
     for record, attr in checks:
-        value: date | None = getattr(record, attr)
+        value = actual_date(getattr(record, attr))
         if value and value > ctx.reference_date:
             yield ctx.finding("BUS-012", f"{type(record).column(attr).label} {value} is after the "
                               f"reference date {ctx.reference_date}", record, attr, value=value)
@@ -245,19 +245,23 @@ def check_additional_code(ctx: ValidationContext) -> Iterator[Finding]:
 # ------------------------------------------------------------------------- functions
 
 
-@rule("BUS-015", "Critical function lacks justification or recovery objectives",
-      severity=Severity.ERROR, category=Category.BUSINESS, templates=("B_06.01",),
+@rule("BUS-015", "Critical function without reasons or recovery objectives",
+      severity=Severity.WARNING, category=Category.BUSINESS, templates=("B_06.01",),
       references=(*ANNEX, "DORA Art. 3(22)", "DORA Art. 28(4)"),
-      description="For critical or important functions the reasons for criticality (c0060), RTO "
-      "(c0080) and RPO (c0090) must be reported.")
+      description="For a critical or important function the reasons for criticality (c0060, "
+      "optional in the ITS) should be given and the RTO (c0080) and RPO (c0090) should be "
+      "defined (0 means 'not defined').")
 def check_critical_function_details(ctx: ValidationContext) -> Iterator[Finding]:
     for f in ctx.register.b_06_01:
         if not f.is_critical:
             continue
-        for attr in ("criticality_reasons", "rto_hours", "rpo_hours"):
-            if _missing(f, attr):
-                yield ctx.finding("BUS-015", f"Critical function '{f.function_id}' is missing "
-                                  f"{type(f).column(attr).label}", f, attr)
+        if _missing(f, "criticality_reasons"):
+            yield ctx.finding("BUS-015", f"Critical function '{f.function_id}' gives no reasons "
+                              "for its criticality", f, "criticality_reasons")
+        for attr in ("rto_hours", "rpo_hours"):
+            if getattr(f, attr) == 0:
+                yield ctx.finding("BUS-015", f"Critical function '{f.function_id}' has no "
+                                  f"defined {type(f).column(attr).label} (0)", f, attr, value=0)
 
 
 @rule("BUS-016", "Criticality assessment not performed", severity=Severity.WARNING,
@@ -339,10 +343,10 @@ def check_substitutability_reason(ctx: ValidationContext) -> Iterator[Finding]:
                               "no reason is given", a, "non_substitutability_reason")
 
 
-@rule("BUS-021", "Alternative providers not identified", severity=Severity.ERROR,
+@rule("BUS-021", "Alternative providers not named", severity=Severity.WARNING,
       category=Category.BUSINESS, templates=("B_07.01",), references=(*ANNEX, "DORA Art. 28(8)"),
-      description="When alternative providers are said to be identified (c0110 = yes), they "
-      "must be named (c0120).")
+      description="When alternative providers are said to be identified (c0110 = yes), naming "
+      "them in c0120 (optional in the ITS) supports the exit plan.")
 def check_alternatives(ctx: ValidationContext) -> Iterator[Finding]:
     for a in ctx.register.b_07_01:
         if a.alternatives_identified is AlternativesIdentified.YES and \
@@ -367,10 +371,11 @@ def check_audit(ctx: ValidationContext) -> Iterator[Finding]:
         if a is None or key in seen or "last_audit_date" in a.invalid_fields:
             continue
         seen.add(key)
-        if a.last_audit_date is None:
+        audited = actual_date(a.last_audit_date)
+        if audited is None:
             yield ctx.finding("BUS-022", f"Provider '{a.provider_code}' supports a critical "
                               "function and has never been audited", a, "last_audit_date")
-        elif (ctx.reference_date - a.last_audit_date).days > limit:
+        elif (ctx.reference_date - audited).days > limit:
             yield ctx.finding("BUS-022", f"Last audit of '{a.provider_code}' on "
                               f"{a.last_audit_date} is older than {limit} days", a,
                               "last_audit_date", value=a.last_audit_date)

@@ -33,7 +33,7 @@ class FunctionSpec:
     name: str
     activity: str
     critical: bool
-    rto: int
+    rto: int  # hours; the ITS reports less than one hour as 1 and "not defined" as 0
     rpo: int
 
 
@@ -92,7 +92,7 @@ UCITS_MGMT = "management of portfolios of investments (UCITSD)"  # eba_TA:x184
 FUNCTIONS: dict[str, tuple[FunctionSpec, ...]] = {
     "DE": (
         FunctionSpec("payments", "Payment processing (SEPA, instant, cross-border)",
-                     PAYMENTS, True, 4, 0),
+                     PAYMENTS, True, 4, 1),
         FunctionSpec("core", "Core banking and account management", DEPOSITS, True, 4, 1),
         FunctionSpec("lending", "Lending and credit decisioning", LENDING, True, 24, 4),
         FunctionSpec("treasury", "Treasury and liquidity management", OWN_ACCOUNT,
@@ -102,7 +102,7 @@ FUNCTIONS: dict[str, tuple[FunctionSpec, ...]] = {
                      72, 24),
         FunctionSpec("digital", "Digital and mobile banking channels", PAYMENTS, True,
                      4, 1),
-        FunctionSpec("cards", "Card issuing and processing", PAYMENTS, True, 4, 0),
+        FunctionSpec("cards", "Card issuing and processing", PAYMENTS, True, 4, 1),
         FunctionSpec("secops", "IT security operations and identity management",
                      DEPOSITS, True, 4, 1),
         FunctionSpec("crm", "Customer relationship management", DEPOSITS, False, 48, 24),
@@ -117,7 +117,7 @@ FUNCTIONS: dict[str, tuple[FunctionSpec, ...]] = {
         FunctionSpec("core", "Core banking and custody accounts", DEPOSITS, True, 4, 1),
         FunctionSpec("pms", "Portfolio management and investment advice",
                      PORTFOLIO, True, 8, 4),
-        FunctionSpec("payments", "Payment processing", PAYMENTS, True, 4, 0),
+        FunctionSpec("payments", "Payment processing", PAYMENTS, True, 4, 1),
         FunctionSpec("aml", "Client onboarding, KYC and AML", DEPOSITS, True, 8, 2),
         FunctionSpec("custody", "Custody and securities settlement", CUSTODY, True, 8, 1),
         FunctionSpec("regrep", "Regulatory reporting", DEPOSITS, True, 72, 24),

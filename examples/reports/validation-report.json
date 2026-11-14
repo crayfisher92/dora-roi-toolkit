@@ -1,7 +1,7 @@
 {
   "schema": "dora-roi-toolkit/validation-report/v1",
   "toolkit_version": "0.1.0",
-  "generated_at": "2026-11-14T19:52:34.940489+00:00",
+  "generated_at": "2026-11-14T21:08:56.223754+00:00",
   "source": "alpenrand-sample.xlsx",
   "reference_date": "2025-12-31",
   "maintainer": {
@@ -15,7 +15,7 @@
       "warning": 6,
       "info": 1
     },
-    "rules_run": 63,
+    "rules_run": 64,
     "record_counts": {
       "B_01.01": 1,
       "B_01.02": 3,
@@ -117,12 +117,6 @@
         "count": 1
       },
       {
-        "rule_id": "BUS-015",
-        "title": "Critical function lacks justification or recovery objectives",
-        "severity": "error",
-        "count": 1
-      },
-      {
         "rule_id": "BUS-018",
         "title": "ICT service supporting a critical function not assessed in B_07.01",
         "severity": "error",
@@ -179,6 +173,12 @@
       {
         "rule_id": "FLD-013",
         "title": "Provider code inconsistent with its code type",
+        "severity": "error",
+        "count": 1
+      },
+      {
+        "rule_id": "FLD-014",
+        "title": "Conditionally mandatory value missing",
         "severity": "error",
         "count": 1
       },
@@ -306,6 +306,18 @@
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
     {
+      "rule_id": "FLD-014",
+      "severity": "error",
+      "category": "field",
+      "message": "Column c0120 'Country of the governing law of the contractual arrangement' is empty but required because the ICT service supports a critical or important function",
+      "template": "B_02.02",
+      "row": 9,
+      "column": "c0120",
+      "record_key": "CO-LU-0002 | 6354ZX2X914MZGYMMB68 | 5299XGE5RGK9SNVGG353 | F-LU-02 | S17 | IE | US | US",
+      "value": null,
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
       "rule_id": "BUS-018",
       "severity": "error",
       "category": "business",
@@ -375,18 +387,6 @@
       "column": "c0060",
       "record_key": "AR-LU-0050 | 6354ZX2X914MZGYMMB68 | 8945J54J0JEU0CJ1E554 | F-LU-07 |  | GB | DE | DE",
       "value": "S20",
-      "source": "alpenrand-sample.xlsx:B_02.02"
-    },
-    {
-      "rule_id": "FLD-001",
-      "severity": "error",
-      "category": "field",
-      "message": "Mandatory column c0120 'Country of the governing law of the contractual arrangement' is empty",
-      "template": "B_02.02",
-      "row": 77,
-      "column": "c0120",
-      "record_key": "AR-AT-0056 | 8156AYQ5YUFTZEC92R45 | 7245TLYA2OZHE7KGQP74 | F-AT-05 | S19 | LU | LU | LU",
-      "value": null,
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
     {
@@ -474,10 +474,10 @@
       "source": "alpenrand-sample.xlsx:B_05.02"
     },
     {
-      "rule_id": "BUS-015",
+      "rule_id": "FLD-001",
       "severity": "error",
-      "category": "business",
-      "message": "Critical function 'F-LU-05' is missing Recovery time objective of the function (hours)",
+      "category": "field",
+      "message": "Mandatory column c0080 'Recovery time objective of the function (hours)' is empty",
       "template": "B_06.01",
       "row": 22,
       "column": "c0080",

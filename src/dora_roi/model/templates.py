@@ -100,6 +100,9 @@ _TEXTUAL_KINDS = {Kind.TEXT, Kind.LEI, Kind.PROVIDER_CODE, Kind.COUNTRY, Kind.CU
 NOT_APPLICABLE_VALUES = frozenset({"not applicable", "n/a"})
 
 #: Hierarchy values of entities without a direct parent undertaking (EBA RoI FAQ Q58, Q100).
+#: ITS condition of the B_02.02 columns that are mandatory only for critical functions.
+CIF = "Required when the ICT service supports a critical or important function"
+
 NO_DIRECT_PARENT = frozenset({HierarchyInGroup.ULTIMATE_PARENT, HierarchyInGroup.NOT_IN_GROUP,
                               HierarchyInGroup.OUTSOURCING})
 
@@ -291,12 +294,16 @@ class EntityInScope(RoIRecord):
     integration_date: Annotated[IsoDate | None, Col("c0080", "Date of integration in the register",
                                                     M, Kind.DATE)] = None
     deletion_date: Annotated[IsoDate | None, Col(
-        "c0090", "Date of deletion in the register", O, Kind.DATE,
-        condition="Reported only when the entity left the scope",
+        "c0090", "Date of deletion in the register", M, Kind.DATE,
+        condition="9999-12-31 while the entity has not been deleted from the register",
     )] = None
-    currency: Annotated[Currency | None, Col("c0100", "Currency", M, Kind.CURRENCY)] = None
-    total_assets: Annotated[AmountT | None, Col("c0110", "Value of total assets", M,
-                                                Kind.MONETARY)] = None
+    currency: Annotated[Currency | None, Col(
+        "c0100", "Currency", C, Kind.CURRENCY,
+        condition="Required when total assets (c0110) are reported")] = None
+    total_assets: Annotated[AmountT | None, Col(
+        "c0110", "Value of total assets", C, Kind.MONETARY,
+        condition="Required for financial entities (not for entity types OTHER and "
+        "NON_FINANCIAL_ICT_INTRAGROUP)")] = None
 
     @model_validator(mode="after")
     def _own_lei_means_no_parent(self) -> EntityInScope:
@@ -388,19 +395,20 @@ class ContractSpecific(RoIRecord):
         Kind.CODELIST, TerminationReason,
         condition="Left empty: only arrangements in force are reported (FAQ Q52)")] = None
     notice_period_entity: Annotated[NonNegInt | None, Col(
-        "c0100", "Notice period for the financial entity (calendar days)", M,
-        Kind.INTEGER)] = None
+        "c0100", "Notice period for the financial entity (calendar days)", C,
+        Kind.INTEGER, condition=CIF)] = None
     notice_period_provider: Annotated[NonNegInt | None, Col(
-        "c0110", "Notice period for the ICT third-party service provider (calendar days)", M,
-        Kind.INTEGER)] = None
+        "c0110", "Notice period for the ICT third-party service provider (calendar days)", C,
+        Kind.INTEGER, condition=CIF)] = None
     governing_law_country: Annotated[Country | None, Col(
-        "c0120", "Country of the governing law of the contractual arrangement", M,
-        Kind.COUNTRY)] = None
+        "c0120", "Country of the governing law of the contractual arrangement", C,
+        Kind.COUNTRY, condition=CIF)] = None
     service_country: Annotated[Country | None, Col(
         "c0130", "Country of provision of the ICT services", C, Kind.COUNTRY,
-        condition="Required when the service supports a critical or important function; "
-        "otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q59)")] = None
-    data_storage: Annotated[Flag | None, Col("c0140", "Storage of data", M, Kind.BOOLEAN)] = None
+        condition=f"{CIF}; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q59)",
+    )] = None
+    data_storage: Annotated[Flag | None, Col(
+        "c0140", "Storage of data", C, Kind.BOOLEAN, condition=CIF)] = None
     data_location_storage: Annotated[Country | None, Col(
         "c0150", "Location of the data at rest (storage)", C, Kind.COUNTRY,
         condition="Required when storage of data (c0140) is true; otherwise exported as "
@@ -412,10 +420,11 @@ class ContractSpecific(RoIRecord):
     data_sensitivity: Annotated[DataSensitivity | None, cl(DataSensitivity), Col(
         "c0170", "Sensitiveness of the data stored by the ICT third-party service provider", C,
         Kind.CODELIST, DataSensitivity,
-        condition="Required when storage of data (c0140) is true")] = None
+        condition="Required when storage of data (c0140) is true and the ICT service supports a "
+        "critical or important function")] = None
     reliance_level: Annotated[RelianceLevel | None, cl(RelianceLevel), Col(
-        "c0180", "Level of reliance on the ICT service", M, Kind.CODELIST,
-        RelianceLevel)] = None
+        "c0180", "Level of reliance on the ICT service", C, Kind.CODELIST,
+        RelianceLevel, condition=CIF)] = None
 
 
 class IntraGroupContractLink(RoIRecord):
@@ -531,18 +540,23 @@ class IctThirdPartyProvider(RoIRecord):
     legal_name: Annotated[Text | None, Col("c0050", "Legal name of the ICT third-party service "
                                            "provider", M, Kind.TEXT)] = None
     latin_name: Annotated[Text | None, Col("c0060", "Name of the ICT third-party service "
-                                           "provider in Latin alphabet", O, Kind.TEXT)] = None
+                                           "provider in Latin alphabet", M, Kind.TEXT,
+                                           condition="Repeat the legal name (c0050) when it is "
+                                           "written in the Latin alphabet")] = None
     person_type: Annotated[PersonType | None, cl(PersonType), Col(
         "c0070", "Type of person of the ICT third-party service provider", M, Kind.CODELIST,
         PersonType)] = None
     hq_country: Annotated[Country | None, Col(
         "c0080", "Country of the ICT third-party service provider's headquarters", M,
         Kind.COUNTRY)] = None
-    currency: Annotated[Currency | None, Col("c0090", "Currency of the amount reported", M,
-                                             Kind.CURRENCY)] = None
+    currency: Annotated[Currency | None, Col(
+        "c0090", "Currency of the amount reported", C, Kind.CURRENCY,
+        condition="Required when the total annual expense (c0100) is reported")] = None
     total_annual_cost: Annotated[AmountT | None, Col(
         "c0100", "Total annual expense or estimated cost of the ICT third-party service provider",
-        M, Kind.MONETARY)] = None
+        C, Kind.MONETARY,
+        condition="Required for direct ICT third-party service providers (named in B_02.02)",
+    )] = None
     ultimate_parent_code: Annotated[CodeT | None, Col(
         "c0110", "Identification code of the provider's ultimate parent undertaking", M,
         Kind.PROVIDER_CODE,
@@ -611,17 +625,18 @@ class Function(RoIRecord):
     criticality: Annotated[Criticality | None, cl(Criticality), Col(
         "c0050", "Criticality or importance assessment", M, Kind.CODELIST, Criticality)] = None
     criticality_reasons: Annotated[Text | None, Col(
-        "c0060", "Reasons for criticality or importance", C, Kind.TEXT,
-        condition="Required when the function is critical or important")] = None
+        "c0060", "Reasons for criticality or importance", O, Kind.TEXT,
+        condition="Brief explanation for a critical or important function (300 characters "
+        "maximum)")] = None
     last_assessment_date: Annotated[IsoDate | None, Col(
         "c0070", "Date of the last assessment of criticality or importance", M,
-        Kind.DATE)] = None
+        Kind.DATE, condition="9999-12-31 when the assessment has not been performed")] = None
     rto_hours: Annotated[NonNegInt | None, Col(
-        "c0080", "Recovery time objective of the function (hours)", C, Kind.INTEGER,
-        condition="Required when the function is critical or important")] = None
+        "c0080", "Recovery time objective of the function (hours)", M, Kind.INTEGER,
+        condition="1 when less than an hour, 0 when not defined")] = None
     rpo_hours: Annotated[NonNegInt | None, Col(
-        "c0090", "Recovery point objective of the function (hours)", C, Kind.INTEGER,
-        condition="Required when the function is critical or important")] = None
+        "c0090", "Recovery point objective of the function (hours)", M, Kind.INTEGER,
+        condition="1 when less than an hour, 0 when not defined")] = None
     discontinuation_impact: Annotated[Impact | None, cl(Impact), Col(
         "c0100", "Impact of discontinuing the function", M, Kind.CODELIST, Impact)] = None
 
@@ -660,8 +675,8 @@ class ServiceAssessment(RoIRecord):
             condition="Required when substitutability is NOT_SUBSTITUTABLE or HIGHLY_COMPLEX"),
     ] = None
     last_audit_date: Annotated[IsoDate | None, Col(
-        "c0070", "Date of the last audit on the ICT third-party service provider", O,
-        Kind.DATE)] = None
+        "c0070", "Date of the last audit on the ICT third-party service provider", M,
+        Kind.DATE, condition="9999-12-31 when no audit has been performed")] = None
     exit_plan: Annotated[Flag | None, Col("c0080", "Existence of an exit plan", M,
                                           Kind.BOOLEAN)] = None
     reintegration: Annotated[Reintegration | None, cl(Reintegration), Col(
@@ -675,8 +690,8 @@ class ServiceAssessment(RoIRecord):
             Kind.CODELIST, AlternativesIdentified),
     ] = None
     alternative_providers: Annotated[Text | None, Col(
-        "c0120", "Identification of alternative ICT third-party service providers", C,
-        Kind.TEXT, condition="Required when c0110 is YES")] = None
+        "c0120", "Identification of alternative ICT third-party service providers", O,
+        Kind.TEXT, condition="Additional information when c0110 is YES")] = None
 
 
 #: All template models in ITS order.

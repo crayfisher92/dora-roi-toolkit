@@ -21,11 +21,15 @@ annotated table layout DORA 4.0, list of possible values (3 March 2025), overvie
 checks and validation rules (28 April 2025), list of licensed activities, the official DORA
 xBRL-CSV sample instance, the DORA RoI reporting FAQ (28 March 2025) and the data model.
 `tests/test_eba_reference.py` and `tests/test_package_check.py` re-check the column codes,
-primary keys, generated code tables and the package layout against these files.
+primary keys, generated code tables and the package layout against these files. The
+requirement level of every column was re-checked against the reporting instructions in the
+Annex of the ITS as published in the Official Journal (Commission Implementing Regulation
+(EU) 2024/2956, <https://eur-lex.europa.eu/eli/reg_impl/2024/2956/oj>), which FAQ Q33 names
+as the source of the mandatory fields, and against the DPM existence rules.
 
 | Area | ✅ | ✏️ | ⏳ |
 |---|---:|---:|---:|
-| Templates and columns (A-TPL) | 4 | 5 | 2 |
+| Templates and columns (A-TPL) | 5 | 6 | 0 |
 | Code lists (A-CL) | 1 | 3 | 0 |
 | Reference data (A-REF) | 1 | 2 | 0 |
 | Validation rules (A-VAL, A-REG) | 0 | 1 | 6 |
@@ -37,11 +41,8 @@ Still to do, in this order:
 1. **Validation rules** (A-VAL-01) – map every toolkit rule to the official check
    ID where one exists (DPM rules `v88xx_m` / `e236xx_e`, technical checks 7xx/8xx, GLEIF/BRIS
    checks `VR_*`), implement the missing ones and align severities.
-2. **Requirement levels** (A-TPL-10) – re-baseline M/C/O per column against the ITS
-   instructions, the FAQ and the DPM existence/completeness rules (e.g. v8881/v8882 RTO/RPO,
-   v8885 audit date, v8865 deletion date), updating the sample generator accordingly.
-3. **B_99.01** (A-TPL-11) – model the definitions template instead of reporting it empty.
-4. **Framework version** (A-XBRL-02) – confirm the framework, entry point and filing rules
+2. **B_99.01** (A-TPL-11) – model the definitions template instead of reporting it empty.
+3. **Framework version** (A-XBRL-02) – confirm the framework, entry point and filing rules
    valid for each reference date; refresh `reference/eba/` and run
    `python scripts/gen_eba_codes.py` when the EBA publishes a new version.
 
@@ -54,11 +55,11 @@ Still to do, in this order:
 | A-TPL-03 | ✏️ | The technical "Link" columns are B_02.03 c0030, B_03.01 c0030 and B_03.03 c0031, reported as `true` (DPM `trueItemType`). |
 | A-TPL-04 | ✏️ | B_02.02 primary key per the data model / annotated layout: c0010, c0020, c0030, c0050, c0060, **c0130, c0150, c0160** – one row per country of provision, storage and processing (FAQ Q37, Q117). The toolkit's key previously omitted the three countries. |
 | A-TPL-05 | ✅ | Arrangements without an end date are reported with end date `9999-12-31`. |
-| A-TPL-06 | ⏳ | Notice periods (B_02.02 c0100/c0110) are expressed in calendar days; RTO/RPO (B_06.01 c0080/c0090) in hours. |
+| A-TPL-06 | ✅ | Notice periods (B_02.02 c0100/c0110) are expressed in calendar days; RTO/RPO (B_06.01 c0080/c0090) in hours – less than one hour is reported as 1, an undefined objective as 0 (ITS Annex, B_06.01.0090/0100). |
 | A-TPL-07 | ✏️ | B_05.02: the direct ICT third-party service provider is at **rank 1** and is **its own recipient** – c0060 repeats c0030 (FAQ Q65); a subcontractor of a rank *n* provider is at rank *n + 1* with the rank *n* provider as recipient (FAQ Q81). Inside the toolkit the rank-1 recipient is held empty; the exporter writes the provider's own code. |
 | A-TPL-08 | ✅ | B_05.01 c0110/c0120 (ultimate parent) are mandatory; a provider that is its own ultimate parent reports its own code (FAQ Q99). |
 | A-TPL-09 | ✅ | B_06.01 c0020 "licensed activity" is a closed list (DPM hierarchy TA5, ITS Annex IV; 131 members in `reference/eba/licensed-activities-dpm-4.0.xlsx`). The toolkit accepts the member or its label and exports the member; values outside the list are exported as given with a warning. A validation rule for the list is still to be added. |
-| A-TPL-10 | ⏳ | Requirement levels (M / C / O) per column are the authors' reading of the ITS instructions (`src/dora_roi/model/templates.py`). B_02.02 c0130 was changed from M to C (FAQ Q59). Known differences still to resolve: DPM rules v8881/v8882 expect RTO/RPO for every function, v8885 the audit date (9999-12-31 if none), v8865 the deletion date. |
+| A-TPL-10 | ✏️ | Requirement levels (M / C / O) follow the ITS reporting instructions; conditional columns are checked by FLD-014 and the BUS rules. Corrected: B_02.02 c0100, c0110, c0120, c0140 and c0180 are mandatory only when the ICT service supports a critical or important function (were M), c0170 only when data is also stored (BUS-005); B_01.02 c0110 total assets only for financial entities and c0100 only with c0110 (were M); B_05.01 c0100 only for direct providers and c0090 only with c0100 (were M); B_01.02 c0090 deletion date (9999-12-31 while not deleted), B_05.01 c0060 name in Latin alphabet, B_06.01 c0080/c0090 RTO/RPO (0 = not defined) and B_07.01 c0070 audit date (9999-12-31 = no audit) are mandatory (were O or C, DPM rules v8865, e23674, v8881/v8882, v8885); B_06.01 c0060 reasons and B_07.01 c0120 alternatives are optional (were C), so BUS-015 and BUS-021 are warnings. Deliberate deviation: B_01.02 c0060 (parent LEI, M in the ITS) stays C because an empty value means 'no direct parent' and the export writes the entity's own LEI (FAQ Q58). |
 | A-TPL-11 | ✅ | Empty key / foreign-key fields are reported as "Not Applicable" (text) or `eba_GA:qx2007` (countries) – B_02.01 c0030, B_02.02 c0130/c0150/c0160, B_04.01 c0040 (FAQ Q26, Q59–Q64, Q124) – and an entity without a direct parent repeats its own LEI in B_01.02 c0060 (FAQ Q58). The toolkit holds these as empty values and applies the conventions on export; the importer reads them back as empty. B_99.01 is reported empty for now. |
 
 ## Code lists

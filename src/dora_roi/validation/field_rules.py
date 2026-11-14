@@ -86,6 +86,47 @@ def check_mandatory(ctx: ValidationContext) -> Iterator[Finding]:
                                   "empty", record, spec.attr)
 
 
+#: B_02.02 columns the ITS makes mandatory when the ICT service supports a critical or important
+#: function (c0170 additionally needs storage of data and is checked by BUS-005).
+CRITICAL_SERVICE_COLUMNS = ("notice_period_entity", "notice_period_provider",
+                            "governing_law_country", "service_country", "data_storage",
+                            "reliance_level")
+
+
+@rule("FLD-014", "Conditionally mandatory value missing", severity=Severity.ERROR,
+      category=Category.FIELD, templates=("B_01.02", "B_02.02", "B_05.01"),
+      references=("DORA Art. 28(3)", *ANNEX),
+      description="Columns the ITS makes mandatory under a condition: total assets of financial "
+      "entities and their currency (B_01.02 c0110, c0100); notice periods, governing law, country "
+      "of provision, storage of data and level of reliance of ICT services supporting critical "
+      "or important functions (B_02.02 c0100-c0140, c0180); total annual expense of direct ICT "
+      "third-party service providers and its currency (B_05.01 c0100, c0090).")
+def check_conditional(ctx: ValidationContext) -> Iterator[Finding]:
+    def missing(record: RoIRecord, attr: str, why: str) -> Iterator[Finding]:
+        if getattr(record, attr) is None and attr not in record.invalid_fields:
+            spec = type(record).column(attr)
+            yield ctx.finding("FLD-014", f"Column {spec.code} '{spec.label}' is empty but "
+                              f"required {why}", record, attr)
+
+    for e in ctx.register.b_01_02:
+        if e.entity_type is not None and e.entity_type.is_financial:
+            yield from missing(e, "total_assets", "for a financial entity")
+        if e.total_assets is not None:
+            yield from missing(e, "currency", "because total assets are reported")
+    for s in ctx.register.b_02_02:
+        if ctx.supports_critical(s):
+            for attr in CRITICAL_SERVICE_COLUMNS:
+                yield from missing(s, attr, "because the ICT service supports a critical or "
+                                   "important function")
+    direct = {s.provider_code for s in ctx.register.b_02_02 if s.provider_code}
+    for p in ctx.register.b_05_01:
+        if p.provider_code in direct:
+            yield from missing(p, "total_annual_cost", "for a direct ICT third-party service "
+                               "provider")
+        if p.total_annual_cost is not None:
+            yield from missing(p, "currency", "because the total annual expense is reported")
+
+
 def _key_present(record: RoIRecord) -> bool:
     return any(v is not None for v in record.key())
 

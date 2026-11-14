@@ -43,6 +43,22 @@ class BulkGroup:
         return len(self.rows)
 
 
+#: Rules reporting an empty column; their findings can be bulk-filled with one value.
+EMPTY_VALUE_RULES = frozenset({"FLD-001", "FLD-014"})
+
+#: ITS values for "no such date / not defined" offered when the mandatory column is empty.
+PLACEHOLDERS: dict[tuple[str, str], tuple[str, Confidence, str]] = {
+    ("B_01.02", "c0090"): ("9999-12-31", Confidence.HIGH,
+                           "ITS convention while the entity has not been deleted"),
+    ("B_06.01", "c0070"): ("9999-12-31", Confidence.LOW,
+                           "ITS convention – only if the assessment has not been performed"),
+    ("B_06.01", "c0080"): ("0", Confidence.LOW, "ITS convention – only if the RTO is not defined"),
+    ("B_06.01", "c0090"): ("0", Confidence.LOW, "ITS convention – only if the RPO is not defined"),
+    ("B_07.01", "c0070"): ("9999-12-31", Confidence.LOW,
+                           "ITS convention – only if no audit has been performed"),
+}
+
+
 def _kind(template: str | None, column: str | None) -> tuple[Kind | None, object]:
     if not template or not column or template not in TEMPLATES_BY_CODE:
         return None, None
@@ -91,6 +107,9 @@ def suggest(finding: Finding) -> FixSuggestion | None:
     if rid == "FLD-001" and kind is Kind.BOOLEAN and finding.column and \
             finding.template in ("B_02.03", "B_03.01", "B_03.03"):
         return FixSuggestion("true", Confidence.HIGH, "Link columns are always true")
+    placeholder = PLACEHOLDERS.get((finding.template or "", finding.column or ""))
+    if rid == "FLD-001" and placeholder is not None:
+        return FixSuggestion(*placeholder)
     if rid == "BUS-024":
         return FixSuggestion("9999-12-31", Confidence.HIGH, "Convention for open-ended contracts")
     if rid == "BUS-003":
@@ -108,7 +127,7 @@ def bulk_groups(findings: Iterable[Finding], min_count: int = 2) -> list[BulkGro
     for f in findings:
         if not (f.template and f.column and f.row):
             continue
-        if not f.value and f.rule_id != "FLD-001":
+        if not f.value and f.rule_id not in EMPTY_VALUE_RULES:
             continue
         key = (f.rule_id, f.template, f.column, f.value or "")
         group = groups.get(key)

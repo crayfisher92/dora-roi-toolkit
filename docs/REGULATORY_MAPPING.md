@@ -6,7 +6,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 
 > The references express *which obligation a rule helps evidence*; they are the authors' interpretation (see [ASSUMPTIONS.md](ASSUMPTIONS.md), in particular A-VAL-* and A-REG-01) and are not the official EBA validation rules.
 
-**63 rules.** Severity: *error* blocks a clean submission, *warning* needs review, *info* is for awareness.
+**64 rules.** Severity: *error* blocks a clean submission, *warning* needs review, *info* is for awareness.
 
 ## Import checks (IMP)
 
@@ -34,6 +34,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `FLD-011` | error | **B_01.01 must contain exactly one row** – The register is maintained by exactly one entity, reported in B_01.01. | B_01.01 | DORA Art. 28(3); ITS Annex I |
 | `FLD-012` | error | **Core template is empty** – A register without entities, contracts, providers or functions cannot be submitted. | B_01.02, B_02.01, B_02.02, B_05.01, B_06.01 | DORA Art. 28(3); ITS Annex I |
 | `FLD-013` | error | **Provider code inconsistent with its code type** – When the type of code is LEI the identification code must be a valid LEI; when it is EUID it must start with an ISO country code followed by the register identifier. | B_02.02, B_03.02, B_05.01, B_05.02, B_07.01 | ISO 17442; ITS Art. – identification |
+| `FLD-014` | error | **Conditionally mandatory value missing** – Columns the ITS makes mandatory under a condition: total assets of financial entities and their currency (B_01.02 c0110, c0100); notice periods, governing law, country of provision, storage of data and level of reliance of ICT services supporting critical or important functions (B_02.02 c0100-c0140, c0180); total annual expense of direct ICT third-party service providers and its currency (B_05.01 c0100, c0090). | B_01.02, B_02.02, B_05.01 | DORA Art. 28(3); ITS Annex I; ITS Annex II |
 
 ## Cross-template referential integrity (XRF)
 
@@ -74,7 +75,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `BUS-002` | warning | **Arrangement ended before the reference date** – The register contains the arrangements in force at the reference date; terminated or expired arrangements are not reported. Remove the row or correct the end date (c0080). | B_02.02 | ITS Annex II; FAQ Q52 |
 | `BUS-003` | warning | **Termination reason reported** – Only arrangements in force are reported, so the reason of termination or ending (c0090) is left empty. | B_02.02 | ITS Annex II; FAQ Q52 |
 | `BUS-004` | error | **Data storage location missing** – When the ICT service includes storage of data (c0140 = true), the country of the data at rest (c0150) must be reported. | B_02.02 | ITS Annex II; DORA Art. 30(2) |
-| `BUS-005` | error | **Data sensitivity missing** – When the ICT service includes storage of data, the sensitiveness of the data (c0170) must be reported. | B_02.02 | ITS Annex II |
+| `BUS-005` | error | **Data sensitivity missing** – When the ICT service supports a critical or important function and includes storage of data, the sensitiveness of the data (c0170) must be reported. | B_02.02 | ITS Annex II |
 | `BUS-006` | warning | **Data processing location missing** – Where data is stored by the provider it is normally also processed; the location of management of the data (c0160) is expected. | B_02.02 | ITS Annex II; DORA Art. 30(2) |
 | `BUS-007` | error | **Arrangement type inconsistent with overarching reference** – A subsequent/associated arrangement must reference its overarching arrangement (c0030); standalone and overarching arrangements must not. | B_02.01 | ITS Annex II |
 | `BUS-008` | warning | **Currency differs from the reporting currency** – Amounts are expected in the reporting currency of the entity maintaining the register so that they can be aggregated. | B_02.01, B_05.01 | ITS Annex II |
@@ -84,13 +85,13 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `BUS-012` | warning | **Date after the reference date** – Last update, integration, assessment and audit dates are historical and should not lie after the reporting reference date. | B_01.02, B_06.01, B_07.01 | ITS Annex II |
 | `BUS-013` | error | **Branch code missing for a branch** – When the entity making use of the services is a branch (c0030 = true), its identification code (c0040) is required. | B_04.01 | ITS Annex II |
 | `BUS-014` | error | **Additional identification code without type** – An additional provider code (c0030) requires its type (c0040) and vice versa. | B_05.01 | ITS Annex II |
-| `BUS-015` | error | **Critical function lacks justification or recovery objectives** – For critical or important functions the reasons for criticality (c0060), RTO (c0080) and RPO (c0090) must be reported. | B_06.01 | ITS Annex II; DORA Art. 3(22); DORA Art. 28(4) |
+| `BUS-015` | warning | **Critical function without reasons or recovery objectives** – For a critical or important function the reasons for criticality (c0060, optional in the ITS) should be given and the RTO (c0080) and RPO (c0090) should be defined (0 means 'not defined'). | B_06.01 | ITS Annex II; DORA Art. 3(22); DORA Art. 28(4) |
 | `BUS-016` | warning | **Criticality assessment not performed** – Every function supported by ICT third-party services should be assessed for criticality or importance. | B_06.01 | DORA Art. 28(4); DORA Art. 3(22) |
 | `BUS-017` | warning | **Criticality assessment out of date** – The last criticality assessment is older than the configured maximum age (default 12 months) at the reference date. | B_06.01 | DORA Art. 28(4) |
 | `BUS-018` | error | **ICT service supporting a critical function not assessed in B_07.01** – Each ICT service supporting a critical or important function must have an assessment (substitutability, exit plan, reintegration) in B_07.01. | B_07.01, B_02.02 | DORA Art. 28(3); DORA Art. 29; ITS Annex I |
 | `BUS-019` | error | **No exit plan for an ICT service supporting a critical function** – Financial entities must have exit strategies for ICT services supporting critical or important functions; B_07.01 c0080 must be true. | B_07.01, B_06.01 | DORA Art. 28(8); DORA Art. 30(3) |
 | `BUS-020` | error | **Reason for non-substitutability missing** – When the provider is not substitutable or highly complex to substitute, the reason (c0060) must be given. | B_07.01 | ITS Annex II; DORA Art. 29 |
-| `BUS-021` | error | **Alternative providers not identified** – When alternative providers are said to be identified (c0110 = yes), they must be named (c0120). | B_07.01 | ITS Annex II; DORA Art. 28(8) |
+| `BUS-021` | warning | **Alternative providers not named** – When alternative providers are said to be identified (c0110 = yes), naming them in c0120 (optional in the ITS) supports the exit plan. | B_07.01 | ITS Annex II; DORA Art. 28(8) |
 | `BUS-022` | warning | **Provider supporting a critical function not audited recently** – Providers of ICT services supporting critical functions should be audited with a risk-based frequency; no audit date or an audit older than the configured threshold (default 3 years) is flagged. | B_07.01 | DORA Art. 28(6) |
 | `BUS-023` | warning | **Intra-group provider without B_03.03 entry** – When the provider of an arrangement is itself an entity of the group (its LEI is in B_01.02), the providing entity is expected in B_03.03. | B_03.03, B_02.02 | ITS Annex II |
 | `BUS-024` | info | **Indefinite arrangement reported with an unusual end date** – Arrangements without an end date are reported as 9999-12-31; end dates more than 30 years ahead are usually a placeholder that should be normalised. | B_02.02 | ITS Annex II |
@@ -125,15 +126,15 @@ This document links every validation rule of the toolkit to the provision of Reg
 ## Coverage by provision
 
 - **DORA Art. 3(22)**: `XRF-004`, `BUS-015`, `BUS-016`
-- **DORA Art. 28(3)**: `IMP-002`, `FLD-001`, `FLD-011`, `FLD-012`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-003`, `XRF-004`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `XRF-015`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-025`
+- **DORA Art. 28(3)**: `IMP-002`, `FLD-001`, `FLD-011`, `FLD-012`, `FLD-014`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-003`, `XRF-004`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `XRF-015`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-025`
 - **DORA Art. 28(4)**: `BUS-015`, `BUS-016`, `BUS-017`
 - **DORA Art. 28(6)**: `BUS-022`
 - **DORA Art. 28(8)**: `SC-006`, `BUS-019`, `BUS-021`
 - **DORA Art. 29**: `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-020`, `BUS-025`
 - **DORA Art. 30(2)**: `FLD-005`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-004`, `BUS-006`
 - **DORA Art. 30(3)**: `BUS-019`
-- **ITS Annex I**: `IMP-001`, `IMP-002`, `IMP-003`, `IMP-004`, `FLD-001`, `FLD-011`, `FLD-012`, `BUS-018`
-- **ITS Annex II**: `FLD-001`, `FLD-003`, `FLD-004`, `FLD-005`, `FLD-006`, `FLD-007`, `FLD-008`, `FLD-009`, `FLD-010`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-001`, `BUS-002`, `BUS-003`, `BUS-004`, `BUS-005`, `BUS-006`, `BUS-007`, `BUS-008`, `BUS-009`, `BUS-010`, `BUS-011`, `BUS-012`, `BUS-013`, `BUS-014`, `BUS-015`, `BUS-020`, `BUS-021`, `BUS-023`, `BUS-024`, `BUS-025`
+- **ITS Annex I**: `IMP-001`, `IMP-002`, `IMP-003`, `IMP-004`, `FLD-001`, `FLD-011`, `FLD-012`, `FLD-014`, `BUS-018`
+- **ITS Annex II**: `FLD-001`, `FLD-003`, `FLD-004`, `FLD-005`, `FLD-006`, `FLD-007`, `FLD-008`, `FLD-009`, `FLD-010`, `FLD-014`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-001`, `BUS-002`, `BUS-003`, `BUS-004`, `BUS-005`, `BUS-006`, `BUS-007`, `BUS-008`, `BUS-009`, `BUS-010`, `BUS-011`, `BUS-012`, `BUS-013`, `BUS-014`, `BUS-015`, `BUS-020`, `BUS-021`, `BUS-023`, `BUS-024`, `BUS-025`
 - **ITS Annex III**: `FLD-004`
 - **ITS Art. – identification**: `FLD-002`, `FLD-013`, `XRF-002`
 - **ITS Art. – consistency**: `FLD-010`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`

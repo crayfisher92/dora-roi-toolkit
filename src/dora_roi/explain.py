@@ -108,6 +108,14 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "Der Dienstleistercode passt nicht zum Typ: Ein LEI muss gültig sein, eine EUID "
                  "beginnt mit Ländercode und Registernummer, und ein gültiger LEI ist als LEI "
                  "zu kennzeichnen. Korrigieren Sie Code oder Typ."),
+    "FLD-014": E("Bedingtes Pflichtfeld leer",
+                 "The ITS makes this column mandatory in this case – for example notice periods "
+                 "and governing law when the service supports a critical or important function, "
+                 "or the total annual expense of a direct provider. Fill it in.",
+                 "Die ITS machen diese Spalte in diesem Fall zur Pflicht – etwa Kündigungsfristen "
+                 "und anwendbares Recht, wenn die Leistung eine kritische oder wichtige Funktion "
+                 "unterstützt, oder die jährlichen Kosten eines direkten Dienstleisters. Füllen "
+                 "Sie sie aus."),
     # ------------------------------------------------------------------ referential
     "XRF-001": E("Vertrag nicht in B_02.01 erfasst",
                  "This row refers to a contract reference that is not listed in B_02.01. Add the "
@@ -276,10 +284,11 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "Eine zusätzliche Kennung benötigt ihren Typ (USt-ID, HR-Nummer, …) und "
                  "umgekehrt."),
     "BUS-015": E("Kritische Funktion ohne Begründung oder RTO/RPO",
-                 "For a critical or important function, give the reasons and the recovery time "
-                 "and recovery point objectives in hours.",
-                 "Für eine kritische oder wichtige Funktion sind Begründung sowie RTO und RPO in "
-                 "Stunden anzugeben."),
+                 "For a critical or important function, give the reasons for its criticality "
+                 "and define the recovery time and recovery point objectives (0 means 'not "
+                 "defined').",
+                 "Für eine kritische oder wichtige Funktion sollten die Gründe angegeben und RTO "
+                 "und RPO festgelegt sein (0 bedeutet „nicht festgelegt“)."),
     "BUS-016": E("Kritikalität nicht bewertet",
                  "This function has not been assessed. Decide whether it is critical or "
                  "important.",
@@ -306,8 +315,10 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "Wenn der Dienstleister schwer oder nicht ersetzbar ist, geben Sie den Grund an "
                  "(keine Alternativen, Migrationshürden oder beides)."),
     "BUS-021": E("Alternative Dienstleister nicht benannt",
-                 "Alternatives are said to exist; name them.",
-                 "Es sollen Alternativen existieren; benennen Sie diese."),
+                 "Alternatives are said to exist; naming them (optional) supports the exit "
+                 "plan.",
+                 "Es sollen Alternativen existieren; sie zu benennen (optional) unterstützt den "
+                 "Exit-Plan."),
     "BUS-022": E("Kritischer Dienstleister nicht aktuell geprüft",
                  "Providers of critical services should be audited regularly. Record the date "
                  "of the last audit or plan one.",

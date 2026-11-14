@@ -16,12 +16,14 @@ from dora_roi.model import (
     ContractType,
     Criticality,
     EntityInScope,
+    EntityType,
     Function,
     HierarchyInGroup,
     IctServiceType,
     IctThirdPartyProvider,
     ProviderCodeType,
     RegisterOfInformation,
+    RelianceLevel,
     Substitutability,
     SupplyChainEntry,
     TerminationReason,
@@ -93,7 +95,12 @@ def _clear(table: str) -> Mutation:
 OTHER_LEI = make_lei("OTHERPROVIDER00001")
 
 CASES: list[tuple[str, Mutation]] = [
-    ("FLD-001", _set("b_02_02.0.governing_law_country", None)),
+    ("FLD-001", _set("b_02_02.0.start_date", None)),
+    ("FLD-001", _set("b_07_01.0.last_audit_date", None)),
+    ("FLD-014", _set("b_02_02.0.governing_law_country", None)),
+    ("FLD-014", _set("b_02_02.0.reliance_level", None)),
+    ("FLD-014", _set("b_01_02.0.total_assets", None)),
+    ("FLD-014", _set("b_05_01.0.total_annual_cost", None)),
     ("FLD-010", _add(lambda: ContractGeneral(contract_ref="C-001"))),
     ("FLD-011", _clear("b_01_01")),
     ("FLD-012", _clear("b_06_01")),
@@ -154,7 +161,8 @@ CASES: list[tuple[str, Mutation]] = [
     ("BUS-013", _set("b_04_01.0.branch_code", "BR1")),
     ("BUS-014", _set("b_05_01.0.additional_code", "HRB 1234")),
     ("BUS-014", _set("b_05_01.0.additional_code_type", AdditionalCodeType.VAT)),
-    ("BUS-015", _set("b_06_01.0.rto_hours", None)),
+    ("BUS-015", _set("b_06_01.0.rpo_hours", 0)),
+    ("BUS-015", _set("b_06_01.0.criticality_reasons", None)),
     ("BUS-016", _set("b_06_01.0.criticality", Criticality.NOT_ASSESSED)),
     ("BUS-017", _set("b_06_01.0.last_assessment_date", date(2024, 1, 1))),
     ("BUS-018", _clear("b_07_01")),
@@ -205,7 +213,7 @@ def test_finding_location_and_key(valid_register: RegisterOfInformation) -> None
     valid_register.b_02_02[0].set_provenance(7, "book.xlsx")
     valid_register.b_02_02[0].governing_law_country = None
     report = validate(valid_register)
-    f = next(f for f in report.findings if f.rule_id == "FLD-001")
+    f = next(f for f in report.findings if f.rule_id == "FLD-014")
     assert (f.template, f.row, f.column, f.source) == ("B_02.02", 7, "c0120", "book.xlsx")
     assert f.location == "B_02.02 / row 7 / c0120"
     assert f.record_key and f.record_key.startswith("C-001 | ")
@@ -345,3 +353,32 @@ def test_ended_arrangements_follow_faq_q52(valid_register: RegisterOfInformation
     assert ended and ended[0].severity is Severity.WARNING and ended[0].column == "c0080"
     s.end_date, s.termination_reason = date(2027, 6, 30), TerminationReason.EXPIRED
     assert {"BUS-002", "BUS-003"} & run(valid_register) == {"BUS-003"}
+
+
+def test_conditional_columns_follow_the_its(valid_register: RegisterOfInformation) -> None:
+    """ITS requirement levels: B_02.02 c0100-c0140/c0180 only for critical functions, total
+    assets only for financial entities, provider cost only for direct providers, and the ITS
+    placeholders (9999-12-31, RTO/RPO 0) are accepted values."""
+    fn = valid_register.b_06_01[0]
+    s = valid_register.b_02_02[0]
+    s.notice_period_entity = s.governing_law_country = s.reliance_level = None
+    s.data_storage = s.data_sensitivity = None
+    assert "FLD-014" in run(valid_register)
+    fn.criticality = Criticality.NOT_CRITICAL
+    assert not {"FLD-014", "BUS-005"} & run(valid_register)
+    entity = valid_register.b_01_02[0]
+    entity.entity_type, entity.total_assets, entity.currency = EntityType.OTHER, None, None
+    assert "FLD-014" not in run(valid_register)
+    sub = valid_register.b_05_01[1]  # subcontractor only, not a direct provider
+    sub.total_annual_cost = sub.currency = None
+    assert "FLD-014" not in run(valid_register)
+    sub.total_annual_cost = Decimal(5)
+    assert "FLD-014" in run(valid_register)
+    sub.total_annual_cost = None
+    fn.criticality = Criticality.CRITICAL
+    s.notice_period_entity, s.governing_law_country = 90, "DE"
+    s.reliance_level, s.data_storage = RelianceLevel.FULL, False
+    valid_register.b_07_01[0].last_audit_date = date(9999, 12, 31)
+    fn.last_assessment_date = date(9999, 12, 31)
+    findings = run(valid_register)
+    assert "BUS-012" not in findings and "BUS-022" in findings

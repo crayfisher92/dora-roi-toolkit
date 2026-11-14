@@ -3,7 +3,7 @@
 - **Entity:** Alpenrand Bank (Europe) AG (`3912RO6DCAXX71K9W972`)
 - **Reference date:** 2025-12-31
 - **Source:** alpenrand-sample.xlsx
-- **Generated:** 2026-11-14 19:52 UTC (dora-roi-toolkit 0.1.0, 63 rules)
+- **Generated:** 2026-11-14 21:08 UTC (dora-roi-toolkit 0.1.0, 64 rules)
 
 **Result: ❌ FAILED** — 25 error(s), 6 warning(s), 1 info.
 
@@ -17,7 +17,6 @@
 | `XRF-013` | error | Assessment does not match any ICT service in B_02.02 | 2 | ITS Art. – consistency; ITS Annex II; DORA Art. 28(3) |
 | `BUS-001` | error | End date before start date | 1 | ITS Annex II |
 | `BUS-004` | error | Data storage location missing | 1 | ITS Annex II; DORA Art. 30(2) |
-| `BUS-015` | error | Critical function lacks justification or recovery objectives | 1 | ITS Annex II; DORA Art. 3(22); DORA Art. 28(4) |
 | `BUS-018` | error | ICT service supporting a critical function not assessed in B_07.01 | 1 | DORA Art. 28(3); DORA Art. 29; ITS Annex I |
 | `BUS-020` | error | Reason for non-substitutability missing | 1 | ITS Annex II; DORA Art. 29 |
 | `FLD-001` | error | Mandatory value missing | 1 | DORA Art. 28(3); ITS Annex I; ITS Annex II |
@@ -28,6 +27,7 @@
 | `FLD-006` | error | Invalid currency code | 1 | ISO 4217; ITS Annex II |
 | `FLD-010` | error | Duplicate record key | 1 | ITS Annex II; ITS Art. – consistency |
 | `FLD-013` | error | Provider code inconsistent with its code type | 1 | ISO 17442; ITS Art. – identification |
+| `FLD-014` | error | Conditionally mandatory value missing | 1 | DORA Art. 28(3); ITS Annex I; ITS Annex II |
 | `SC-001` | error | Rank 1 provider is not the direct provider of the arrangement | 1 | DORA Art. 28(3); DORA Art. 29; DORA Art. 30(2); ITS Annex II |
 | `XRF-001` | error | Contractual arrangement not defined in B_02.01 | 1 | ITS Art. – consistency; ITS Annex II; DORA Art. 28(3) |
 | `XRF-004` | error | Function not identified in B_06.01 | 1 | ITS Art. – consistency; ITS Annex II; DORA Art. 28(3); DORA Art. 28(3); DORA Art. 3(22) |
@@ -67,13 +67,13 @@
 | error | `XRF-006` | B_02.01 / row 124 / c0010 | AR-LU-9002 | Contractual arrangement 'AR-LU-9002' has no row in B_02.02 |
 | error | `BUS-004` | B_02.02 / row 4 / c0150 | MSA-DE-0001 \| 3912RO6DCAXX71K9W972 \| 5299XGE5RGK9SNVGG353 \| F-DE-02 \| S17 \| IE \|  \| US | Data is stored but the location of data at rest is not reported |
 | error | `XRF-004` | B_02.02 / row 7 / c0050 | CO-LU-0002 \| 6354ZX2X914MZGYMMB68 \| 5299XGE5RGK9SNVGG353 \| F-LU-1 \| S17 \| IE \| US \| US | Function 'F-LU-1' is not identified in B_06.01 |
+| error | `FLD-014` | B_02.02 / row 9 / c0120 | CO-LU-0002 \| 6354ZX2X914MZGYMMB68 \| 5299XGE5RGK9SNVGG353 \| F-LU-02 \| S17 \| IE \| US \| US | Column c0120 'Country of the governing law of the contractual arrangement' is empty but required because the ICT service supports a critical or important function |
 | error | `BUS-018` | B_02.02 / row 18 / c0010 | MSA-DE-0007 \| 3912RO6DCAXX71K9W972 \| 2138C2U0YRY1CYEQVJ54 \| F-DE-06 \| S17 \| LU \| US \| US | 'MSA-DE-0007' supports critical function 'F-DE-06' but has no assessment in B_07.01 |
 | error | `FLD-013` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 \| CH \|  \|  | '21381VQL0Y482P2BV900' is typed as LEI but LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 56 |
 | error | `XRF-003` | B_02.02 / row 38 / c0030 | AR-DE-0019 \| 3912RO6DCAXX71K9W972 \| 21381VQL0Y482P2BV900 \| F-DE-14 \| S03 \| CH \|  \|  | Provider '21381VQL0Y482P2BV900' is not listed in B_05.01 |
 | error | `FLD-003` | B_02.02 / row 40 / c0080 | AR-AT-0021 \| 8156AYQ5YUFTZEC92R45 \| 21381VQL0Y482P2BV956 \| F-AT-07 \| S03 \| CH \|  \|  | c0080 'End date of the contractual arrangement': '31/12/2027' is not a valid ISO 8601 date (YYYY-MM-DD) |
 | error | `FLD-005` | B_02.02 / row 54 / c0120 | AR-DE-0034 \| 3912RO6DCAXX71K9W972 \| 63540HLDS88ODR38X136 \| F-DE-05 \| S19 \| GB \| IE \| IE | c0120 'Country of the governing law of the contractual arrangement': 'UK' is not an ISO 3166-1 alpha-2 country code (did you mean 'GB'?) |
 | error | `FLD-004` | B_02.02 / row 71 / c0060 | AR-LU-0050 \| 6354ZX2X914MZGYMMB68 \| 8945J54J0JEU0CJ1E554 \| F-LU-07 \|  \| GB \| DE \| DE | c0060 'Type of ICT services': 'S20' is not a valid IctServiceType code (allowed: S01, S02, S03, S04, S05, S06, S07, S08, S09, S10, S11, S12, S13, S14, S15, S16, S17, S18, S19) |
-| error | `FLD-001` | B_02.02 / row 77 / c0120 | AR-AT-0056 \| 8156AYQ5YUFTZEC92R45 \| 7245TLYA2OZHE7KGQP74 \| F-AT-05 \| S19 \| LU \| LU \| LU | Mandatory column c0120 'Country of the governing law of the contractual arrangement' is empty |
 | error | `BUS-001` | B_02.02 / row 84 / c0080 | AR-LU-0062 \| 6354ZX2X914MZGYMMB68 \| 8156RHZ6DZDLTDXWN816 \| F-LU-08 \| S19 \| US \| US \| US | End date 2023-04-30 is before start date 2024-05-01 |
 | error | `XRF-003` | B_02.02 / row 154 / c0030 | AR-DE-9001 \| 8156AYQ5YUFTZEC92R45 \| 8156YII8DXJIQ6LZZ583 \| F-AT-07 \| S10 \| CH \|  \|  | Provider '8156YII8DXJIQ6LZZ583' is not listed in B_05.01 |
 | error | `FLD-002` | B_03.01 / row 11 / c0020 | CO-LU-0008 \|  | c0020 'LEI of the entity signing the contractual arrangement': '6354ZX2X914MZGYMMB99' is not a valid LEI: LEI checksum (ISO 17442 / MOD 97-10) failed; expected check digits 68 |
@@ -81,7 +81,7 @@
 | error | `SC-003` | B_05.02 / row 6 / c0060 | MSA-DE-0001 \| S17 \| 5299KSAC8PGOY2WZG688 \| 3 \| 7245LHPDBFHF0V7L0532 | In 'MSA-DE-0001', recipient '7245LHPDBFHF0V7L0532' of rank 3 subcontractor '5299KSAC8PGOY2WZG688' is not reported at rank 2 |
 | error | `SC-001` | B_05.02 / row 7 / c0030 | CO-LU-0002 \| S17 \| 6354222DLTFK714K9K18 \| 1 \|  | Rank 1 provider '6354222DLTFK714K9K18' is not a direct provider of 'CO-LU-0002' (expected one of: 5299XGE5RGK9SNVGG353) |
 | error | `SC-003` | B_05.02 / row 8 / c0060 | CO-LU-0002 \| S17 \| 3912HE4IZZF3ZD1EDH65 \| 2 \| 5299XGE5RGK9SNVGG353 | In 'CO-LU-0002', recipient '5299XGE5RGK9SNVGG353' of rank 2 subcontractor '3912HE4IZZF3ZD1EDH65' is not reported at rank 1 |
-| error | `BUS-015` | B_06.01 / row 22 / c0080 | F-LU-05 \| 6354ZX2X914MZGYMMB68 | Critical function 'F-LU-05' is missing Recovery time objective of the function (hours) |
+| error | `FLD-001` | B_06.01 / row 22 / c0080 | F-LU-05 \| 6354ZX2X914MZGYMMB68 | Mandatory column c0080 'Recovery time objective of the function (hours)' is empty |
 | error | `BUS-019` | B_07.01 / row 6 / c0080 | CO-AT-0003 \| 5299XGE5RGK9SNVGG353 \| S17 | 'CO-AT-0003' supports critical function 'F-AT-01' but has no exit plan |
 | error | `BUS-019` | B_07.01 / row 7 / c0080 | MSA-DE-0004 \| 5299XGE5RGK9SNVGG353 \| S18 | 'MSA-DE-0004' supports critical function 'F-DE-03' but has no exit plan |
 | error | `XRF-013` | B_07.01 / row 20 / c0010 | AR-DE-0019 \| 21381VQL0Y482P2BV956 \| S03 | No B_02.02 row for arrangement 'AR-DE-0019', provider '21381VQL0Y482P2BV956', service S03 |

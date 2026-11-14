@@ -53,6 +53,17 @@ EBA material for reporting framework 4.0 (`reference/eba/`, see
   termination reason; BUS-003 warns about any termination reason in B_02.02 c0090. The
   clean sample no longer contains ended arrangements, so the sample with injected errors
   reports 25 errors and 6 warnings (was 27 and 5).
+- **Requirement levels** follow the ITS reporting instructions (see A-TPL-10): B_02.02 c0100,
+  c0110, c0120, c0140 and c0180 are mandatory only for ICT services supporting a critical or
+  important function; total assets (B_01.02 c0110) only for financial entities; the
+  provider's total annual expense (B_05.01 c0100) only for direct providers; the deletion
+  date (B_01.02 c0090), the provider name in Latin alphabet (B_05.01 c0060), RTO/RPO (B_06.01
+  c0080/c0090) and the audit date (B_07.01 c0070) are mandatory, with the ITS values
+  9999-12-31 and 0 for "none" / "not defined" offered as fix suggestions; reasons for
+  criticality (B_06.01 c0060) and named alternatives (B_07.01 c0120) are optional. New rule
+  **FLD-014** checks the conditional columns; BUS-015 and BUS-021 are warnings; BUS-005 applies
+  to critical services only; 9999-12-31 counts as "no audit" in BUS-022 and is ignored by
+  BUS-012.
 - Country `XK` (Kosovo) is accepted, as in the EBA list.
 - `roi check-package` reports a different column order as a warning, not a failure.
 - The synthetic sample uses the EBA labels for licensed activities.

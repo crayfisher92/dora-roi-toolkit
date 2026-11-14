@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 from dora_roi.model import ContractType, RoIRecord
+from dora_roi.model.types import actual_date
 from dora_roi.validation.context import ValidationContext
 from dora_roi.validation.findings import Category, Finding, Severity, rule
 
@@ -274,6 +275,6 @@ def check_entity_used(ctx: ValidationContext) -> Iterator[Finding]:
         r.entity_lei for r in ctx.register.b_04_01
     }
     for e in ctx.register.b_01_02:
-        if e.lei and e.lei not in used and e.deletion_date is None:
+        if e.lei and e.lei not in used and actual_date(e.deletion_date) is None:
             yield ctx.finding("XRF-015", f"Entity {e.name or e.lei} is not referenced by any "
                               "ICT service", e, "lei")

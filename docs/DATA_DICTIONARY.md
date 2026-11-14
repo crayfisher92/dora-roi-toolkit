@@ -31,9 +31,9 @@ Python model: `EntityInScope` · key: `lei`
 | `c0060` | `parent_lei` | LEI of the direct parent undertaking | C | LEI (20 characters, ISO 17442) | Required unless the entity has no direct parent (ultimate parent, not in a group); the xBRL-CSV export then repeats the entity's own LEI (EBA RoI FAQ Q58) |
 | `c0070` | `last_update` | Date of last update | M | Date (YYYY-MM-DD) |  |
 | `c0080` | `integration_date` | Date of integration in the register | M | Date (YYYY-MM-DD) |  |
-| `c0090` | `deletion_date` | Date of deletion in the register | O | Date (YYYY-MM-DD) | Reported only when the entity left the scope |
-| `c0100` | `currency` | Currency | M | Currency (ISO 4217, e.g. EUR) |  |
-| `c0110` | `total_assets` | Value of total assets | M | Amount ≥ 0 |  |
+| `c0090` | `deletion_date` | Date of deletion in the register | M | Date (YYYY-MM-DD) | 9999-12-31 while the entity has not been deleted from the register |
+| `c0100` | `currency` | Currency | C | Currency (ISO 4217, e.g. EUR) | Required when total assets (c0110) are reported |
+| `c0110` | `total_assets` | Value of total assets | C | Amount ≥ 0 | Required for financial entities (not for entity types OTHER and NON_FINANCIAL_ICT_INTRAGROUP) |
 
 ## B_01.03 – List of branches
 
@@ -73,15 +73,15 @@ Python model: `ContractSpecific` · key: `contract_ref`, `entity_lei`, `provider
 | `c0070` | `start_date` | Start date of the contractual arrangement | M | Date (YYYY-MM-DD) |  |
 | `c0080` | `end_date` | End date of the contractual arrangement | M | Date (YYYY-MM-DD) | Use 9999-12-31 for arrangements without an end date |
 | `c0090` | `termination_reason` | Reason of the termination or ending of the contractual arrangement | C | Code list `TerminationReason` | Left empty: only arrangements in force are reported (FAQ Q52) |
-| `c0100` | `notice_period_entity` | Notice period for the financial entity (calendar days) | M | Whole number ≥ 0 |  |
-| `c0110` | `notice_period_provider` | Notice period for the ICT third-party service provider (calendar days) | M | Whole number ≥ 0 |  |
-| `c0120` | `governing_law_country` | Country of the governing law of the contractual arrangement | M | Country (ISO 3166-1 alpha-2, e.g. DE) |  |
-| `c0130` | `service_country` | Country of provision of the ICT services | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when the service supports a critical or important function; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q59) |
-| `c0140` | `data_storage` | Storage of data | M | true / false |  |
+| `c0100` | `notice_period_entity` | Notice period for the financial entity (calendar days) | C | Whole number ≥ 0 | Required when the ICT service supports a critical or important function |
+| `c0110` | `notice_period_provider` | Notice period for the ICT third-party service provider (calendar days) | C | Whole number ≥ 0 | Required when the ICT service supports a critical or important function |
+| `c0120` | `governing_law_country` | Country of the governing law of the contractual arrangement | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when the ICT service supports a critical or important function |
+| `c0130` | `service_country` | Country of provision of the ICT services | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when the ICT service supports a critical or important function; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q59) |
+| `c0140` | `data_storage` | Storage of data | C | true / false | Required when the ICT service supports a critical or important function |
 | `c0150` | `data_location_storage` | Location of the data at rest (storage) | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when storage of data (c0140) is true; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q61) |
 | `c0160` | `data_location_processing` | Location of management of the data (processing) | C | Country (ISO 3166-1 alpha-2, e.g. DE) | Required when the ICT service involves processing of data; otherwise exported as 'Not applicable' (key, EBA RoI FAQ Q63) |
-| `c0170` | `data_sensitivity` | Sensitiveness of the data stored by the ICT third-party service provider | C | Code list `DataSensitivity` | Required when storage of data (c0140) is true |
-| `c0180` | `reliance_level` | Level of reliance on the ICT service | M | Code list `RelianceLevel` |  |
+| `c0170` | `data_sensitivity` | Sensitiveness of the data stored by the ICT third-party service provider | C | Code list `DataSensitivity` | Required when storage of data (c0140) is true and the ICT service supports a critical or important function |
+| `c0180` | `reliance_level` | Level of reliance on the ICT service | C | Code list `RelianceLevel` | Required when the ICT service supports a critical or important function |
 
 ## B_02.03 – List of intra-group contractual arrangements
 
@@ -145,11 +145,11 @@ Python model: `IctThirdPartyProvider` · key: `provider_code`
 | `c0030` | `additional_code` | Additional identification code of the ICT third-party service provider | O | Text (max 255) |  |
 | `c0040` | `additional_code_type` | Type of additional identification code | C | Code list `AdditionalCodeType` | Required when an additional code (c0030) is given |
 | `c0050` | `legal_name` | Legal name of the ICT third-party service provider | M | Text (max 255) |  |
-| `c0060` | `latin_name` | Name of the ICT third-party service provider in Latin alphabet | O | Text (max 255) |  |
+| `c0060` | `latin_name` | Name of the ICT third-party service provider in Latin alphabet | M | Text (max 255) | Repeat the legal name (c0050) when it is written in the Latin alphabet |
 | `c0070` | `person_type` | Type of person of the ICT third-party service provider | M | Code list `PersonType` |  |
 | `c0080` | `hq_country` | Country of the ICT third-party service provider's headquarters | M | Country (ISO 3166-1 alpha-2, e.g. DE) |  |
-| `c0090` | `currency` | Currency of the amount reported | M | Currency (ISO 4217, e.g. EUR) |  |
-| `c0100` | `total_annual_cost` | Total annual expense or estimated cost of the ICT third-party service provider | M | Amount ≥ 0 |  |
+| `c0090` | `currency` | Currency of the amount reported | C | Currency (ISO 4217, e.g. EUR) | Required when the total annual expense (c0100) is reported |
+| `c0100` | `total_annual_cost` | Total annual expense or estimated cost of the ICT third-party service provider | C | Amount ≥ 0 | Required for direct ICT third-party service providers (named in B_02.02) |
 | `c0110` | `ultimate_parent_code` | Identification code of the provider's ultimate parent undertaking | M | LEI or EUID | Report the provider's own code if it is its own ultimate parent |
 | `c0120` | `ultimate_parent_code_type` | Type of code to identify the ultimate parent undertaking | M | Code list `ProviderCodeType` |  |
 
@@ -178,10 +178,10 @@ Python model: `Function` · key: `function_id`, `entity_lei`
 | `c0030` | `function_name` | Function name | M | Text (max 255) |  |
 | `c0040` | `entity_lei` | LEI of the financial entity | M | LEI (20 characters, ISO 17442) |  |
 | `c0050` | `criticality` | Criticality or importance assessment | M | Code list `Criticality` |  |
-| `c0060` | `criticality_reasons` | Reasons for criticality or importance | C | Text (max 255) | Required when the function is critical or important |
-| `c0070` | `last_assessment_date` | Date of the last assessment of criticality or importance | M | Date (YYYY-MM-DD) |  |
-| `c0080` | `rto_hours` | Recovery time objective of the function (hours) | C | Whole number ≥ 0 | Required when the function is critical or important |
-| `c0090` | `rpo_hours` | Recovery point objective of the function (hours) | C | Whole number ≥ 0 | Required when the function is critical or important |
+| `c0060` | `criticality_reasons` | Reasons for criticality or importance | O | Text (max 255) | Brief explanation for a critical or important function (300 characters maximum) |
+| `c0070` | `last_assessment_date` | Date of the last assessment of criticality or importance | M | Date (YYYY-MM-DD) | 9999-12-31 when the assessment has not been performed |
+| `c0080` | `rto_hours` | Recovery time objective of the function (hours) | M | Whole number ≥ 0 | 1 when less than an hour, 0 when not defined |
+| `c0090` | `rpo_hours` | Recovery point objective of the function (hours) | M | Whole number ≥ 0 | 1 when less than an hour, 0 when not defined |
 | `c0100` | `discontinuation_impact` | Impact of discontinuing the function | M | Code list `Impact` |  |
 
 ## B_07.01 – Assessment of the ICT services
@@ -196,12 +196,12 @@ Python model: `ServiceAssessment` · key: `contract_ref`, `provider_code`, `serv
 | `c0040` | `service_type` | Type of ICT services | M | Code list `IctServiceType` |  |
 | `c0050` | `substitutability` | Substitutability of the ICT third-party service provider | M | Code list `Substitutability` |  |
 | `c0060` | `non_substitutability_reason` | Reason if the provider is not or difficult to be substitutable | C | Code list `NonSubstitutabilityReason` | Required when substitutability is NOT_SUBSTITUTABLE or HIGHLY_COMPLEX |
-| `c0070` | `last_audit_date` | Date of the last audit on the ICT third-party service provider | O | Date (YYYY-MM-DD) |  |
+| `c0070` | `last_audit_date` | Date of the last audit on the ICT third-party service provider | M | Date (YYYY-MM-DD) | 9999-12-31 when no audit has been performed |
 | `c0080` | `exit_plan` | Existence of an exit plan | M | true / false |  |
 | `c0090` | `reintegration` | Possibility of reintegration of the contracted ICT service | M | Code list `Reintegration` |  |
 | `c0100` | `discontinuation_impact` | Impact of discontinuing the ICT services | M | Code list `Impact` |  |
 | `c0110` | `alternatives_identified` | Are there alternative ICT third-party service providers identified? | M | Code list `AlternativesIdentified` |  |
-| `c0120` | `alternative_providers` | Identification of alternative ICT third-party service providers | C | Text (max 255) | Required when c0110 is YES |
+| `c0120` | `alternative_providers` | Identification of alternative ICT third-party service providers | O | Text (max 255) | Additional information when c0110 is YES |
 
 ## Code lists
 

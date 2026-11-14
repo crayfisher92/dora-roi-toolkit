@@ -54,7 +54,8 @@ class FailureImpact:
 
     @property
     def shortest_rto(self) -> int | None:
-        values = [f.function.rto_hours for f in self.critical if f.function.rto_hours is not None]
+        # 0 means "not defined" in the ITS (B_06.01 c0080)
+        values = [f.function.rto_hours for f in self.critical if f.function.rto_hours]
         return min(values) if values else None
 
 

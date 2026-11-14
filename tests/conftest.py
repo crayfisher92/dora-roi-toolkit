@@ -50,7 +50,8 @@ def build_valid_register() -> RegisterOfInformation:
     reg.add(EntityInScope(
         lei=ENTITY, name="Test Bank AG", country="DE", entity_type=EntityType.CREDIT_INSTITUTION,
         hierarchy=HierarchyInGroup.ULTIMATE_PARENT, last_update=date(2025, 12, 1),
-        integration_date=date(2025, 1, 17), currency="EUR", total_assets=Decimal("1000000000")))
+        integration_date=date(2025, 1, 17), deletion_date=date(9999, 12, 31), currency="EUR",
+        total_assets=Decimal("1000000000")))
     reg.add(ContractGeneral(contract_ref="C-001", contract_type=ContractType.STANDALONE,
                             currency="EUR", annual_cost=Decimal("100000")))
     reg.add(ContractSpecific(
@@ -69,7 +70,7 @@ def build_valid_register() -> RegisterOfInformation:
                                (SUBCONTRACTOR, "Cloud Host Ltd", SUBCONTRACTOR)):
         reg.add(IctThirdPartyProvider(
             provider_code=code, provider_code_type=ProviderCodeType.LEI, legal_name=name,
-            person_type=PersonType.LEGAL, hq_country="DE", currency="EUR",
+            latin_name=name, person_type=PersonType.LEGAL, hq_country="DE", currency="EUR",
             total_annual_cost=Decimal("100000"), ultimate_parent_code=parent,
             ultimate_parent_code_type=ProviderCodeType.LEI))
     reg.add(SupplyChainEntry(contract_ref="C-001", service_type=IctServiceType.S19,

@@ -51,7 +51,7 @@ from dora_roi.model import (
 )
 from dora_roi.model.codelists import AdditionalCodeType, AlternativesIdentified
 from dora_roi.model.refdata import EEA_COUNTRIES
-from dora_roi.model.types import INDEFINITE_END_DATE
+from dora_roi.model.types import INDEFINITE_END_DATE, NO_DATE
 from dora_roi.sample.catalogue import (
     HOLDING_NAME,
     Catalogue,
@@ -144,7 +144,7 @@ def _add_entity(ctx: _Ctx, spec: EntitySpec, holding: str) -> None:
         hierarchy=HierarchyInGroup.PARENT if is_eu_parent else HierarchyInGroup.SUBSIDIARY,
         parent_lei=holding if is_eu_parent else ctx.entity_lei[spec.parent or ""],
         last_update=ctx.ref - timedelta(days=ctx.rng.randint(5, 40)),
-        integration_date=date(ctx.ref.year, 1, 17), currency="EUR",
+        integration_date=date(ctx.ref.year, 1, 17), deletion_date=NO_DATE, currency="EUR",
         total_assets=Decimal(spec.total_assets)))
     for code, name, country in spec.branches:
         ctx.reg.add(Branch(branch_code=code, head_office_lei=lei, name=name, country=country))
@@ -160,8 +160,8 @@ def _add_entity(ctx: _Ctx, spec: EntitySpec, holding: str) -> None:
             if fn.critical else None,
             last_assessment_date=_rand_date(ctx.rng, ctx.ref - timedelta(days=300),
                                             ctx.ref - timedelta(days=20)),
-            rto_hours=fn.rto if fn.critical else None,
-            rpo_hours=fn.rpo if fn.critical else None,
+            rto_hours=fn.rto,
+            rpo_hours=fn.rpo,
             discontinuation_impact=Impact.HIGH if fn.critical else
             ctx.rng.choice([Impact.LOW, Impact.MEDIUM])))
 
@@ -187,7 +187,7 @@ def _finalise_providers(ctx: _Ctx) -> None:
             additional_code_type=AdditionalCodeType(spec.additional[1])
             if spec.additional else None,
             legal_name=spec.name,
-            latin_name=spec.latin_name,
+            latin_name=spec.latin_name or spec.name,
             person_type=PersonType.LEGAL,
             hq_country=spec.country,
             currency="EUR",
@@ -304,7 +304,7 @@ def _add_assessment(ctx: _Ctx, ref: str, offering: OfferingSpec, critical: bool)
                                      else NonSubstitutabilityReason.MIGRATION) if hard else None,
         last_audit_date=_rand_date(rng, ctx.ref - timedelta(days=900),
                                    ctx.ref - timedelta(days=30))
-        if critical or rng.random() < 0.4 else None,
+        if critical or rng.random() < 0.4 else NO_DATE,
         exit_plan=True if critical else rng.random() < 0.5,
         reintegration=Reintegration.HIGHLY_COMPLEX if hard else
         rng.choice([Reintegration.EASY, Reintegration.DIFFICULT]),
@@ -390,10 +390,11 @@ def _inject(ctx: _Ctx) -> list[InjectedError]:
     s = non_crit[4]
     setattr(s, "service_type", "S20")  # noqa: B010
     note(("FLD-004",), "B_02.02", s.key_str(), "ICT service type 'S20' does not exist")
-    # 6. mandatory governing law missing
-    s = non_crit[6]
+    # 6. governing law missing for a service supporting a critical function
+    s = crit[5]
     s.governing_law_country = None
-    note(("FLD-001",), "B_02.02", s.key_str(), "Governing law country left empty")
+    note(("FLD-014",), "B_02.02", s.key_str(),
+         "Governing law country left empty for a service supporting a critical function")
     # 7. end date before start date
     s = non_crit[8]
     s.start_date, s.end_date = date(2024, 5, 1), date(2023, 4, 30)
@@ -462,7 +463,7 @@ def _inject(ctx: _Ctx) -> list[InjectedError]:
     # 20. critical function without RTO
     f = next(x for x in reg.b_06_01 if x.is_critical and x.function_id == "F-LU-05")
     f.rto_hours = None
-    note(("BUS-015",), "B_06.01", f.key_str(), "Critical function without RTO")
+    note(("FLD-001",), "B_06.01", f.key_str(), "Critical function without RTO")
     # 21. broken subcontracting chain (rank 3 recipient not at rank 2)
     rank3 = next(e for e in reg.b_05_02 if e.rank == 3)
     rank3.recipient_code = ctx.provider_code["luxhost"]
@@ -482,6 +483,7 @@ def _inject(ctx: _Ctx) -> list[InjectedError]:
     reg.add(IctThirdPartyProvider(
         provider_code=synthetic_lei("Legacy Mainframe Services GmbH"),
         provider_code_type=ProviderCodeType.LEI, legal_name="Legacy Mainframe Services GmbH",
+        latin_name="Legacy Mainframe Services GmbH",
         person_type=PersonType.LEGAL, hq_country="DE", currency="EUR",
         total_annual_cost=Decimal(0),
         ultimate_parent_code=synthetic_lei("Legacy Mainframe Services GmbH"),
