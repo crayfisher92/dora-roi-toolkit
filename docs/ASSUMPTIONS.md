@@ -32,17 +32,14 @@ as the source of the mandatory fields, and against the DPM existence rules.
 | Templates and columns (A-TPL) | 5 | 6 | 0 |
 | Code lists (A-CL) | 1 | 3 | 0 |
 | Reference data (A-REF) | 1 | 2 | 0 |
-| Validation rules (A-VAL, A-REG) | 0 | 1 | 6 |
+| Validation rules (A-VAL, A-REG) | 0 | 2 | 5 |
 | xBRL-CSV export (A-XBRL) | 4 | 3 | 0 |
 | Analytics, Art. 30, incidents, FINMA | 0 | 0 | all |
 
 Still to do, in this order:
 
-1. **Validation rules** (A-VAL-01) – map every toolkit rule to the official check
-   ID where one exists (DPM rules `v88xx_m` / `e236xx_e`, technical checks 7xx/8xx, GLEIF/BRIS
-   checks `VR_*`), implement the missing ones and align severities.
-2. **B_99.01** (A-TPL-11) – model the definitions template instead of reporting it empty.
-3. **Framework version** (A-XBRL-02) – confirm the framework, entry point and filing rules
+1. **B_99.01** (A-TPL-11) – model the definitions template instead of reporting it empty.
+2. **Framework version** (A-XBRL-02) – confirm the framework, entry point and filing rules
    valid for each reference date; refresh `reference/eba/` and run
    `python scripts/gen_eba_codes.py` when the EBA publishes a new version.
 
@@ -58,7 +55,7 @@ Still to do, in this order:
 | A-TPL-06 | ✅ | Notice periods (B_02.02 c0100/c0110) are expressed in calendar days; RTO/RPO (B_06.01 c0080/c0090) in hours – less than one hour is reported as 1, an undefined objective as 0 (ITS Annex, B_06.01.0090/0100). |
 | A-TPL-07 | ✏️ | B_05.02: the direct ICT third-party service provider is at **rank 1** and is **its own recipient** – c0060 repeats c0030 (FAQ Q65); a subcontractor of a rank *n* provider is at rank *n + 1* with the rank *n* provider as recipient (FAQ Q81). Inside the toolkit the rank-1 recipient is held empty; the exporter writes the provider's own code. |
 | A-TPL-08 | ✅ | B_05.01 c0110/c0120 (ultimate parent) are mandatory; a provider that is its own ultimate parent reports its own code (FAQ Q99). |
-| A-TPL-09 | ✅ | B_06.01 c0020 "licensed activity" is a closed list (DPM hierarchy TA5, ITS Annex IV; 131 members in `reference/eba/licensed-activities-dpm-4.0.xlsx`). The toolkit accepts the member or its label and exports the member; values outside the list are exported as given with a warning. A validation rule for the list is still to be added. |
+| A-TPL-09 | ✅ | B_06.01 c0020 "licensed activity" is a closed list (DPM hierarchy TA5, ITS Annex IV; 131 members in `reference/eba/licensed-activities-dpm-4.0.xlsx`). The toolkit accepts the member or its label and exports the member; values outside the list are reported by FLD-015 and exported as given with a warning. |
 | A-TPL-10 | ✏️ | Requirement levels (M / C / O) follow the ITS reporting instructions; conditional columns are checked by FLD-014 and the BUS rules. Corrected: B_02.02 c0100, c0110, c0120, c0140 and c0180 are mandatory only when the ICT service supports a critical or important function (were M), c0170 only when data is also stored (BUS-005); B_01.02 c0110 total assets only for financial entities and c0100 only with c0110 (were M); B_05.01 c0100 only for direct providers and c0090 only with c0100 (were M); B_01.02 c0090 deletion date (9999-12-31 while not deleted), B_05.01 c0060 name in Latin alphabet, B_06.01 c0080/c0090 RTO/RPO (0 = not defined) and B_07.01 c0070 audit date (9999-12-31 = no audit) are mandatory (were O or C, DPM rules v8865, e23674, v8881/v8882, v8885); B_06.01 c0060 reasons and B_07.01 c0120 alternatives are optional (were C), so BUS-015 and BUS-021 are warnings. Deliberate deviation: B_01.02 c0060 (parent LEI, M in the ITS) stays C because an empty value means 'no direct parent' and the export writes the entity's own LEI (FAQ Q58). |
 | A-TPL-11 | ✅ | Empty key / foreign-key fields are reported as "Not Applicable" (text) or `eba_GA:qx2007` (countries) – B_02.01 c0030, B_02.02 c0130/c0150/c0160, B_04.01 c0040 (FAQ Q26, Q59–Q64, Q124) – and an entity without a direct parent repeats its own LEI in B_01.02 c0060 (FAQ Q58). The toolkit holds these as empty values and applies the conventions on export; the importer reads them back as empty. B_99.01 is reported empty for now. |
 
@@ -83,7 +80,7 @@ Still to do, in this order:
 
 | ID | Status | Assumption |
 |----|:---:|------------|
-| A-VAL-01 | ⏳ | The toolkit's rules are **not** the EBA validation rules. The official set (technical checks 1xx/7xx/8xx, DPM rules `v88xx_m`/`e236xx_e` with their active/inactive status, GLEIF/BRIS checks) is now in `reference/eba/technical-checks-and-validation-rules-2025-04-28.xlsx`; mapping each toolkit rule to it is still to do. Run the official validation before submission. |
+| A-VAL-01 | ✏️ | The toolkit's rules are not the EBA validation rules, but they are now **mapped** to them: `dora_roi.validation.eba_mapping` lists for each rule the official checks it implements (technical checks, DPM rules `v88xx_m`/`e236xx_e`, GLEIF/BRIS checks `VR_*`, generated from `reference/eba/technical-checks-and-validation-rules-2025-04-28.xlsx`), and [REGULATORY_MAPPING.md](REGULATORY_MAPPING.md#coverage-of-the-official-eba-checks) shows every official check with the rules that implement it or how it is met otherwise (xBRL-CSV export, the authority's platform, online lookup). Tests fail if an active official check is neither implemented nor explained, or if a column required by a DPM existence or completeness rule is not mandatory. Not checkable offline: whether an LEI or EUID exists in GLEIF/BRIS (VR_2, VR_12, VR_23, VR_71, VR_72, VR_77, VR_78 – format and check digits are checked) and the GLEIF country (VR_16). New with the mapping: FLD-015 (licensed activity and currency outside the EBA lists, check 503) and FLD-013 for the additional provider code. Run the official validation before submission. |
 | A-VAL-02 | ⏳ | Severities are the authors' judgement: *error* = would make the register incomplete or inconsistent; *warning* = likely data-quality or supervisory-expectation issue; *info* = for awareness. They can be overridden per rule (`ValidationConfig.severity_overrides`). The ESAs report almost all DPM rules as warnings. |
 | A-VAL-03 | ⏳ | "Critical function has an exit plan" (BUS-019) is checked per ICT service supporting a critical or important function, using B_07.01 c0080 (DORA Art. 28(8)). A missing exit plan is a compliance finding, not a reporting error. |
 | A-VAL-04 | ⏳ | The 12-month criticality reassessment (BUS-017) and 3-year audit (BUS-022) thresholds are configurable heuristics, not regulatory limits. DORA requires risk-based frequencies. |

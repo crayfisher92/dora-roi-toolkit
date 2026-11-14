@@ -11,7 +11,9 @@ from pathlib import Path
 
 from dora_roi.io.tables import KIND_HINTS
 from dora_roi.model import ALL_CODELISTS, TEMPLATE_MODELS
+from dora_roi.model.eba_codes import OFFICIAL_CHECKS
 from dora_roi.validation import Category, rules_catalogue
+from dora_roi.validation.eba_mapping import coverage, eba_checks, sort_key
 from dora_roi.validation.references import DORA, ITS, REFERENCES
 
 CATEGORY_TITLES = {
@@ -41,7 +43,9 @@ def regulatory_mapping_markdown() -> str:
         "",
         "> The references express *which obligation a rule helps evidence*; they are the "
         "authors' interpretation (see [ASSUMPTIONS.md](ASSUMPTIONS.md), in particular A-VAL-* "
-        "and A-REG-01) and are not the official EBA validation rules.",
+        "and A-REG-01). The column *EBA check* names the official EBA checks a rule implements; "
+        "the [last section](#coverage-of-the-official-eba-checks) lists every official check "
+        "and how the toolkit covers it.",
         "",
         f"**{len(rules)} rules.** Severity: *error* blocks a clean submission, *warning* needs "
         "review, *info* is for awareness.",
@@ -54,14 +58,16 @@ def regulatory_mapping_markdown() -> str:
         if cat not in by_cat:
             continue
         lines += [f"## {CATEGORY_TITLES[cat]}", "",
-                  "| Rule | Severity | Check | Templates | Supports |", "|---|---|---|---|---|"]
+                  "| Rule | Severity | Check | Templates | Supports | EBA check |",
+                  "|---|---|---|---|---|---|"]
         for r in rules:
             if r.category is not cat:
                 continue
             tpl = ", ".join(r.templates) if len(r.templates) <= 5 else "all templates"
             lines.append(
                 f"| `{r.id}` | {r.severity.value} | **{_cell(r.title)}** – "
-                f"{_cell(r.description)} | {tpl or '—'} | {_cell('; '.join(r.references))} |"
+                f"{_cell(r.description)} | {tpl or '—'} | {_cell('; '.join(r.references))} | "
+                f"{_eba_cell(r.id)} |"
             )
         lines.append("")
     lines += ["## Provisions referenced", "", "| Reference | Meaning |", "|---|---|"]
@@ -78,7 +84,44 @@ def regulatory_mapping_markdown() -> str:
         if ref in by_ref:
             lines.append(f"- **{ref}**: {', '.join(f'`{x}`' for x in by_ref[ref])}")
     lines.append("")
+    lines += _coverage_markdown()
     return "\n".join(lines)
+
+
+def _eba_cell(rule_id: str) -> str:
+    checks = eba_checks(rule_id)
+    reporting = [c for c in checks if " must be reported" in OFFICIAL_CHECKS[c][3]]
+    named = [c for c in checks if c not in reporting]
+    parts = [", ".join(f"`{c}`" for c in named)] if named else []
+    if reporting:
+        parts.append(f"{len(reporting)} DPM existence/completeness rules")
+    return "; ".join(parts) or "—"
+
+
+def _coverage_markdown() -> list[str]:
+    cov = coverage()
+    active = [c for c in OFFICIAL_CHECKS if OFFICIAL_CHECKS[c][2] == "active"]
+    by_rule = sum(1 for c in active if cov[c][0])
+    lines = [
+        "## Coverage of the official EBA checks",
+        "",
+        "Every check of the EBA overview *Technical checks and validation rules* (28 April "
+        "2025, `reference/eba/`) with the toolkit rules that implement it, or how it is met "
+        f"otherwise. {len(active)} of {len(OFFICIAL_CHECKS)} checks are active; {by_rule} of "
+        "them are implemented by toolkit rules, the others are met by the xBRL-CSV export, "
+        "checked by the authority on submission or need an online GLEIF/BRIS lookup.",
+        "",
+        "| EBA check | Kind | Status | Check | Toolkit rules | Note |",
+        "|---|---|---|---|---|---|",
+    ]
+    kinds = {"technical": "technical", "dpm": "DPM rule", "business": "business (GLEIF/BRIS)"}
+    for code in sorted(OFFICIAL_CHECKS, key=sort_key):
+        family, _, status, summary = OFFICIAL_CHECKS[code]
+        rules, note = cov[code]
+        lines.append(f"| `{code}` | {kinds[family]} | {status} | {_cell(summary)} | "
+                     f"{', '.join(f'`{r}`' for r in rules) or '—'} | {_cell(note) or '—'} |")
+    lines.append("")
+    return lines
 
 
 def data_dictionary_markdown() -> str:

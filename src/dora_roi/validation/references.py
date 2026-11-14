@@ -39,6 +39,7 @@ REFERENCES: dict[str, str] = {
     "ITS Annex I": "Templates of the register of information (B_01.01 – B_07.01).",
     "ITS Annex II": "Instructions for completing the templates.",
     "ITS Annex III": "Taxonomy of ICT service types.",
+    "ITS Annex IV": "Types of financial entity and the licensed activities they perform.",
     "ITS Art. – identification": "Entities identified by LEI; providers by LEI or EUID.",
     "ITS Art. – consistency": "Information across templates must be consistent and linked "
     "through the contractual arrangement reference number and identification codes.",

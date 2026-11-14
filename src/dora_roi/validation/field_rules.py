@@ -7,7 +7,8 @@ from collections import defaultdict
 from collections.abc import Iterator
 
 from dora_roi.lei import explain_lei_error, is_valid_lei
-from dora_roi.model import TEMPLATE_MODELS, ProviderCodeType, RoIRecord
+from dora_roi.model import TEMPLATE_MODELS, RoIRecord
+from dora_roi.model.eba_codes import EBA_CURRENCIES, licensed_activity_code
 from dora_roi.validation.context import ValidationContext
 from dora_roi.validation.findings import Category, Finding, Severity, declare, rule
 
@@ -181,12 +182,13 @@ EUID_PATTERN = re.compile(r"^[A-Z]{2}[A-Z0-9][A-Z0-9.\-]{2,}$")
       references=("ISO 17442", "ITS Art. – identification"),
       description="When the type of code is LEI the identification code must be a valid LEI; "
       "when it is EUID it must start with an ISO country code followed by the register "
-      "identifier.")
+      "identifier. Applies to provider, ultimate parent, recipient and additional codes.")
 def check_provider_code_format(ctx: ValidationContext) -> Iterator[Finding]:
     pairs = (
         ("provider_code", "provider_code_type"),
         ("ultimate_parent_code", "ultimate_parent_code_type"),
         ("recipient_code", "recipient_code_type"),
+        ("additional_code", "additional_code_type"),
     )
     for record in ctx.register.iter_all():
         for code_attr, type_attr in pairs:
@@ -196,7 +198,7 @@ def check_provider_code_format(ctx: ValidationContext) -> Iterator[Finding]:
             code_type = getattr(record, type_attr)
             if code is None or code_type is None:
                 continue
-            if code_type is ProviderCodeType.LEI:
+            if code_type.value == "LEI":
                 problem = explain_lei_error(code)
                 if problem:
                     yield ctx.finding("FLD-013", f"'{code}' is typed as LEI but {problem}",
@@ -205,8 +207,29 @@ def check_provider_code_format(ctx: ValidationContext) -> Iterator[Finding]:
                 yield ctx.finding("FLD-013", f"'{code}' is a valid LEI but its code type is "
                                   f"{code_type.value}; report the type as LEI", record,
                                   type_attr, value=code)
-            elif code_type is ProviderCodeType.EUID and not EUID_PATTERN.match(code):
+            elif code_type.value == "EUID" and not EUID_PATTERN.match(code):
                 yield ctx.finding("FLD-013", f"'{code}' does not look like an EUID "
                                   "(country code + register + registration number)",
                                   record, code_attr, value=code)
 
+
+@rule("FLD-015", "Value not in the EBA taxonomy list", severity=Severity.ERROR,
+      category=Category.FIELD, templates=("B_01.02", "B_02.01", "B_05.01", "B_06.01"),
+      references=("ITS Annex IV", "EBA reporting"),
+      description="Closed lists of the EBA data point model that are narrower than the ISO "
+      "standards: the licensed activity (B_06.01 c0020) must be an activity of the EBA list "
+      "(ITS Annex IV) and currencies must be members of the DPM currency list, otherwise the "
+      "authority rejects the value (EBA technical check 503).")
+def check_dpm_lists(ctx: ValidationContext) -> Iterator[Finding]:
+    for f in ctx.register.b_06_01:
+        if f.licensed_activity and licensed_activity_code(f.licensed_activity) is None:
+            yield ctx.finding("FLD-015", f"'{f.licensed_activity}' is not a licensed activity of "
+                              "the EBA list (ITS Annex IV)", f, "licensed_activity",
+                              value=f.licensed_activity)
+    for record in ctx.register.iter_all():
+        if "currency" in type(record).model_fields and "currency" not in record.invalid_fields:
+            currency = getattr(record, "currency")  # noqa: B009
+            if currency and currency not in EBA_CURRENCIES:
+                yield ctx.finding("FLD-015", f"Currency {currency} is a valid ISO 4217 code but "
+                                  "not a member of the EBA DPM 4.0 currency list", record,
+                                  "currency", value=currency)

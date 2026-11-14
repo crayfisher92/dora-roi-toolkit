@@ -23,6 +23,13 @@ EBA material for reporting framework 4.0 (`reference/eba/`, see
 - Code list `AlternativesIdentified` (B_07.01 c0110: yes / no / assessment not performed);
   `Impact.NOT_ASSESSED`; `NonSubstitutabilityReason.NOT_APPLICABLE`; entity types
   `OTHER_FINANCIAL` and `NON_FINANCIAL_ICT_INTRAGROUP`; provider code types CRN, VAT, PNR, NIN.
+- **Mapping to the official EBA checks** (`dora_roi.validation.eba_mapping`): every rule lists the
+  technical checks, DPM validation rules and GLEIF/BRIS checks it implements; `docs/REGULATORY_MAPPING.md`
+  has an *EBA check* column and a coverage table of all 120 official checks; `roi rules -f json`
+  includes `eba_checks`. A test fails if an active official check is neither implemented nor
+  explained.
+- Rule **FLD-015**: licensed activity outside the EBA list (ITS Annex IV) and currencies outside the
+  DPM 4.0 currency list (EBA check 503).
 - Tests against the official files: column codes and primary keys of every template
   (`tests/test_eba_reference.py`) and our package against the official sample instance.
 
@@ -45,7 +52,8 @@ EBA material for reporting framework 4.0 (`reference/eba/`, see
   service provider; `AdditionalCodeType` lost BIC and OTHER and gained LEI and EUID.
 - **Validation** – BUS-010 accepts an entity's own LEI as parent when it has no direct parent
   (FAQ Q58); SC-004 accepts the provider itself as rank-1 recipient (FAQ Q65); FLD-013 applies
-  the EUID format only to EUIDs. "Not Applicable", an own LEI as parent and an own code as
+  the EUID format only to EUIDs and now also checks the additional provider code (B_05.01
+  c0030/c0040). "Not Applicable", an own LEI as parent and an own code as
   rank-1 recipient are read as empty values on import.
 - **BUS-002 / BUS-003** follow FAQ Q52–53 (only arrangements in force are reported):
   BUS-002 is now a warning for an arrangement that ended before the reference date (an end

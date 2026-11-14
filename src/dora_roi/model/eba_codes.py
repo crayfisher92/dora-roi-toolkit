@@ -15,6 +15,8 @@ the EBA publishes a new reporting framework version.
 
 from __future__ import annotations
 
+from functools import cache
+
 #: Framework the tables were taken from.
 FRAMEWORK = "EBA reporting framework 4.0 (DPM 4.0, taxonomy package 4.0 errata 5)"
 
@@ -22,6 +24,31 @@ FRAMEWORK = "EBA reporting framework 4.0 (DPM 4.0, taxonomy package 4.0 errata 5
 COUNTRY_NOT_APPLICABLE = "qx2007"
 #: Value typed into key / foreign-key text fields that have no value (FAQ Q26, Q64, Q124).
 TEXT_NOT_APPLICABLE = "Not Applicable"
+
+
+@cache
+def _licensed_maps() -> tuple[dict[str, str], dict[str, str]]:
+    by_label = {label.casefold(): code for code, label in LICENSED_ACTIVITIES}
+    label_by_code: dict[str, str] = {}
+    for code, label in LICENSED_ACTIVITIES:
+        label_by_code.setdefault(code, label)
+    return by_label, label_by_code
+
+
+def licensed_activity_code(value: str) -> str | None:
+    """EBA member (``eba_TA:x…``) for a B_06.01 c0020 value given as member, code or label."""
+    by_label, label_by_code = _licensed_maps()
+    text = value.strip()
+    if text.startswith("eba_TA:") and text in label_by_code:
+        return text
+    if f"eba_TA:{text}" in label_by_code:
+        return f"eba_TA:{text}"
+    return by_label.get(text.casefold())
+
+
+def licensed_activity_label(code: str) -> str:
+    """First EBA label of a licensed-activity member (the member itself if unknown)."""
+    return _licensed_maps()[1].get(code, code)
 
 CODE_MAP: dict[str, dict[str, str]] = {
     # B_01.01 / B_01.02 c0040 - hierarchies CT6 (financial entities) and CT61 (+ non-financial)
@@ -328,3 +355,128 @@ EBA_CURRENCIES: frozenset[str] = frozenset("""
     THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYI UYU UZS VEF VND VUV WST XCD
     XPF YER ZAR ZMK ZMW ZWL
 """.split())
+
+#: Official checks of the EBA overview of 28 April 2025: ``{id: (family, table, status, summary)}``
+#: with family ``technical``, ``dpm`` (DPM validation rule) or ``business`` (GLEIF/BRIS lookup).
+OFFICIAL_CHECKS: dict[str, tuple[str, str, str, str]] = {
+    '101': ('technical', '', 'active', 'Report filename extension must be zip'),
+    '102': ('technical', '', 'active', 'SFTP report file size must not exceed 10GB'),
+    '103': ('technical', '', 'active', 'ZIP consistency (checksum, unzips correctly).'),
+    '104': ('technical', '', 'active', "Filename allowed characters: alphanumeric plus hyphens ('-'), underscores ('_') and dots ('.')"),
+    '105': ('technical', '', 'active', 'Filename structure (ReportSubject_Country_FrameworkCodeModuleVersion_Module_ReferenceDate_CreationTimestamp)'),
+    '106': ('technical', '', 'active', 'Filename module inconsistency with the report category (SUP, REM, RES,PAY,DORA,PILLAR3)'),
+    '107': ('technical', '', 'active', 'For CA submitted reports, the submission path country must match the filename country code'),
+    '109': ('technical', '', 'active', "Filename reference date is valid date with format 'yyyy-mm-dd'"),
+    '110': ('technical', '', 'active', 'Each submitted report filename must be unique - duplicate filenames are not allowed'),
+    '111': ('technical', '', 'active', 'Reference date in the filename cannot be in the future'),
+    '115': ('technical', '', 'active', 'DORA submitted report files must be a zip containing plain-csv'),
+    '306': ('technical', '', 'active', 'XBRL instance documents must use UTF-8 encoding.'),
+    '701': ('technical', '', 'active', 'CSV zip file must contain reports/report.json, reports/FilingIndicators.csv and reports/parameters.csv files and must be non-empty'),
+    '702': ('technical', '', 'active', 'Invalid declarations in FilingIndicators.csv - wrong number of columns reported'),
+    '703': ('technical', '', 'active', 'Each template can be declared only once in FilingIndicators.csv'),
+    '704': ('technical', '', 'active', 'Only boolean values (true, false, 1, 0) are allowed for any template code in FilingIndicators.csv'),
+    '705': ('technical', '', 'active', 'Missing filing indicator value - the true/false value is missing - only template code is present'),
+    '714': ('technical', '', 'active', "The 'entityID' parameter must exist and its value must match filename"),
+    '720': ('technical', '', 'active', 'Valid table names must be used as .csv filenames'),
+    '723': ('technical', '', 'active', 'The header row in parameters.csv must consist only of the values name and value, in the first and second columns, respectively.'),
+    '724': ('technical', '', 'active', 'No data was integratable - integrated'),
+    '801': ('technical', '', 'active', 'All the header column codes must be defined in the taxonomy json files (in DPM)'),
+    '802': ('technical', '', 'active', 'No column can be reported twice'),
+    '803': ('technical', '', 'active', 'For closed tables, all the row identifier must match those in the dpm'),
+    '804': ('technical', '', 'active', 'For closed tables, No row identifier can be reported twice'),
+    '805': ('technical', '', 'active', 'For open tables, the key columns values cannot be empty'),
+    '807': ('technical', '', 'active', 'The reported data must follow the key-foreign key contraints defined in the DPM'),
+    '808': ('technical', '', 'active', 'All filing indicators have to be sent as true - and the templates reported empty if no data is present'),
+    '809': ('technical', '', 'active', 'CSV formatting problem detected'),
+    '305': ('technical', '', 'active', 'Numeric fact must not be reported with a string value'),
+    '320': ('technical', '', 'active', 'Reference date inside an instance as well as within filename must be valid (FR 2.13, FR 2.10)'),
+    '330': ('technical', '', 'active', "Date type metric must be reported with format 'yyyy-mm-dd'"),
+    '331': ('technical', '', 'active', 'Integer type metric must be reported with an integer'),
+    '332': ('technical', '', 'active', 'Boolean type metric must be reported with a boolean value (true/false/1/0)'),
+    '333': ('technical', '', 'active', 'trueItemType must be reported with true value'),
+    '503': ('technical', '', 'active', 'Extensible main property and explicit key dimension must only be reported with one of the restricted value of a hierarchy'),
+    '505': ('technical', '', 'active', 'Each report must contain a report.json and this one must point to entrypoint json file for the module'),
+    '510': ('technical', '', 'active', 'The values of filing indicators MUST only be those given by the label resources with the role http://www.eurofiling.info/xbrl/role/filing-indicator-code (the values are also present in TemplateCode field of Template table in DPM) (FR 1.6.3)'),
+    '512': ('technical', '', 'active', 'The module referenced by the instance document must not refer to a taxonomy having FromDate = ToDate'),
+    '514': ('technical', '', 'active', "Reporting subject must include entity type with '.' qualifier if the reference date is on or after 2022-12-31, and the module code does not contain CON or IND"),
+    '806': ('technical', '', 'active', 'For open tables, you cannot have multiple rows with identical key values'),
+    'e23674_e': ('dpm', 'B_05.01', 'active', 'B_05.01 c0020, c0050, c0060, c0070, c0080, c0110 must be reported'),
+    'e23675_e': ('dpm', 'B_01.03', 'active', 'B_01.03 c* must be reported'),
+    'e23676_e': ('dpm', 'B_01.02', 'active', 'B_01.02 c0020-0090 must be reported'),
+    'e23677_e': ('dpm', 'B_01.01', 'active', 'B_01.01 c* must be reported'),
+    'e23680_e': ('dpm', 'B_02.02', 'active', 'B_02.02 c0040-0080 must be reported'),
+    'e23681_e': ('dpm', 'B_07.01', 'inactive', 'B_07.01 c0050, c0070, c0080, c0090, c0100, c0110 must be reported'),
+    'e23682_e': ('dpm', 'B_06.01', 'active', 'B_06.01 c0020, c0030, c0050, c0070, c0080, c0090, c0100 must be reported'),
+    'e23683_e': ('dpm', 'B_04.01', 'active', 'B_04.01 c0030 must be reported'),
+    'e23792_e': ('dpm', 'B_02.01', 'active', 'B_02.01 c0020, c0040, c0050 must be reported'),
+    'v22912_m': ('dpm', 'B_02.01', 'active', 'B_02.01: if {c0020} = [eba_CO:x3] then {c0030} != empty'),
+    'v22913_s': ('dpm', 'B_01.02', 'active', 'B_01.02: {B 01.02} >= 0'),
+    'v23716_s': ('dpm', 'B_02.01', 'active', 'B_02.01: {c0050} >= 0'),
+    'v8803_m': ('dpm', 'B_01.02', 'active', 'B_01.02: if (not (isnull ({c0110}))) then (not (isnull ({c0100}))) endif'),
+    'v8804_m': ('dpm', 'B_01.02', 'active', 'B_01.02: if({c0040} != [eba_CT:x318] and {c0040} != [eba_CT:x317]) then (not (isnull ({c0110}))) endif'),
+    'v8805_m': ('dpm', 'B_02.01', 'active', 'B_02.01: if({c0020} = [eba_CO:x3]) then (not (isnull ({c0030}))) endif'),
+    'v8816_m': ('dpm', 'B_02.02', 'inactive', 'B_02.02: Deactivated in March 2025'),
+    'v8817_m': ('dpm', 'B_05.01', 'inactive', 'B_05.01: Deactivated in March 2025'),
+    'v8818_m': ('dpm', 'B_05.01', 'inactive', 'B_05.01: Deactivated in March 2025'),
+    'v8821_m': ('dpm', 'B_05.01', 'inactive', 'B_05.01: Deactivated in March 2025'),
+    'v8823_m': ('dpm', 'B_05.01', 'inactive', 'B_05.01: Deactivated in March 2025'),
+    'v8824_m': ('dpm', 'B_05.01', 'inactive', 'B_05.01: Deactivated in March 2025'),
+    'v8825_m': ('dpm', 'B_07.01', 'active', 'B_07.01: if {c0050} = [eba_ZZ:x959] or {c0050} = [eba_ZZ:x960] then (not (isnull ({c0060}))) endif'),
+    'v8826_m': ('dpm', 'B_01.02', 'active', 'B_01.02: Checks LEI format'),
+    'v8850_m': ('dpm', 'B_05.01', 'active', 'B_05.01 c0020 must be reported when the row is reported'),
+    'v8851_m': ('dpm', 'B_05.01', 'active', 'B_05.01 c0050 must be reported when the row is reported'),
+    'v8852_m': ('dpm', 'B_05.01', 'active', 'B_05.01 c0060 must be reported when the row is reported'),
+    'v8853_m': ('dpm', 'B_05.01', 'active', 'B_05.01 c0070 must be reported when the row is reported'),
+    'v8854_m': ('dpm', 'B_05.01', 'active', 'B_05.01 c0080 must be reported when the row is reported'),
+    'v8855_m': ('dpm', 'B_05.01', 'active', 'B_05.01 c0110 must be reported when the row is reported'),
+    'v8856_m': ('dpm', 'B_01.03', 'active', 'B_01.03 c0040 must be reported when the row is reported'),
+    'v8857_m': ('dpm', 'B_01.03', 'active', 'B_01.03 c0030 must be reported when the row is reported'),
+    'v8858_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0020 must be reported when the row is reported'),
+    'v8859_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0030 must be reported when the row is reported'),
+    'v8860_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0040 must be reported when the row is reported'),
+    'v8861_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0050 must be reported when the row is reported'),
+    'v8862_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0060 must be reported when the row is reported'),
+    'v8863_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0070 must be reported when the row is reported'),
+    'v8864_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0080 must be reported when the row is reported'),
+    'v8865_m': ('dpm', 'B_01.02', 'active', 'B_01.02 c0090 must be reported when the row is reported'),
+    'v8866_m': ('dpm', 'B_02.01', 'active', 'B_02.01 c0050 must be reported when the row is reported'),
+    'v8867_m': ('dpm', 'B_02.01', 'active', 'B_02.01 c0040 must be reported when the row is reported'),
+    'v8868_m': ('dpm', 'B_02.01', 'active', 'B_02.01 c0020 must be reported when the row is reported'),
+    'v8869_m': ('dpm', 'B_02.02', 'active', 'B_02.02 c0040 must be reported when the row is reported'),
+    'v8870_m': ('dpm', 'B_02.02', 'active', 'B_02.02 c0070 must be reported when the row is reported'),
+    'v8871_m': ('dpm', 'B_02.02', 'active', 'B_02.02 c0080 must be reported when the row is reported'),
+    'v8872_m': ('dpm', 'B_01.01', 'active', 'B_01.01 c0020 must be reported when the row is reported'),
+    'v8873_m': ('dpm', 'B_01.01', 'active', 'B_01.01 c0030 must be reported when the row is reported'),
+    'v8874_m': ('dpm', 'B_01.01', 'active', 'B_01.01 c0040 must be reported when the row is reported'),
+    'v8875_m': ('dpm', 'B_01.01', 'active', 'B_01.01 c0050 must be reported when the row is reported'),
+    'v8876_m': ('dpm', 'B_01.01', 'active', 'B_01.01 c0060 must be reported when the row is reported'),
+    'v8877_m': ('dpm', 'B_06.01', 'active', 'B_06.01 c0020 must be reported when the row is reported'),
+    'v8878_m': ('dpm', 'B_06.01', 'active', 'B_06.01 c0030 must be reported when the row is reported'),
+    'v8879_m': ('dpm', 'B_06.01', 'active', 'B_06.01 c0050 must be reported when the row is reported'),
+    'v8880_m': ('dpm', 'B_06.01', 'active', 'B_06.01 c0070 must be reported when the row is reported'),
+    'v8881_m': ('dpm', 'B_06.01', 'active', 'B_06.01 c0080 must be reported when the row is reported'),
+    'v8882_m': ('dpm', 'B_06.01', 'active', 'B_06.01 c0090 must be reported when the row is reported'),
+    'v8883_m': ('dpm', 'B_06.01', 'active', 'B_06.01 c0100 must be reported when the row is reported'),
+    'v8884_m': ('dpm', 'B_07.01', 'active', 'B_07.01 c0050 must be reported when the row is reported'),
+    'v8885_m': ('dpm', 'B_07.01', 'active', 'B_07.01 c0070 must be reported when the row is reported'),
+    'v8886_m': ('dpm', 'B_07.01', 'active', 'B_07.01 c0080 must be reported when the row is reported'),
+    'v8887_m': ('dpm', 'B_07.01', 'inactive', 'B_07.01 c0090 must be reported when the row is reported'),
+    'v88889_m': ('dpm', 'B_07.01', 'active', 'B_07.01 c0110 must be reported when the row is reported'),
+    'v8888_m': ('dpm', 'B_07.01', 'active', 'B_07.01 c0100 must be reported when the row is reported'),
+    'v8890_m': ('dpm', 'B_01.01', 'active', 'B_01.01: This VR checks the format of column 0010 (LEI code)'),
+    'v8891_m': ('dpm', 'B_01.02', 'active', 'B_01.02: This VR checks the format of column 0010 (LEI code)'),
+    'v8892_m': ('dpm', 'B_01.03', 'active', 'B_01.03: This VR checks the format of column 0020 (LEI code)'),
+    'v8893_m': ('dpm', 'B_02.02', 'inactive', 'B_02.02: Deactivated in March 2025'),
+    'v8894_m': ('dpm', 'B_03.01', 'inactive', 'B_03.01: Deactivated in March 2025'),
+    'v8895_m': ('dpm', 'B_03.03', 'inactive', 'B_03.03: Deactivated in March 2025'),
+    'v8896_m': ('dpm', 'B_04.01', 'inactive', 'B_04.01: Deactivated in March 2025'),
+    'v8897_m': ('dpm', 'B_06.01', 'inactive', 'B_06.01: Deactivated in March 2025'),
+    'VR_2': ('business', 'B_01.01', 'active', 'LEI code validity: B_01.01 c0010 – LEI code needs to be a valid one according to the GLEIF database'),
+    'VR_12': ('business', 'B_01.02', 'active', 'LEI code validity: B_01.02 c0010 – LEI code needs to be a valid one according to the GLEIF database'),
+    'VR_16': ('business', 'B_01.02', 'active', 'Country Code validity: B_01.02 c0030 – Code needs to be a valid one according to the GLEIF database'),
+    'VR_23': ('business', 'B_01.02', 'active', 'LEI code validity: B_01.02 c0060 – LEI code needs to be a valid one according to the GLEIF database'),
+    'VR_71': ('business', 'B_05.01', 'active', "LEI code validity: B_05.01 c0010 – LEI code neeeds to be a valid one according to the GLEIF database (when b_05_01_c0020 = 'LEI')"),
+    'VR_72': ('business', 'B_05.01', 'active', "EUID code validity: B_05.01 c0010 – EUID code needs to be a valid one according to the BRIS (when b_05_01_c0020 = 'EUID')"),
+    'VR_77': ('business', 'B_05.01', 'active', "LEI code validity: B_05.01 c0030 – LEI code neeeds to be a valid one according to the GLEIF database (when b_05_01_c0040 = 'LEI')"),
+    'VR_78': ('business', 'B_05.01', 'active', "EUID code validity: B_05.01 c0030 – EUID code needs to be a valid one according to the BRIS (when b_05_01_c0040 = 'EUID')"),
+}

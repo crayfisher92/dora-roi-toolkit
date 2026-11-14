@@ -10,7 +10,7 @@ It gives GRC consultants and ICT third-party risk teams:
 
 - a **typed data model** of all 14 templates (B_01.01 – B_07.01) with column codes,
   mandatory/conditional flags, code lists and cross-template keys;
-- a **validation engine** with 64 rules – field formats (LEI checksum per ISO 17442, ISO
+- a **validation engine** with 65 rules – field formats (LEI checksum per ISO 17442, ISO
   3166/4217/8601, code lists), cross-template referential integrity, subcontracting-chain
   resolution and DORA business rules (e.g. *critical functions have an exit plan*) – producing
   **HTML, Markdown and JSON** reports with severities and exact row/column locations;
@@ -171,7 +171,7 @@ See [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.md) for every column and co
 | Family | Rules | Examples |
 |---|---:|---|
 | Import (`IMP`) | 4 | unknown sheets, missing templates, unknown columns, no header |
-| Field (`FLD`) | 14 | mandatory and conditionally mandatory values, LEI checksum, ISO country/currency/date, code lists, numbers, duplicates, LEI-vs-EUID consistency |
+| Field (`FLD`) | 15 | mandatory and conditionally mandatory values, EBA lists, LEI checksum, ISO country/currency/date, code lists, numbers, duplicates, LEI-vs-EUID consistency |
 | Referential (`XRF`) | 15 | every contract/entity/provider/function/branch reference resolves; contracts have services, signatories and users; overarching arrangements exist and are overarching |
 | Supply chain (`SC`) | 6 | rank 1 is the direct provider, recipients resolve to the previous rank, no cycles, critical services have a chain |
 | Business (`BUS`) | 24 | end ≥ start, termination reasons, data locations, critical-function RTO/RPO, assessments and **exit plans for critical functions**, substitutability reasons, audit recency, intra-group consistency |

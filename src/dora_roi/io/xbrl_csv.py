@@ -42,8 +42,9 @@ from dora_roi.model.eba_codes import (
     EBA_COUNTRIES,
     EBA_CURRENCIES,
     FRAMEWORK,
-    LICENSED_ACTIVITIES,
     TEXT_NOT_APPLICABLE,
+    licensed_activity_code,
+    licensed_activity_label,
 )
 from dora_roi.model.templates import NO_DIRECT_PARENT
 from dora_roi.model.types import Kind
@@ -68,10 +69,6 @@ EXTRA_TEMPLATES: dict[str, list[str]] = {
 
 CodeMap = dict[str, dict[str, str]]
 
-_LICENSED_BY_LABEL = {label.casefold(): code for code, label in LICENSED_ACTIVITIES}
-_LICENSED_LABEL_BY_CODE: dict[str, str] = {}
-for _code, _label in LICENSED_ACTIVITIES:
-    _LICENSED_LABEL_BY_CODE.setdefault(_code, _label)
 _LICENSED_COLUMN = ("B_06.01", "c0020")
 
 
@@ -143,16 +140,6 @@ def load_code_map(path: str | Path) -> CodeMap:
             raise ValueError(f"{name}: unknown code(s) {', '.join(sorted(unknown))}")
         out[str(name)] = {str(a): str(b) for a, b in mapping.items()}
     return out
-
-
-def licensed_activity_code(value: str) -> str | None:
-    """EBA member for a B_06.01 c0020 value given as member, bare code or label."""
-    text = value.strip()
-    if text.startswith("eba_TA:") and text in _LICENSED_LABEL_BY_CODE:
-        return text
-    if f"eba_TA:{text}" in _LICENSED_LABEL_BY_CODE:
-        return f"eba_TA:{text}"
-    return _LICENSED_BY_LABEL.get(text.casefold())
 
 
 # --------------------------------------------------------------------------- conventions
@@ -231,7 +218,7 @@ def _reverse_mapper(code_map: CodeMap) -> Any:
 
     def mapper(template: str, column: str, value: str) -> str:
         if template == _LICENSED_COLUMN[0] and column == _LICENSED_COLUMN[1]:
-            return _LICENSED_LABEL_BY_CODE.get(value, value)
+            return licensed_activity_label(value)
         spec = TEMPLATES_BY_CODE[template].column_by_code(column)
         if spec is None:
             return value

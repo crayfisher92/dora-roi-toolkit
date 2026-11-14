@@ -116,6 +116,13 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "und anwendbares Recht, wenn die Leistung eine kritische oder wichtige Funktion "
                  "unterstützt, oder die jährlichen Kosten eines direkten Dienstleisters. Füllen "
                  "Sie sie aus."),
+    "FLD-015": E("Wert nicht in der EBA-Liste",
+                 "The EBA accepts only the values of its own lists here: a licensed activity "
+                 "from the EBA list (ITS Annex IV) or a currency of the DPM list. Choose a value "
+                 "from the list.",
+                 "Die EBA akzeptiert hier nur Werte ihrer eigenen Listen: eine zugelassene "
+                 "Tätigkeit aus der EBA-Liste (ITS Anhang IV) oder eine Währung der DPM-Liste. "
+                 "Wählen Sie einen Wert aus der Liste."),
     # ------------------------------------------------------------------ referential
     "XRF-001": E("Vertrag nicht in B_02.01 erfasst",
                  "This row refers to a contract reference that is not listed in B_02.01. Add the "

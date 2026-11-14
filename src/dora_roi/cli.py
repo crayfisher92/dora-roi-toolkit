@@ -249,12 +249,15 @@ def template(output: Path, sample: bool, clean: bool) -> None:
               default="text", show_default=True)
 def rules(fmt: str) -> None:
     """List all validation rules and the provisions they support."""
+    from dora_roi.validation.eba_mapping import eba_checks
+
     cat = rules_catalogue()
     if fmt == "json":
         click.echo(json.dumps([
             {"id": r.id, "title": r.title, "severity": r.severity.value,
              "category": r.category.value, "templates": list(r.templates),
-             "references": list(r.references), "description": r.description}
+             "references": list(r.references), "description": r.description,
+             "eba_checks": list(eba_checks(r.id))}
             for r in cat], indent=2))
         return
     if fmt == "md":

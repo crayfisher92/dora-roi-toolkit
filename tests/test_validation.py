@@ -78,6 +78,14 @@ def _many(*mutations: Mutation) -> Mutation:
     return mutate
 
 
+def _both(*mutations: Mutation) -> Mutation:
+    def mutate(reg: RegisterOfInformation) -> None:
+        for m in mutations:
+            m(reg)
+
+    return mutate
+
+
 def _add(record_factory: Callable[[], object]) -> Mutation:
     def mutate(reg: RegisterOfInformation) -> None:
         reg.add(record_factory())  # type: ignore[arg-type]
@@ -101,6 +109,10 @@ CASES: list[tuple[str, Mutation]] = [
     ("FLD-014", _set("b_02_02.0.reliance_level", None)),
     ("FLD-014", _set("b_01_02.0.total_assets", None)),
     ("FLD-014", _set("b_05_01.0.total_annual_cost", None)),
+    ("FLD-015", _set("b_06_01.0.licensed_activity", "Selling ice cream")),
+    ("FLD-015", _set("b_02_01.0.currency", "XOF")),
+    ("FLD-013", _both(_set("b_05_01.0.additional_code", "NOT-AN-LEI"),
+                      _set("b_05_01.0.additional_code_type", AdditionalCodeType.LEI))),
     ("FLD-010", _add(lambda: ContractGeneral(contract_ref="C-001"))),
     ("FLD-011", _clear("b_01_01")),
     ("FLD-012", _clear("b_06_01")),
