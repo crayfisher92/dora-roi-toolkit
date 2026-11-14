@@ -329,3 +329,19 @@ def test_euid_provider_code_valid(valid_register: RegisterOfInformation) -> None
             e.provider_code = "DEK1101R.HRB116737"
             e.provider_code_type = ProviderCodeType.EUID
     assert "FLD-013" not in run(valid_register)
+
+
+def test_ended_arrangements_follow_faq_q52(valid_register: RegisterOfInformation) -> None:
+    """Only arrangements in force are reported: ending on the reference date is still in
+    force, an end date before the start date is BUS-001 only, and c0090 stays empty."""
+    s = valid_register.b_02_02[0]
+    s.end_date = date(2025, 12, 31)
+    assert "BUS-002" not in run(valid_register)
+    s.start_date, s.end_date = date(2025, 1, 1), date(2024, 1, 1)
+    assert run(valid_register) >= {"BUS-001"} and "BUS-002" not in run(valid_register)
+    s.start_date, s.end_date = date(2020, 1, 1), date(2025, 6, 30)
+    report = validate(valid_register)
+    ended = [f for f in report.findings if f.rule_id == "BUS-002"]
+    assert ended and ended[0].severity is Severity.WARNING and ended[0].column == "c0080"
+    s.end_date, s.termination_reason = date(2027, 6, 30), TerminationReason.EXPIRED
+    assert {"BUS-002", "BUS-003"} & run(valid_register) == {"BUS-003"}

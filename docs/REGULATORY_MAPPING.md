@@ -71,8 +71,8 @@ This document links every validation rule of the toolkit to the provision of Reg
 | Rule | Severity | Check | Templates | Supports |
 |---|---|---|---|---|
 | `BUS-001` | error | **End date before start date** – The end date of a contractual arrangement cannot precede its start date. | B_02.02 | ITS Annex II |
-| `BUS-002` | error | **Termination reason missing for an ended arrangement** – When the arrangement ended on or before the reference date, the reason of termination or ending (c0090) must be reported. | B_02.02 | ITS Annex II; DORA Art. 28(7) |
-| `BUS-003` | warning | **Termination reason reported for an active arrangement** – A termination reason only applies to arrangements that have ended. | B_02.02 | ITS Annex II |
+| `BUS-002` | warning | **Arrangement ended before the reference date** – The register contains the arrangements in force at the reference date; terminated or expired arrangements are not reported. Remove the row or correct the end date (c0080). | B_02.02 | ITS Annex II; FAQ Q52 |
+| `BUS-003` | warning | **Termination reason reported** – Only arrangements in force are reported, so the reason of termination or ending (c0090) is left empty. | B_02.02 | ITS Annex II; FAQ Q52 |
 | `BUS-004` | error | **Data storage location missing** – When the ICT service includes storage of data (c0140 = true), the country of the data at rest (c0150) must be reported. | B_02.02 | ITS Annex II; DORA Art. 30(2) |
 | `BUS-005` | error | **Data sensitivity missing** – When the ICT service includes storage of data, the sensitiveness of the data (c0170) must be reported. | B_02.02 | ITS Annex II |
 | `BUS-006` | warning | **Data processing location missing** – Where data is stored by the provider it is normally also processed; the location of management of the data (c0160) is expected. | B_02.02 | ITS Annex II; DORA Art. 30(2) |
@@ -104,7 +104,6 @@ This document links every validation rule of the toolkit to the provision of Reg
 | DORA Art. 28(3) | Maintain and update a register of information on all contractual arrangements on the use of ICT services provided by ICT third-party service providers, at entity, sub-consolidated and consolidated level, distinguishing arrangements covering critical or important functions; report it to the competent authority on request. |
 | DORA Art. 28(4) | Pre-contractual assessment, including whether the arrangement covers a critical or important function. |
 | DORA Art. 28(6) | Frequency of audits and inspections determined on a risk basis. |
-| DORA Art. 28(7) | Termination rights of the financial entity. |
 | DORA Art. 28(8) | Exit strategies for ICT services supporting critical or important functions. |
 | DORA Art. 29 | Preliminary assessment of ICT concentration risk at entity level, including substitutability and subcontracting chains. |
 | DORA Art. 30(2) | Key contractual provisions, incl. description of services, subcontracting conditions and locations of service provision and data processing. |
@@ -119,6 +118,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | ISO 4217 | Currency codes. |
 | ISO 8601 | Date format YYYY-MM-DD. |
 | EBA reporting | EBA reporting framework / xBRL-CSV technical requirements (filing rules for DORA RoI). |
+| FAQ Q52 | EBA DORA RoI reporting FAQ (28 March 2025), Q52-53: terminated or expired arrangements are not included in the register; B_02.02 c0080 holds the contractual end date and c0090 (reason of termination or ending) is left empty. |
 | FAQ Q58 | EBA DORA RoI reporting FAQ (28 March 2025), Q58: an entity without a direct parent undertaking reports its own LEI in B_01.02 c0060. |
 | FAQ Q65 | EBA DORA RoI reporting FAQ (28 March 2025), Q65: for the direct ICT third-party service provider (rank 1), B_05.02 c0060 repeats the value of c0030. |
 
@@ -128,7 +128,6 @@ This document links every validation rule of the toolkit to the provision of Reg
 - **DORA Art. 28(3)**: `IMP-002`, `FLD-001`, `FLD-011`, `FLD-012`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-003`, `XRF-004`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`, `XRF-015`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-025`
 - **DORA Art. 28(4)**: `BUS-015`, `BUS-016`, `BUS-017`
 - **DORA Art. 28(6)**: `BUS-022`
-- **DORA Art. 28(7)**: `BUS-002`
 - **DORA Art. 28(8)**: `SC-006`, `BUS-019`, `BUS-021`
 - **DORA Art. 29**: `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-018`, `BUS-020`, `BUS-025`
 - **DORA Art. 30(2)**: `FLD-005`, `SC-001`, `SC-002`, `SC-003`, `SC-004`, `SC-005`, `SC-006`, `BUS-004`, `BUS-006`
@@ -143,5 +142,6 @@ This document links every validation rule of the toolkit to the provision of Reg
 - **ISO 4217**: `FLD-006`
 - **ISO 8601**: `FLD-003`
 - **EBA reporting**: `FLD-009`
+- **FAQ Q52**: `BUS-002`, `BUS-003`
 - **FAQ Q58**: `BUS-010`
 - **FAQ Q65**: `SC-004`

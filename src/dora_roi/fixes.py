@@ -93,6 +93,9 @@ def suggest(finding: Finding) -> FixSuggestion | None:
         return FixSuggestion("true", Confidence.HIGH, "Link columns are always true")
     if rid == "BUS-024":
         return FixSuggestion("9999-12-31", Confidence.HIGH, "Convention for open-ended contracts")
+    if rid == "BUS-003":
+        return FixSuggestion("", Confidence.HIGH,
+                             "Only arrangements in force are reported; c0090 stays empty")
     if rid == "SC-004":
         return FixSuggestion("", Confidence.HIGH,
                              "Rank 1 is its own recipient; the export writes the provider's code")

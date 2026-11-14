@@ -1,7 +1,7 @@
 {
   "schema": "dora-roi-toolkit/validation-report/v1",
   "toolkit_version": "0.1.0",
-  "generated_at": "2026-11-14T18:18:07.519091+00:00",
+  "generated_at": "2026-11-14T19:52:34.940489+00:00",
   "source": "alpenrand-sample.xlsx",
   "reference_date": "2025-12-31",
   "maintainer": {
@@ -11,8 +11,8 @@
   "passed": false,
   "summary": {
     "severity_counts": {
-      "error": 27,
-      "warning": 5,
+      "error": 25,
+      "warning": 6,
       "info": 1
     },
     "rules_run": 63,
@@ -44,8 +44,8 @@
         "info": 0
       },
       "B_02.02": {
-        "error": 13,
-        "warning": 2,
+        "error": 11,
+        "warning": 3,
         "info": 0
       },
       "B_03.01": {
@@ -80,12 +80,6 @@
       }
     },
     "by_rule": [
-      {
-        "rule_id": "BUS-002",
-        "title": "Termination reason missing for an ended arrangement",
-        "severity": "error",
-        "count": 2
-      },
       {
         "rule_id": "BUS-019",
         "title": "No exit plan for an ICT service supporting a critical function",
@@ -217,6 +211,12 @@
         "title": "Provider in B_02.02 not reported as signatory in B_03.02",
         "severity": "warning",
         "count": 2
+      },
+      {
+        "rule_id": "BUS-002",
+        "title": "Arrangement ended before the reference date",
+        "severity": "warning",
+        "count": 1
       },
       {
         "rule_id": "BUS-008",
@@ -402,30 +402,6 @@
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
     {
-      "rule_id": "BUS-002",
-      "severity": "error",
-      "category": "business",
-      "message": "Arrangement ended on 2023-04-30 but no termination reason is reported",
-      "template": "B_02.02",
-      "row": 84,
-      "column": "c0090",
-      "record_key": "AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19 | US | US | US",
-      "value": null,
-      "source": "alpenrand-sample.xlsx:B_02.02"
-    },
-    {
-      "rule_id": "BUS-002",
-      "severity": "error",
-      "category": "business",
-      "message": "Arrangement ended on 2025-10-31 but no termination reason is reported",
-      "template": "B_02.02",
-      "row": 86,
-      "column": "c0090",
-      "record_key": "AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19 | DE | DE | DE",
-      "value": null,
-      "source": "alpenrand-sample.xlsx:B_02.02"
-    },
-    {
       "rule_id": "XRF-003",
       "severity": "error",
       "category": "referential",
@@ -591,6 +567,18 @@
       "column": "c0030",
       "record_key": "AR-DE-0019 | 3912RO6DCAXX71K9W972 | 21381VQL0Y482P2BV900 | F-DE-14 | S03 | CH |  | ",
       "value": "21381VQL0Y482P2BV900",
+      "source": "alpenrand-sample.xlsx:B_02.02"
+    },
+    {
+      "rule_id": "BUS-002",
+      "severity": "warning",
+      "category": "business",
+      "message": "Arrangement ended on 2025-10-31, before the reference date 2025-12-31; only arrangements in force are reported",
+      "template": "B_02.02",
+      "row": 86,
+      "column": "c0080",
+      "record_key": "AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19 | DE | DE | DE",
+      "value": "2025-10-31",
       "source": "alpenrand-sample.xlsx:B_02.02"
     },
     {

@@ -48,6 +48,9 @@ REFERENCES: dict[str, str] = {
     "ISO 8601": "Date format YYYY-MM-DD.",
     "EBA reporting": "EBA reporting framework / xBRL-CSV technical requirements (filing "
     "rules for DORA RoI).",
+    "FAQ Q52": "EBA DORA RoI reporting FAQ (28 March 2025), Q52-53: terminated or expired "
+    "arrangements are not included in the register; B_02.02 c0080 holds the contractual end "
+    "date and c0090 (reason of termination or ending) is left empty.",
     "FAQ Q58": "EBA DORA RoI reporting FAQ (28 March 2025), Q58: an entity without a direct "
     "parent undertaking reports its own LEI in B_01.02 c0060.",
     "FAQ Q65": "EBA DORA RoI reporting FAQ (28 March 2025), Q65: for the direct ICT "

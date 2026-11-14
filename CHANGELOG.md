@@ -47,6 +47,12 @@ EBA material for reporting framework 4.0 (`reference/eba/`, see
   (FAQ Q58); SC-004 accepts the provider itself as rank-1 recipient (FAQ Q65); FLD-013 applies
   the EUID format only to EUIDs. "Not Applicable", an own LEI as parent and an own code as
   rank-1 recipient are read as empty values on import.
+- **BUS-002 / BUS-003** follow FAQ Q52–53 (only arrangements in force are reported):
+  BUS-002 is now a warning for an arrangement that ended before the reference date (an end
+  date on the reference date is still in force) instead of an error for a missing
+  termination reason; BUS-003 warns about any termination reason in B_02.02 c0090. The
+  clean sample no longer contains ended arrangements, so the sample with injected errors
+  reports 25 errors and 6 warnings (was 27 and 5).
 - Country `XK` (Kosovo) is accepted, as in the EBA list.
 - `roi check-package` reports a different column order as a warning, not a failure.
 - The synthetic sample uses the EBA labels for licensed activities.

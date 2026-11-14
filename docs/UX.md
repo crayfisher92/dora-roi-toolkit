@@ -78,7 +78,7 @@ choices that follow from it are in [DECISIONS.md](DECISIONS.md) (D-024 onwards).
    `ja/nein` → booleans, service descriptions → ICT service types) and the preview shows the
    normalised value next to the original. Unmapped columns are allowed.
 3. **Workspace overview.** The stepper is always visible; the score and status are the first
-   thing read. One *next best action* button ("Fix 27 blocking issues").
+   thing read. One *next best action* button ("Fix 25 blocking issues").
 4. **Fix.** Grouped and collapsible: *template → severity → rule*. Each rule group shows the
    plain-language explanation and the regulation; each finding row shows the record, the
    current value and an inline input with the suggested value pre-filled where one exists.

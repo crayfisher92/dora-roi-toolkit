@@ -48,7 +48,6 @@ from dora_roi.model import (
     ServiceRecipient,
     Substitutability,
     SupplyChainEntry,
-    TerminationReason,
 )
 from dora_roi.model.codelists import AdditionalCodeType, AlternativesIdentified
 from dora_roi.model.refdata import EEA_COUNTRIES
@@ -350,18 +349,6 @@ def _build_contracts(ctx: _Ctx) -> None:
                 _add_contract(ctx, offering, entities[key], fns, ContractType.STANDALONE)
 
 
-def _terminate_some(ctx: _Ctx) -> None:
-    """Mark two non-critical arrangements as ended during the reference year."""
-    candidates = sorted({s.contract_ref for s in ctx.reg.b_02_02
-                         if s.contract_ref and s.contract_ref not in ctx.critical_contracts
-                         and s.contract_ref.startswith("AR-")})
-    for ref, end in zip(candidates[3:5], (date(2025, 6, 30), date(2025, 9, 30)), strict=False):
-        for s in ctx.reg.b_02_02:
-            if s.contract_ref == ref:
-                s.end_date = end
-                s.termination_reason = TerminationReason.EXPIRED
-
-
 # --------------------------------------------------------------------------- error injection
 
 
@@ -411,11 +398,10 @@ def _inject(ctx: _Ctx) -> list[InjectedError]:
     s = non_crit[8]
     s.start_date, s.end_date = date(2024, 5, 1), date(2023, 4, 30)
     note(("BUS-001",), "B_02.02", s.key_str(), "End date precedes start date")
-    # 8. ended arrangement without termination reason
+    # 8. arrangement that ended before the reference date is still reported (FAQ Q52)
     s = non_crit[10]
     s.end_date = date(2025, 10, 31)
-    s.termination_reason = None
-    note(("BUS-002",), "B_02.02", s.key_str(), "Arrangement ended in 2025 without reason")
+    note(("BUS-002",), "B_02.02", s.key_str(), "Arrangement ended in 2025 but is still reported")
     # 9. data stored but no location
     s = next(x for x in crit if x.data_storage)
     s.data_location_storage = None
@@ -538,7 +524,6 @@ def generate_sample(
     _build_entities(ctx)
     _build_providers(ctx)
     _build_contracts(ctx)
-    _terminate_some(ctx)
     _finalise_providers(ctx)
     injected = _inject(ctx) if inject_errors else []
     parsed = parse_raw(register_to_raw(ctx.reg, "alpenrand-sample"))
@@ -552,8 +537,8 @@ def generate_previous_year(seed: int = DEFAULT_SEED) -> SampleResult:
     """The Alpenrand register as it stood one year earlier (for the register diff demo).
 
     Compared with the current clean sample: arrangements that started in 2025 did not exist
-    yet, the two arrangements that ended in 2025 were still running, a mainframe provider that
-    has since been exited was still in place, and annual costs were about 8 % lower.
+    yet, a mainframe provider that has since been exited was still in place, and annual costs
+    were about 8 % lower.
     """
     # bandit B311: synthetic data, not security
     ctx = _Ctx(rng=random.Random(seed), ref=PREVIOUS_REFERENCE_DATE, cat=Catalogue())  # nosec B311

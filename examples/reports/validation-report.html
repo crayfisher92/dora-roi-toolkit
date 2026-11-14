@@ -215,20 +215,20 @@ h1 { string-set: doc-title content(); }
   <p class="meta">
 LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12-31 ·
     Source alpenrand-sample.xlsx ·
-    Generated 2026-11-14 18:18 UTC ·
+    Generated 2026-11-14 19:52 UTC ·
     63 rules
   </p>
 </header>
 
 <div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
-  <div><strong>Not ready for submission.</strong> 27 errors
-  must be resolved; 5 warnings should be reviewed.</div></div>
+  <div><strong>Not ready for submission.</strong> 25 errors
+  must be resolved; 6 warnings should be reviewed.</div></div>
 
 <section class="grid tiles" aria-label="Summary">
   <div class="card tile"><div class="label"><span class="badge error">Errors</span></div>
-    <div class="value">27</div><div class="sub">block submission</div></div>
+    <div class="value">25</div><div class="sub">block submission</div></div>
   <div class="card tile"><div class="label"><span class="badge warning">Warnings</span></div>
-    <div class="value">5</div><div class="sub">review recommended</div></div>
+    <div class="value">6</div><div class="sub">review recommended</div></div>
   <div class="card tile"><div class="label"><span class="badge info">Info</span></div>
     <div class="value">1</div><div class="sub">for awareness</div></div>
   <div class="card tile"><div class="label">Records checked</div>
@@ -240,9 +240,6 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
 <div class="table-wrap"><table>
   <thead><tr><th>Rule</th><th>Severity</th><th>Title</th><th class="num">Findings</th><th>Supports</th></tr></thead>
   <tbody>
-  <tr><td class="mono">BUS-002</td><td><span class="badge error">error</span></td>
-      <td>Termination reason missing for an ended arrangement</td><td class="num">2</td>
-      <td class="small muted">ITS Annex II; DORA Art. 28(7)</td></tr>
   <tr><td class="mono">BUS-019</td><td><span class="badge error">error</span></td>
       <td>No exit plan for an ICT service supporting a critical function</td><td class="num">2</td>
       <td class="small muted">DORA Art. 28(8); DORA Art. 30(3)</td></tr>
@@ -309,6 +306,9 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
   <tr><td class="mono">XRF-008</td><td><span class="badge warning">warning</span></td>
       <td>Provider in B_02.02 not reported as signatory in B_03.02</td><td class="num">2</td>
       <td class="small muted">ITS Art. – consistency; ITS Annex II; DORA Art. 28(3)</td></tr>
+  <tr><td class="mono">BUS-002</td><td><span class="badge warning">warning</span></td>
+      <td>Arrangement ended before the reference date</td><td class="num">1</td>
+      <td class="small muted">ITS Annex II; FAQ Q52</td></tr>
   <tr><td class="mono">BUS-008</td><td><span class="badge warning">warning</span></td>
       <td>Currency differs from the reporting currency</td><td class="num">1</td>
       <td class="small muted">ITS Annex II</td></tr>
@@ -341,7 +341,7 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
       <td class="num">3</td><td class="num">1</td>
       <td class="num">0</td></tr>
   <tr><td class="mono">B_02.02</td><td class="num">151</td>
-      <td class="num">13</td><td class="num">2</td>
+      <td class="num">11</td><td class="num">3</td>
       <td class="num">0</td></tr>
   <tr><td class="mono">B_02.03</td><td class="num">0</td>
       <td class="num">0</td><td class="num">0</td>
@@ -478,20 +478,6 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
   </tr>
   <tr data-sev="error">
     <td><span class="badge error">error</span></td>
-    <td class="mono">BUS-002</td>
-    <td class="mono small">B_02.02 · r84 · c0090</td>
-    <td class="small">AR-LU-0062 | 6354ZX2X914MZGYMMB68 | 8156RHZ6DZDLTDXWN816 | F-LU-08 | S19 | US | US | US</td>
-    <td>Arrangement ended on 2023-04-30 but no termination reason is reported</td>
-  </tr>
-  <tr data-sev="error">
-    <td><span class="badge error">error</span></td>
-    <td class="mono">BUS-002</td>
-    <td class="mono small">B_02.02 · r86 · c0090</td>
-    <td class="small">AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19 | DE | DE | DE</td>
-    <td>Arrangement ended on 2025-10-31 but no termination reason is reported</td>
-  </tr>
-  <tr data-sev="error">
-    <td><span class="badge error">error</span></td>
     <td class="mono">XRF-003</td>
     <td class="mono small">B_02.02 · r154 · c0030</td>
     <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10 | CH |  | </td>
@@ -590,6 +576,13 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
   </tr>
   <tr data-sev="warning">
     <td><span class="badge warning">warning</span></td>
+    <td class="mono">BUS-002</td>
+    <td class="mono small">B_02.02 · r86 · c0080</td>
+    <td class="small">AR-DE-0064 | 3912RO6DCAXX71K9W972 | 9845TQAG2OMFUSPMDI73 | F-DE-11 | S19 | DE | DE | DE</td>
+    <td>Arrangement ended on 2025-10-31, before the reference date 2025-12-31; only arrangements in force are reported</td>
+  </tr>
+  <tr data-sev="warning">
+    <td><span class="badge warning">warning</span></td>
     <td class="mono">XRF-008</td>
     <td class="mono small">B_02.02 · r154 · c0030</td>
     <td class="small">AR-DE-9001 | 8156AYQ5YUFTZEC92R45 | 8156YII8DXJIQ6LZZ583 | F-AT-07 | S10 | CH |  | </td>
@@ -625,7 +618,6 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
 <div class="table-wrap"><table>
   <thead><tr><th>Rule</th><th>Description</th></tr></thead>
   <tbody>
-  <tr><td class="mono">BUS-002</td><td>When the arrangement ended on or before the reference date, the reason of termination or ending (c0090) must be reported.</td></tr>
   <tr><td class="mono">BUS-019</td><td>Financial entities must have exit strategies for ICT services supporting critical or important functions; B_07.01 c0080 must be true.</td></tr>
   <tr><td class="mono">SC-003</td><td>The recipient of a rank n subcontractor must appear as provider at rank n-1 of the same arrangement and service type; otherwise the chain is broken (missing link).</td></tr>
   <tr><td class="mono">XRF-003</td><td>Every provider (direct provider, signatory, subcontractor or recipient of subcontracted services) must be described in B_05.01.</td></tr>
@@ -648,6 +640,7 @@ LEI <span class="mono">3912RO6DCAXX71K9W972</span> ·     Reference date 2025-12
   <tr><td class="mono">XRF-004</td><td>Each function supported by an ICT service in B_02.02 must be identified and assessed for criticality in B_06.01.</td></tr>
   <tr><td class="mono">XRF-006</td><td>Every arrangement in B_02.01 must be described by at least one row in B_02.02 (entity, provider, function and service type).</td></tr>
   <tr><td class="mono">XRF-008</td><td>The ICT third-party service provider of an arrangement is expected to be reported as signatory of that arrangement in B_03.02.</td></tr>
+  <tr><td class="mono">BUS-002</td><td>The register contains the arrangements in force at the reference date; terminated or expired arrangements are not reported. Remove the row or correct the end date (c0080).</td></tr>
   <tr><td class="mono">BUS-008</td><td>Amounts are expected in the reporting currency of the entity maintaining the register so that they can be aggregated.</td></tr>
   <tr><td class="mono">BUS-016</td><td>Every function supported by ICT third-party services should be assessed for criticality or importance.</td></tr>
   <tr><td class="mono">XRF-010</td><td>A provider in B_05.01 that is neither a direct provider (B_02.02) nor part of a supply chain (B_05.02) or ultimate parent is probably stale.</td></tr>

@@ -386,7 +386,7 @@ class ContractSpecific(RoIRecord):
     termination_reason: Annotated[TerminationReason | None, cl(TerminationReason), Col(
         "c0090", "Reason of the termination or ending of the contractual arrangement", C,
         Kind.CODELIST, TerminationReason,
-        condition="Required when the end date is on or before the reporting date")] = None
+        condition="Left empty: only arrangements in force are reported (FAQ Q52)")] = None
     notice_period_entity: Annotated[NonNegInt | None, Col(
         "c0100", "Notice period for the financial entity (calendar days)", M,
         Kind.INTEGER)] = None

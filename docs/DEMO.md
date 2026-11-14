@@ -31,10 +31,10 @@ workspaces by restarting the app (`docker compose restart`) so the demo starts c
 
 ## 0:30 – Where do we stand? (45 s)
 
-**Point at** the header: score **97/100**, *Not ready for submission*, **27 errors**,
-**5 warnings**, and the four-step stepper *Import → Fix → Analyse → Export*.
+**Point at** the header: score **97/100**, *Not ready for submission*, **25 errors**,
+**6 warnings**, and the four-step stepper *Import → Fix → Analyse → Export*.
 
-> "97 % of the records are clean – but 27 errors would make the supervisor reject the
+> "97 % of the records are clean – but 25 errors would make the supervisor reject the
 > file. The score tells you how far you are; the status tells you whether you can submit."
 
 **Scroll** to *Key messages*: eight provider groups each support five or more critical
@@ -43,7 +43,7 @@ expire within a year.
 
 ## 1:15 – Fixing, in plain language (75 s)
 
-**Click** *Fix 27 blocking error(s)*, then template **B_02.02** in the left list.
+**Click** *Fix 25 blocking error(s)*, then template **B_02.02** in the left list.
 
 > "Every finding says what is wrong, how to fix it and which DORA or ITS provision it
 > supports – no rule codes to look up."
@@ -52,7 +52,7 @@ expire within a year.
 then **Save**.
 
 > "The register is re-validated instantly – the error counter in the header just went from
-> 27 to 26, without reloading."
+> 25 to 24, without reloading."
 
 Optionally show *FLD-003* (date `31/12/2027` → suggestion `2027-12-31`) and mention that
 repeated mistakes can be fixed in bulk.

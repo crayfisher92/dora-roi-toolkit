@@ -216,13 +216,18 @@ EXPLANATIONS: dict[str, Explanation] = {
     "BUS-001": E("Enddatum vor Startdatum",
                  "The contract ends before it starts. Check both dates.",
                  "Der Vertrag endet vor seinem Beginn. Prüfen Sie beide Daten."),
-    "BUS-002": E("Beendigungsgrund fehlt",
-                 "The contract has ended but no reason for its end is given. Select a reason.",
-                 "Der Vertrag ist beendet, aber kein Beendigungsgrund ist angegeben. Wählen Sie "
-                 "einen Grund."),
-    "BUS-003": E("Beendigungsgrund bei laufendem Vertrag",
-                 "A termination reason is given although the contract is still running.",
-                 "Für einen laufenden Vertrag ist ein Beendigungsgrund angegeben."),
+    "BUS-002": E("Vertrag vor dem Stichtag beendet",
+                 "The contract ended before the reference date. The register only contains "
+                 "contracts in force, so remove the row – or correct the end date if the "
+                 "contract is still running.",
+                 "Der Vertrag endete vor dem Stichtag. Das Register enthält nur laufende "
+                 "Verträge: Entfernen Sie die Zeile – oder korrigieren Sie das Enddatum, falls "
+                 "der Vertrag noch läuft."),
+    "BUS-003": E("Beendigungsgrund angegeben",
+                 "A reason for the end of the contract is given. Only contracts in force are "
+                 "reported, so leave this field empty.",
+                 "Ein Beendigungsgrund ist angegeben. Gemeldet werden nur laufende Verträge; "
+                 "lassen Sie dieses Feld leer."),
     "BUS-004": E("Speicherort der Daten fehlt",
                  "The provider stores data, so the country where the data is stored is required.",
                  "Der Dienstleister speichert Daten; das Land des Speicherorts ist "

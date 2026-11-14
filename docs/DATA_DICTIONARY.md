@@ -72,7 +72,7 @@ Python model: `ContractSpecific` · key: `contract_ref`, `entity_lei`, `provider
 | `c0060` | `service_type` | Type of ICT services | M | Code list `IctServiceType` |  |
 | `c0070` | `start_date` | Start date of the contractual arrangement | M | Date (YYYY-MM-DD) |  |
 | `c0080` | `end_date` | End date of the contractual arrangement | M | Date (YYYY-MM-DD) | Use 9999-12-31 for arrangements without an end date |
-| `c0090` | `termination_reason` | Reason of the termination or ending of the contractual arrangement | C | Code list `TerminationReason` | Required when the end date is on or before the reporting date |
+| `c0090` | `termination_reason` | Reason of the termination or ending of the contractual arrangement | C | Code list `TerminationReason` | Left empty: only arrangements in force are reported (FAQ Q52) |
 | `c0100` | `notice_period_entity` | Notice period for the financial entity (calendar days) | M | Whole number ≥ 0 |  |
 | `c0110` | `notice_period_provider` | Notice period for the ICT third-party service provider (calendar days) | M | Whole number ≥ 0 |  |
 | `c0120` | `governing_law_country` | Country of the governing law of the contractual arrangement | M | Country (ISO 3166-1 alpha-2, e.g. DE) |  |

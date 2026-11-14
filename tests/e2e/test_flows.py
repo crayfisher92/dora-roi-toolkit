@@ -28,7 +28,7 @@ def test_overview_shows_score_and_stepper(page: Any) -> None:
     assert page.get_by_text("Not ready for submission").first.is_visible()
     steps = page.locator(".stepper li")
     assert steps.count() == 4
-    page.get_by_role("link", name="Fix 27 blocking error(s)").click()
+    page.get_by_role("link", name="Fix 25 blocking error(s)").click()
     page.wait_for_url(url + "/fix")
     assert page.locator('[aria-current="step"]').inner_text().strip().endswith("Fix") or \
         "Fix" in page.locator('[aria-current="step"]').inner_text()

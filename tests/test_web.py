@@ -103,7 +103,7 @@ def test_workspace_pages_render(client: TestClient) -> None:
     assert client.get("/w/nope", headers={"accept": "application/json"}).json()["detail"]
     assert client.get("/api/w/nope").status_code == 404
     summary = client.get("/api" + url).json()
-    assert summary["readiness"] == "not_ready" and summary["counts"]["error"] == 27
+    assert summary["readiness"] == "not_ready" and summary["counts"]["error"] == 25
 
 
 def test_fix_flow_json_and_form(client: TestClient) -> None:
@@ -117,7 +117,7 @@ def test_fix_flow_json_and_form(client: TestClient) -> None:
     data = {"template": "B_02.02", "row": row, "column": "c0120", "value": "GB"}
     r = client.post(url + "/cell", data=data, headers={"accept": "application/json"})
     body = r.json()
-    assert body["changed"] and body["resolved"] and body["counts"]["error"] == 26
+    assert body["changed"] and body["resolved"] and body["counts"]["error"] == 24
     r = client.post(url + "/cell", data=data, headers={"accept": "application/json"})
     assert r.json()["changed"] is False and r.json()["message"] == "Value unchanged."
     r = client.post(url + "/cell", data={**data, "value": "XX", "next": "//evil.example"},

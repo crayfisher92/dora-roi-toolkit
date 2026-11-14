@@ -249,8 +249,8 @@ h1 { string-set: doc-title content(); }
     <div class="value">94%</div>
     <div class="sub">of 108 critical ICT services</div></div>
   <div class="card tile"><div class="label">Register data quality</div>
-    <div class="value">27</div>
-    <div class="sub"><span class="badge error">errors</span> · 5 warnings</div></div>
+    <div class="value">25</div>
+    <div class="sub"><span class="badge error">errors</span> · 6 warnings</div></div>
 </section>
 
 <h2>Key messages</h2>
@@ -653,13 +653,11 @@ a source of concentration that is invisible when looking at direct providers onl
 
 <h2>7. Register data quality</h2>
 <p class="section-lead">The register was checked against 63 field, referential, supply-chain and business rules.
-<strong>27 errors</strong> must be fixed before submission to the competent authority; the analysis above
+<strong>25 errors</strong> must be fixed before submission to the competent authority; the analysis above
 is based on the data as reported and may change once they are corrected.</p>
 <div class="table-wrap"><table>
   <thead><tr><th>Rule</th><th>Severity</th><th>Issue</th><th class="num">Count</th></tr></thead>
-  <tbody>  <tr><td class="mono">BUS-002</td><td><span class="badge error">error</span></td>
-    <td>Termination reason missing for an ended arrangement</td><td class="num">2</td></tr>
-  <tr><td class="mono">BUS-019</td><td><span class="badge error">error</span></td>
+  <tbody>  <tr><td class="mono">BUS-019</td><td><span class="badge error">error</span></td>
     <td>No exit plan for an ICT service supporting a critical function</td><td class="num">2</td></tr>
   <tr><td class="mono">SC-003</td><td><span class="badge error">error</span></td>
     <td>Subcontracting chain does not resolve</td><td class="num">2</td></tr>
@@ -681,6 +679,8 @@ is based on the data as reported and may change once they are corrected.</p>
     <td>Mandatory value missing</td><td class="num">1</td></tr>
   <tr><td class="mono">FLD-002</td><td><span class="badge error">error</span></td>
     <td>Invalid LEI</td><td class="num">1</td></tr>
+  <tr><td class="mono">FLD-003</td><td><span class="badge error">error</span></td>
+    <td>Invalid date</td><td class="num">1</td></tr>
 </tbody></table></div>
 
 <h2>Methodology and limitations</h2>
@@ -692,7 +692,7 @@ Excluded (other currencies): CHF 2.9m.</li>
   <li>Critical functions are those assessed as critical or important in B_06.01. Supply-chain metrics rely on B_05.02 completeness.</li>
   <li>This summary is an analytical aid prepared with dora-roi-toolkit 0.1.0; it is not legal advice and does not replace the entity's own DORA Art. 29 assessment.</li>
 </ul>
-<footer>dora-roi-toolkit 0.1.0 · generated 2026-11-14 18:18 UTC</footer>
+<footer>dora-roi-toolkit 0.1.0 · generated 2026-11-14 19:52 UTC</footer>
 </main>
 <div id="viz-tip" role="tooltip" style="position:fixed;
 pointer-events:none;display:none;z-index:10;background:var(--surface-1);

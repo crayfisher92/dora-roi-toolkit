@@ -34,9 +34,9 @@ primary keys, generated code tables and the package layout against these files.
 
 Still to do, in this order:
 
-1. **Validation rules** (A-VAL-01, A-VAL-06) – map every toolkit rule to the official check
+1. **Validation rules** (A-VAL-01) – map every toolkit rule to the official check
    ID where one exists (DPM rules `v88xx_m` / `e236xx_e`, technical checks 7xx/8xx, GLEIF/BRIS
-   checks `VR_*`), implement the missing ones and align severities; resolve BUS-002 (A-VAL-06).
+   checks `VR_*`), implement the missing ones and align severities.
 2. **Requirement levels** (A-TPL-10) – re-baseline M/C/O per column against the ITS
    instructions, the FAQ and the DPM existence/completeness rules (e.g. v8881/v8882 RTO/RPO,
    v8885 audit date, v8865 deletion date), updating the sample generator accordingly.
@@ -87,7 +87,7 @@ Still to do, in this order:
 | A-VAL-03 | ⏳ | "Critical function has an exit plan" (BUS-019) is checked per ICT service supporting a critical or important function, using B_07.01 c0080 (DORA Art. 28(8)). A missing exit plan is a compliance finding, not a reporting error. |
 | A-VAL-04 | ⏳ | The 12-month criticality reassessment (BUS-017) and 3-year audit (BUS-022) thresholds are configurable heuristics, not regulatory limits. DORA requires risk-based frequencies. |
 | A-VAL-05 | ⏳ | Amounts are expected in the reporting currency of the entity maintaining the register (BUS-008, warning). |
-| A-VAL-06 | ✏️ | Corrected after the FAQ: BUS-010 accepts an entity's own LEI as parent when it has no direct parent (Q58) and flags another LEI; SC-004 accepts the provider itself as rank-1 recipient (Q65) and flags another code; FLD-013 applies the EUID format only to EUIDs. **Open:** BUS-002 still requires a termination reason for arrangements that ended on or before the reference date, whereas FAQ Q52 says the register contains only arrangements in force and c0090 stays empty; changing it needs the sample data and its expectations to change too. |
+| A-VAL-06 | ✏️ | Corrected after the FAQ: BUS-010 accepts an entity's own LEI as parent when it has no direct parent (Q58) and flags another LEI; SC-004 accepts the provider itself as rank-1 recipient (Q65) and flags another code; FLD-013 applies the EUID format only to EUIDs; BUS-002 warns about arrangements that ended before the reference date and BUS-003 about any termination reason, because only arrangements in force are reported and c0090 stays empty (Q52–53). No active EBA check compares the end date with the reference date (v8816_m, end after start, was deactivated in March 2025), so both are warnings. |
 | A-REG-01 | ⏳ | DORA references are to articles of Regulation (EU) 2022/2554. ITS references are given at annex/template level; article numbers of the ITS were deliberately not cited because they could not be verified. FAQ references are to the EBA DORA RoI reporting FAQ of 28 March 2025. |
 
 ## xBRL-CSV export

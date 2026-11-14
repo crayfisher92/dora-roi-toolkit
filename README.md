@@ -137,7 +137,7 @@ from dora_roi.reporting import render_html
 from dora_roi.reporting.executive import render_executive_summary
 
 loaded, report = validate_path("register.xlsx")
-print(report.severity_counts())            # {'error': 27, 'warning': 5, 'info': 1}
+print(report.severity_counts())            # {'error': 25, 'warning': 6, 'info': 1}
 for f in report.errors[:3]:
     print(f.rule_id, f.location, f.message)
 

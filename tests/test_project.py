@@ -209,7 +209,7 @@ def test_exports_are_recorded_in_the_audit_trail(tmp_path: Path) -> None:
     assert client.get(url + "/download/xbrl").status_code == 200
     assert client.get(url + "/download/nonsense").status_code == 404
     page = client.get(url + "/audit").text
-    assert "Exported" in page and "xBRL-CSV package" in page and "27 error(s)" in page
+    assert "Exported" in page and "xBRL-CSV package" in page and "25 error(s)" in page
     assert "Mia Auditor" in page
     csv_text = client.get(url + "/download/audit.csv").text
     assert ",Mia Auditor,export,register," in csv_text

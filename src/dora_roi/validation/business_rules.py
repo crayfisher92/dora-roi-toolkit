@@ -43,27 +43,32 @@ def check_contract_dates(ctx: ValidationContext) -> Iterator[Finding]:
                               f"{s.start_date}", s, "end_date", value=s.end_date)
 
 
-@rule("BUS-002", "Termination reason missing for an ended arrangement", severity=Severity.ERROR,
-      category=Category.BUSINESS, templates=("B_02.02",),
-      references=(*ANNEX, "DORA Art. 28(7)"),
-      description="When the arrangement ended on or before the reference date, the reason of "
-      "termination or ending (c0090) must be reported.")
+@rule("BUS-002", "Arrangement ended before the reference date", severity=Severity.WARNING,
+      category=Category.BUSINESS, templates=("B_02.02",), references=(*ANNEX, "FAQ Q52"),
+      description="The register contains the arrangements in force at the reference date; "
+      "terminated or expired arrangements are not reported. Remove the row or correct the end "
+      "date (c0080).")
+def check_ended_arrangement(ctx: ValidationContext) -> Iterator[Finding]:
+    for s in ctx.register.b_02_02:
+        if not s.end_date or s.end_date >= ctx.reference_date:
+            continue
+        if s.start_date and s.end_date < s.start_date:
+            continue  # BUS-001 already reports the end date as wrong
+        yield ctx.finding("BUS-002", f"Arrangement ended on {s.end_date}, before the reference "
+                          f"date {ctx.reference_date}; only arrangements in force are reported",
+                          s, "end_date", value=s.end_date)
+
+
+@rule("BUS-003", "Termination reason reported", severity=Severity.WARNING,
+      category=Category.BUSINESS, templates=("B_02.02",), references=(*ANNEX, "FAQ Q52"),
+      description="Only arrangements in force are reported, so the reason of termination or "
+      "ending (c0090) is left empty.")
 def check_termination_reason(ctx: ValidationContext) -> Iterator[Finding]:
     for s in ctx.register.b_02_02:
-        if s.end_date and s.end_date <= ctx.reference_date and _missing(s, "termination_reason"):
-            yield ctx.finding("BUS-002", f"Arrangement ended on {s.end_date} but no termination "
-                              "reason is reported", s, "termination_reason")
-
-
-@rule("BUS-003", "Termination reason reported for an active arrangement",
-      severity=Severity.WARNING, category=Category.BUSINESS, templates=("B_02.02",),
-      references=ANNEX,
-      description="A termination reason only applies to arrangements that have ended.")
-def check_termination_active(ctx: ValidationContext) -> Iterator[Finding]:
-    for s in ctx.register.b_02_02:
-        if s.termination_reason and s.end_date and s.end_date > ctx.reference_date:
-            yield ctx.finding("BUS-003", f"Termination reason given but end date {s.end_date} is "
-                              "after the reference date", s, "termination_reason")
+        if s.termination_reason:
+            yield ctx.finding("BUS-003", "Reason of termination or ending is reported although "
+                              "only arrangements in force are reported; leave c0090 empty", s,
+                              "termination_reason", value=s.termination_reason)
 
 
 @rule("BUS-004", "Data storage location missing", severity=Severity.ERROR,
