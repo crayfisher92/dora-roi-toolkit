@@ -114,9 +114,17 @@ def check(base: str, user: str) -> list[tuple[str, bool, str]]:
         "Origin": "https://evil.example", "Content-Type": "application/x-www-form-urlencoded"})
     record("cross-site POST rejected for a signed-in user", status == 403, str(status))
 
-    b.get(base + "/oauth2/sign_out")
+    # sign out without following the redirect: the mock IdP would sign the browser straight
+    # back in (a real tenant asks for credentials at that point)
+    host = urllib.parse.urlsplit(base).netloc
+    before = set(b.jar.get(host, {}))
+    status, _, _ = b.request("GET", base + "/oauth2/sign_out")
+    cleared = before - set(b.jar.get(host, {}))
+    record("sign-out clears the session cookie", bool(cleared),
+           f"{status}, cleared: {', '.join(sorted(cleared)) or 'none'}")
     status, hdrs, _ = b.request("GET", base + "/")
-    record("sign-out ends the session", status in (302, 303, 401, 403), str(status))
+    record("after sign-out the next request goes to sign-in", status in (302, 303, 401, 403),
+           f"{status} {hdrs.get('location', '')[:60]}")
     return results
 
 
