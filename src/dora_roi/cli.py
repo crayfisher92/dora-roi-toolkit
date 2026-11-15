@@ -363,18 +363,39 @@ def check_package(reference: Path, ours: Path | None, output: Path | None) -> No
               help="Log every request line (off by default: URLs can contain client data).")
 @click.option("--projects", "projects", type=click.Path(file_okay=False, path_type=Path),
               default=None, help="Folder where workspaces are autosaved as .roiproj project "
-              "files and listed for reopening (single-user mode).")
-def serve(host: str, port: int, access_log: bool, projects: Path | None) -> None:
+              "files and listed for reopening (private space; with --auth-header also a team "
+              "space).")
+@click.option("--auth-header", default=None, envvar="ROI_AUTH_HEADER",
+              help="Team mode: request header with the user signed in by the SSO proxy, e.g. "
+              "X-Forwarded-Email (oauth2-proxy). See docs/TEAM_DEPLOYMENT.md.")
+@click.option("--trusted-proxy", "trusted_proxies", multiple=True,
+              help="IP address or network of the SSO proxy whose identity header is trusted "
+              "(repeatable; default 127.0.0.1 and ::1, or ROI_TRUSTED_PROXIES).")
+def serve(host: str, port: int, access_log: bool, projects: Path | None,
+          auth_header: str | None, trusted_proxies: tuple[str, ...]) -> None:
     """Start the web UI (requires the 'web' extra)."""
     try:
         import uvicorn
 
         from dora_roi.web.app import create_app
+        from dora_roi.web.auth import AuthConfig, parse_networks
     except ImportError as exc:
         raise click.ClickException(
             "The web UI needs extra dependencies: pip install 'dora-roi-toolkit[web]'") from exc
-    uvicorn.run(create_app(projects_dir=projects), host=host, port=port, access_log=access_log,
-                server_header=False,
+    auth = AuthConfig.from_env()
+    try:
+        if auth_header:
+            auth = AuthConfig(auth_header, auth.trusted_proxies)
+        if trusted_proxies:
+            auth = AuthConfig(auth.header, parse_networks(",".join(trusted_proxies)))
+    except ValueError as exc:
+        raise click.BadParameter(str(exc), param_hint="--trusted-proxy") from exc
+    if auth.enabled:
+        proxies = ", ".join(str(n) for n in auth.trusted_proxies)
+        click.echo(f"Team mode: users signed in via header {auth.header} from {proxies}")
+    # no proxy_headers: the client address must be the proxy's own, not X-Forwarded-For
+    uvicorn.run(create_app(projects_dir=projects, auth=auth), host=host, port=port,
+                access_log=access_log, server_header=False, proxy_headers=False,
                 log_level="warning")
 
 

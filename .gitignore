@@ -16,3 +16,4 @@ out/
 *.tmp
 .DS_Store
 node_modules/
+deploy/team/.env

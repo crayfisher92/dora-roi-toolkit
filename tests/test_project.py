@@ -174,12 +174,23 @@ def test_projects_folder_autosave_and_reopen(tmp_path: Path) -> None:
     assert load_project(files[0]).row("B_02.01", 4).values["c0050"] == "777"  # autosaved
     other = TestClient(app)
     home = other.get("/").text
-    assert files[0].name in home
+    assert files[0].name in home and "Being edited by" in home
+    # while the first browser has it open, a second one only gets a read-only view
+    r = other.post("/projects/open", data={"file": files[0].name}, follow_redirects=False)
+    readonly = r.headers["location"]
+    assert "Read-only" in other.get(readonly).text
+    assert other.post(readonly + "/cell", data={"template": "B_02.01", "row": "4",
+                                                "column": "c0050", "value": "1"}
+                      ).status_code == 403
+    assert load_project(files[0]).row("B_02.01", 4).values["c0050"] == "777"
+    # once the first browser closes it, the lock is free
+    assert client.post(url + "/close", follow_redirects=False).status_code == 303
     r = other.post("/projects/open", data={"file": files[0].name}, follow_redirects=False)
     assert r.status_code == 303
     reopened = r.headers["location"]
     other.post(reopened + "/cell", data={"template": "B_02.01", "row": "4",
                                          "column": "c0050", "value": "888"})
+    assert load_project(files[0]).row("B_02.01", 4).values["c0050"] == "888"
     assert len(list(tmp_path.glob("*.roiproj"))) == 1  # same file updated
     assert "Autosaved after every change" in other.get(reopened + "/export").text
     assert other.post("/projects/open", data={"file": "../etc/passwd"}).status_code == 404
