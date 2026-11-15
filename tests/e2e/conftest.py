@@ -1,8 +1,9 @@
 """Fixtures for browser end-to-end tests (Playwright + axe-core).
 
 The tests are skipped when Playwright or a Chromium build is unavailable, unless
-``E2E_REQUIRED=1`` is set (as in CI), in which case that is an error. axe-core is loaded from
-``AXE_JS`` or ``node_modules/axe-core/axe.min.js``.
+``E2E_REQUIRED=1`` is set (as in CI), in which case that is an error. If Playwright's own
+browser build is missing, ``CHROMIUM_EXECUTABLE`` (or ``/opt/pw-browsers/chromium``) is used.
+axe-core is loaded from ``AXE_JS`` or ``node_modules/axe-core/axe.min.js``.
 """
 
 from __future__ import annotations
@@ -43,10 +44,15 @@ def browser() -> Iterator[Any]:
     except ImportError:
         _unavailable("playwright is not installed")
     with sync_playwright() as p:
+        b = None
         try:
             b = p.chromium.launch()
-        except Exception as exc:  # browser binary missing
-            _unavailable(f"chromium not available: {exc}")
+        except Exception as exc:  # browser binary missing (e.g. Playwright upgraded)
+            fallback = os.environ.get("CHROMIUM_EXECUTABLE") or "/opt/pw-browsers/chromium"
+            if Path(fallback).exists():
+                b = p.chromium.launch(executable_path=fallback)
+            else:
+                _unavailable(f"chromium not available: {exc}")
         yield b
         b.close()
 

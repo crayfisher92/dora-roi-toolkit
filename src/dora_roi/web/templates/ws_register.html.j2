@@ -15,18 +15,20 @@
 <form method="post" action="/w/{{ ws.id }}/register/{{ template }}" class="row"><button class="btn" type="submit">+ {{ t("reg.add") }}</button></form>
 <div class="table-wrap register-table"><table>
   <caption class="visually-hidden">{{ template }} – {{ model.TITLE }}</caption>
-  <thead><tr><th scope="col">{{ t("reg.row") }}</th><th scope="col">{{ t("reg.issues") }}</th>
+  <thead><tr><th scope="col">{{ t("reg.row") }}</th><th scope="col">{{ t("reg.issues") }}</th>{% if art30 is not none %}<th scope="col">{{ t("c30.ui.column") }}</th>{% endif %}
     {% for spec in model.columns() %}<th scope="col"><abbr title="{{ spec.label }}">{{ spec.code }}</abbr><div class="small muted th-label">{{ spec.label }}</div></th>{% endfor %}</tr></thead>
   <tbody>
   {% for r in rows %}{% set fs = flagged.get(r.row, []) %}
   <tr {% if fs %}class="has-issues"{% endif %}>
     <th scope="row"><a href="/w/{{ ws.id }}/register/{{ template }}/{{ r.row }}">{{ t("reg.edit") }} <span class="visually-hidden">{{ t("reg.row") }}</span> {{ r.row }}</a></th>
     <td>{% if fs %}{% set worst = fs | map(attribute="severity") | map(attribute="value") | list %}<span class="badge {{ 'error' if 'error' in worst else 'warning' if 'warning' in worst else 'info' }}">{{ fs | length }}</span>{% endif %}</td>
+    {% if art30 is not none %}{% set cref = display(r.values.get("c0010")) %}{% set cs = art30.get(cref) %}
+    <td>{% if cs %}<a class="pill {{ cs.status.value }}" href="{{ contract_url(ws.id, cref) }}">{{ t("cs." ~ cs.status.value) }}{% if cs.missing or cs.partial %} ({{ cs.missing }}·{{ cs.partial }}){% endif %}</a>{% endif %}</td>{% endif %}
     {% for spec in model.columns() %}{% set v = display(r.values.get(spec.code)) %}{% set flagged_col = fs | selectattr("column", "equalto", spec.code) | list %}
     <td {% if flagged_col %}class="cell-issue" title="{{ flagged_col[0].message }}"{% endif %}>{% set link = provider_link(v) if spec.col.kind.value == "provider_code" else None %}{% if link %}<a href="{{ link }}">{{ v }}</a>{% else %}{{ v }}{% endif %}</td>
     {% endfor %}
   </tr>
-  {% else %}<tr><td colspan="{{ model.columns() | length + 2 }}" class="muted">—</td></tr>{% endfor %}
+  {% else %}<tr><td colspan="{{ model.columns() | length + (3 if art30 is not none else 2) }}" class="muted">—</td></tr>{% endfor %}
   </tbody></table></div>
 {% if pages > 1 %}
 <nav class="pager" aria-label="Pagination">

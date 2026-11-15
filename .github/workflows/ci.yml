@@ -96,7 +96,7 @@ jobs:
           pip install --require-hashes -r requirements/dev.txt
           pip install --no-deps -e .
       - name: Pytest with coverage
-        run: pytest --cov=dora_roi --cov-report=term --cov-report=xml --cov-fail-under=85
+        run: pytest --cov=dora_roi --cov-report=term --cov-report=xml --cov-fail-under=90
       - name: CLI smoke test
         run: |
           roi sample out/sample.xlsx
@@ -106,6 +106,12 @@ jobs:
           roi validate out/clean
           roi export out/clean -o out/package --strict
           roi template out/blank.xlsx
+          roi sample out/alpenrand.xlsx --assessments out/assessments.json --incidents out/incidents.json --contract-document out/contract.pdf
+          roi contracts assess out/alpenrand.xlsx --assessments out/assessments.json -o out/plan.xlsx
+          roi contracts suggest out/contract.pdf -o out/draft.json
+          roi incidents summary out/incidents.json --register out/alpenrand.xlsx -o out/incidents.html
+          roi finma out/alpenrand.xlsx --assessments out/assessments.json -f json -o out/finma.json
+          roi readiness out/alpenrand.xlsx --assessments out/assessments.json --incidents out/incidents.json -o out/readiness.html
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: matrix.python-version == '3.12'
         with:

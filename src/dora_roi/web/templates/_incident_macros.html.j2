@@ -1,0 +1,15 @@
+{% macro countdown(d, now, t, humanise) -%}
+{%- set delta = d.due - now -%}
+<time class="countdown{% if delta.total_seconds() < 0 %} overdue{% endif %}" datetime="{{ d.due.isoformat() }}"
+  data-in="{{ t('inc.dl.in', time='{t}') }}" data-overdue="{{ t('inc.dl.overdue_by', time='{t}') }}"
+  data-day="{{ 'T' if lang == 'de' else 'd' }}">{% if delta.total_seconds() < 0 %}{{ t("inc.dl.overdue_by", time=humanise(delta)) }}{% else %}{{ t("inc.dl.in", time=humanise(delta)) }}{% endif %}</time>
+{%- endmacro %}
+
+{% macro outcome_pill(outcome, t) -%}
+<span class="pill {{ outcome.value }}">{{ t("inc.out." ~ outcome.value) }}</span>
+{%- endmacro %}
+
+{% macro deadline_state(d, now, t) -%}
+{%- set st = d.state(now).value -%}
+<span class="pill {{ 'overdue' if st in ('overdue', 'late') else 'done' if st == 'done' else 'due' }}">{{ t("inc.dl." ~ st) }}</span>
+{%- endmacro %}

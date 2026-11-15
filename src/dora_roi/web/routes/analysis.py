@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -11,8 +12,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from dora_roi.diff import diff_registers
 from dora_roi.graph import build_graph, chains_table, render_svg
+from dora_roi.incidents.classify import classify
 from dora_roi.io.loader import load_raw
 from dora_roi.reporting.executive import build_charts
+from dora_roi.web import contracts_routes
 from dora_roi.web.context import (
     ROI_SUFFIXES,
     Ctx,
@@ -38,8 +41,13 @@ def provider(ctx: Ctx, request: Request, wid: str, code: str) -> HTMLResponse:
     graph = build_graph(ws.register, focus=code)
     svg = render_svg(graph, link_prefix=f"/w/{wid}/provider/",
                      labels=_graph_labels(t)) if graph.edges else None
+    art30 = next((pc for pc in ws.portfolio.providers if pc.code == code), None)
+    now = datetime.now(UTC)
+    incidents = [(i, classify(i, now)) for i in ws.incidents.ordered()
+                 if code in i.provider_codes]
     return ctx.ws_page(request, ws, "ws_provider.html.j2", "analyse", p=profile, graph_svg=svg,
-                   chains=chains_table(ws.register, code))
+                       chains=chains_table(ws.register, code), art30=art30,
+                       contract_url=contracts_routes.contract_url, incidents=incidents)
 
 @router.get("/w/{wid}/analyse", response_class=HTMLResponse)
 def analyse_page(ctx: Ctx, request: Request, wid: str, color: str = "criticality",

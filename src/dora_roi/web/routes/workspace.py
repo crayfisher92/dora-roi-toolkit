@@ -11,6 +11,7 @@ from dora_roi.fixes import bulk_groups, findings_by_template, suggest
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE
 from dora_roi.project import save_project
 from dora_roi.validation import Finding, finding_key
+from dora_roi.web import contracts_routes, programme_routes
 from dora_roi.web.context import (
     FIX_GROUP_LIMIT,
     PAGE_SIZE,
@@ -45,7 +46,8 @@ def overview(ctx: Ctx, request: Request, wid: str) -> HTMLResponse:
     can_share = (ctx.autosave and ctx.spaces.team_mode and ws.session.space == PRIVATE
                  and ws.session.project_path is not None and ws.session.read_only is None)
     return ctx.ws_page(request, ws, "ws_overview.html.j2", "import",
-                   notes=ws.import_notes, can_share=can_share)
+                       notes=ws.import_notes, can_share=can_share,
+                       readiness=programme_routes.workspace_readiness(ws, ctx.lang_of(request)))
 
 @router.get("/w/{wid}/fix", response_class=HTMLResponse)
 def fix(ctx: Ctx, request: Request, wid: str, template: str | None = None,
@@ -135,10 +137,12 @@ def register_table(ctx: Ctx, request: Request, wid: str, template: str, q: str =
     page = min(max(page, 1), pages)
     shown = rows[(page - 1) * PAGE_SIZE: page * PAGE_SIZE]
     counts = {m.TEMPLATE: len(ws.table(m.TEMPLATE).rows) for m in TEMPLATE_MODELS}
+    art30 = ws.portfolio.by_ref() if template == "B_02.01" else None
     return ctx.ws_page(request, ws, "ws_register.html.j2", "fix", template=template, model=model,
-                   rows=shown, total=len(rows), flagged=flagged, q=q, issues=issues,
-                   page=page, pages=pages, table_counts=counts,
-                   provider_link=_provider_link(ws))
+                       rows=shown, total=len(rows), flagged=flagged, q=q, issues=issues,
+                       page=page, pages=pages, table_counts=counts,
+                       provider_link=_provider_link(ws), art30=art30,
+                       contract_url=contracts_routes.contract_url)
 
 @router.get("/w/{wid}/register/{template}/{row}", response_class=HTMLResponse)
 def register_row(ctx: Ctx, request: Request, wid: str, template: str, row: int) -> HTMLResponse:
@@ -148,9 +152,14 @@ def register_row(ctx: Ctx, request: Request, wid: str, template: str, row: int) 
     except EditError as exc:
         raise HTTPException(status_code=404) from exc
     findings = ws.findings_for(template, row)
+    art30 = None
+    if template in ("B_02.01", "B_02.02"):
+        ref = display(raw_row.values.get("c0010"))
+        art30 = ws.portfolio.by_ref().get(ref) if ref else None
     return ctx.ws_page(request, ws, "ws_row.html.j2", "fix", template=template,
-                   model=TEMPLATES_BY_CODE[template], raw_row=raw_row, findings=findings,
-                   by_column={f.column: f for f in findings if f.column}, suggest=suggest)
+                       model=TEMPLATES_BY_CODE[template], raw_row=raw_row, findings=findings,
+                       by_column={f.column: f for f in findings if f.column}, suggest=suggest,
+                       art30=art30, contract_url=contracts_routes.contract_url)
 
 @router.post("/w/{wid}/register/{template}/{row}")
 async def register_row_save(ctx: Ctx, request: Request, wid: str, template: str, row: int

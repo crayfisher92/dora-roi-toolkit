@@ -24,6 +24,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from dora_roi import __version__
+from dora_roi.web import contracts_routes, incidents_routes, programme_routes
 from dora_roi.web.auth import AuthConfig, IdentityMiddleware
 from dora_roi.web.context import (
     MAX_REQUEST_BYTES,
@@ -33,6 +34,7 @@ from dora_roi.web.context import (
     WebContext,
     Wizard,
 )
+from dora_roi.web.feature_ui import Ui
 from dora_roi.web.helpers import clean_user, user_of
 from dora_roi.web.routes import analysis, export, home, wizard, workspace
 from dora_roi.web.security import (
@@ -73,6 +75,12 @@ def create_app(capacity: int | None = None, projects_dir: str | Path | None = No
     app.state.locks = ctx.locks
     for router in ROUTERS:
         app.include_router(router)
+    # DORA programme modules: Art. 30 contracts, incidents, FINMA mapping, readiness
+    ui = Ui(render=ctx.render, ws_page=ctx.ws_page, ws_or_404=ctx.ws_or_404,
+            ws_for_edit=ctx.ws_for_edit, lang_of=ctx.lang_of, read_upload=ctx.read_upload,
+            workspaces=ctx.my_workspaces, user_of=user_of)
+    for module in (contracts_routes, incidents_routes, programme_routes):
+        module.register(app, ui)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> Response:
