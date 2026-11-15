@@ -1,0 +1,16 @@
+# Keeps the pinned GitHub Actions (commit SHAs) and the Docker base image current.
+# Python dependencies are locked in requirements/ with uv – refresh them with
+# `make lock-upgrade` (see docs/RELEASING.md); pip-audit in CI flags known vulnerabilities.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

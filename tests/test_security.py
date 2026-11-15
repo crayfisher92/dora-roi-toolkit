@@ -62,7 +62,7 @@ def test_xss_web_pages() -> None:
     client = TestClient(app)
     ws = Workspace(PAYLOAD, register_to_raw(_evil_register()))
     client.get("/")  # obtain a session cookie
-    ws.owner = client.cookies["roi_session"]
+    ws.session.owner = client.cookies["roi_session"]
     app.state.workspaces.add(ws.id, ws)
     base = f"/w/{ws.id}"
     pages = ["", "/fix", "/fix?template=B_02.02", "/register/B_05.01", "/register/B_05.01/4",

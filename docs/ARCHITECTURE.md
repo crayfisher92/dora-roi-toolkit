@@ -33,14 +33,14 @@
 | `dora_roi.reporting` | Validation report renderers, executive summary, inline SVG charts, Jinja2 templates and shared CSS (light/dark, print/A4); `pdf.py` renders the print variant to PDF with WeasyPrint (optional, offline). |
 | `dora_roi.sample` | Fictional *Alpenrand* group catalogue and deterministic generator with injected errors; `large.py` – scale-test register (10 000 contracts / 1 000 providers by default). |
 | `dora_roi.cli` | `roi validate · report · export · template · rules · sample · serve`. |
-| `dora_roi.workspace` | Editable, versioned register (raw values as source of truth, instant re-validation). |
+| `dora_roi.workspace` | Editable, versioned register: `core.py` – `Workspace` (raw values as source of truth, editing, acceptances, versions); `history.py` – audit-trail records and undo; `derived.py` – incremental parsing, validation, accepted findings; `session.py` – web-app state (owner, project file, edit lock) kept apart from the register. |
 | `dora_roi.fixes` / `dora_roi.explain` / `dora_roi.quality` | Fix suggestions and bulk groups; EN/DE plain-language rule explanations; data-quality score and readiness. |
 | `dora_roi.inventory` / `dora_roi.normalise` | Column-mapping import of arbitrary inventories; value normalisation (countries, dates, amounts, booleans, service types). |
 | `dora_roi.diff` / `dora_roi.graph` | Register comparison (material vs administrative changes); layered dependency graph with SVG rendering. |
 | `dora_roi.analytics.impact` / `.renewals` | Failure impact of a provider (direct and through subcontracting); notice-deadline schedule. |
-| `dora_roi.io.limits` | Upload/archive size, compression-ratio and row-count limits. |
+| `dora_roi.io.limits` | Upload/archive size, compression-ratio and row-count limits; `INPUT_ERRORS`, the errors readers of untrusted files turn into their own error type (`UnsupportedInputError`, `InventoryError`, `ProjectError`) – fuzz-tested in `tests/test_fuzz.py`. |
 | `dora_roi.web.security` | Security headers/CSP, same-origin (CSRF) check, browser-session isolation, safe redirects. |
-| `dora_roi.web` | Workbench: FastAPI routes (`app.py`), view models (`views.py`), EN/DE strings (`i18n.py`), Jinja2 templates, `static/app.css` + `app.js` (progressive enhancement), `devserver.py` for tests/screenshots. |
+| `dora_roi.web` | Workbench: `app.py` – the factory wiring middleware and routers; `context.py` – shared state (`WebContext`: stores, templates, project spaces and locks, worker pool) injected into handlers as `ctx: Ctx`; `routes/` – `home`, `wizard`, `workspace`, `analysis`, `export`; `store.py` – bounded LRU store with per-user budgets; `auth.py` – identity from the SSO proxy; `spaces.py` – project spaces and edit locks; `helpers.py`, view models (`views.py`), EN/DE strings (`i18n.py`), Jinja2 templates, `static/app.css` + `app.js` (progressive enhancement), `devserver.py` for tests/screenshots. |
 | `dora_roi.docs` | Generates `REGULATORY_MAPPING.md`, `DATA_DICTIONARY.md`, `SAMPLE_DATA.md` from the code. |
 
 ## Key design choices

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from dora_roi.io.csv_folder import read_csv_files, read_csv_folder, write_csv_folder
 from dora_roi.io.excel import read_workbook, write_workbook
-from dora_roi.io.limits import check_archive
+from dora_roi.io.limits import INPUT_ERRORS, InputTooLargeError, check_archive
 from dora_roi.io.parse import parse_raw
 from dora_roi.io.raw import RawRegister
 from dora_roi.io.xbrl_csv import CodeMap, is_xbrl_package, read_xbrl_csv
@@ -70,8 +70,24 @@ def _read_csv_zip(path: Path) -> RawRegister:
 
 
 def load_raw(path: str | Path, code_map: CodeMap | None = None) -> tuple[RawRegister, InputFormat]:
+    """Read any supported input into raw tables.
+
+    Raises ``FileNotFoundError``, :class:`InputTooLargeError` (a size limit was exceeded) or
+    :class:`UnsupportedInputError` (unknown format or a file that cannot be read).
+    """
     p = Path(path)
-    fmt = detect_format(p)
+    if not p.exists():
+        raise FileNotFoundError(p)
+    try:
+        return _read(p, detect_format(p), code_map)
+    except (UnsupportedInputError, InputTooLargeError):
+        raise
+    except INPUT_ERRORS as exc:
+        reason = str(exc) or type(exc).__name__
+        raise UnsupportedInputError(f"'{p.name}' could not be read: {reason}") from exc
+
+
+def _read(p: Path, fmt: InputFormat, code_map: CodeMap | None) -> tuple[RawRegister, InputFormat]:
     if fmt is InputFormat.PROJECT:
         from dora_roi.project import load_project
 

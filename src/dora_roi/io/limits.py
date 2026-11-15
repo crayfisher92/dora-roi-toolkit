@@ -6,9 +6,21 @@ Limits can be tuned with environment variables (``ROI_MAX_UNCOMPRESSED_MB``,
 
 from __future__ import annotations
 
+import csv
 import os
+import sqlite3
+import struct
 import zipfile
+import zlib
 from pathlib import Path
+
+#: Errors that readers of untrusted files raise for broken input (corrupt archives, bad
+#: XML/CSV/JSON/SQLite, wrong encodings, unsupported zip features). The public readers report
+#: them as their own error type; anything else is a bug and propagates unchanged.
+INPUT_ERRORS: tuple[type[Exception], ...] = (
+    ValueError, LookupError, zipfile.BadZipFile, zlib.error, struct.error, EOFError, OSError,
+    RuntimeError, NotImplementedError, sqlite3.Error, csv.Error,
+)
 
 
 class InputTooLargeError(ValueError):

@@ -27,7 +27,7 @@ from difflib import SequenceMatcher
 from enum import StrEnum
 from pathlib import Path
 
-from dora_roi.io.limits import check_rows
+from dora_roi.io.limits import INPUT_ERRORS, InputTooLargeError, check_rows
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
 from dora_roi.io.xlsx_read import iter_sheets
 from dora_roi.lei import is_valid_lei_format
@@ -186,8 +186,21 @@ def _sheet_from_rows(rows: list[list[RawValue]], sheet: str, source: str) -> Inv
 
 
 def read_inventory(path: str | Path, sheet: str | None = None) -> InventorySheet:
-    """Read the first non-empty sheet (or ``sheet``) of an .xlsx file, or a CSV file."""
+    """Read the first non-empty sheet (or ``sheet``) of an .xlsx file, or a CSV file.
+
+    Raises :class:`InventoryError` for a file that cannot be read and
+    :class:`~dora_roi.io.limits.InputTooLargeError` above the row limit.
+    """
     p = Path(path)
+    try:
+        return _read_inventory(p, sheet)
+    except (InventoryError, InputTooLargeError):
+        raise
+    except INPUT_ERRORS as exc:
+        raise InventoryError(f"{p.name} could not be read: {exc or type(exc).__name__}") from exc
+
+
+def _read_inventory(p: Path, sheet: str | None) -> InventorySheet:
     if p.suffix.lower() == ".csv":
         text = p.read_text(encoding="utf-8-sig")
         first = text.splitlines()[0] if text else ""

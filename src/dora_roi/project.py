@@ -192,8 +192,16 @@ def load_project(path: str | Path) -> Workspace:
             raise ProjectError("not a DORA RoI project file")
         if meta.get("format_version") != str(FORMAT_VERSION):
             raise ProjectError(f"unsupported project format version {meta.get('format_version')}")
-        return _read(con, meta)
-    except sqlite3.DatabaseError as exc:
+        try:
+            return _read(con, meta)
+        except ProjectError:
+            raise
+        except (ValueError, TypeError, LookupError, AttributeError) as exc:
+            # tampered content: values of the wrong type or shape (found by fuzzing)
+            raise ProjectError(f"corrupt project content: {type(exc).__name__}") from exc
+    except ProjectError:
+        raise
+    except (sqlite3.DatabaseError, ValueError) as exc:  # ValueError: undecodable text (fuzzing)
         raise ProjectError(f"unreadable project file: {exc}") from exc
     finally:
         con.close()

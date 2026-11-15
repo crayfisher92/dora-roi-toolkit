@@ -17,3 +17,4 @@ out/
 .DS_Store
 node_modules/
 deploy/team/.env
+.hypothesis/

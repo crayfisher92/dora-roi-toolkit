@@ -11,6 +11,33 @@ format; they are listed under **Changed** with migration notes.
 Team use of the workbench ([`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md)) and the
 reconciliation of the register with the official EBA material for reporting framework 4.0.
 
+### Added – engineering
+
+- **Locked dependencies:** hash-pinned, universal locks in `requirements/` (`scripts/lock.sh`,
+  `make lock` / `make lock-upgrade`); CI, `make install` and the Docker image install exactly
+  them; CI fails when they drift from `pyproject.toml`; pip-audit scans the locked runtime set.
+- **GitHub Actions pinned to commit SHAs**, kept current by Dependabot (actions and the Docker
+  base image).
+- **The release runs the complete CI workflow on the tag** (`ci.yml` is reusable), so releases
+  pass exactly the checks of every pull request, including browser, scale and Docker tests.
+- **Fuzz tests** of the parsers for untrusted files (`tests/test_fuzz.py`, Hypothesis): xlsx,
+  CSV zips, xBRL-CSV packages, project files (bytes and tampered content) and inventories –
+  25 examples each in CI, 1 500 in the weekly `fuzz` workflow.
+
+### Changed – engineering
+
+- **The web app is split into routers** (`dora_roi.web.routes`: home, wizard, workspace,
+  analysis, export) sharing a `WebContext`; `app.py` only wires them together.
+- **`dora_roi.workspace` is a package:** `core` (the workspace), `history` (audit trail and
+  undo), `derived` (parsing, validation, acceptances) and `session` – the web-app state
+  (owner, project file, edit lock) now lives in `Workspace.session` instead of on the
+  workspace itself.
+- **Clear error contracts for untrusted files** (found by fuzzing): `load_raw` raises only
+  `UnsupportedInputError` / `InputTooLargeError` (and `FileNotFoundError`), `read_inventory`
+  only `InventoryError` / `InputTooLargeError`, `load_project` only `ProjectError` – corrupt
+  workbooks, archives, CSV and tampered project files previously surfaced as crashes in the
+  CLI. The CLI reports oversized input as an error message.
+
 ### Added – team use of the workbench
 
 - **Sign-in through an SSO proxy** (`ROI_AUTH_HEADER`, `ROI_TRUSTED_PROXIES`, `roi serve

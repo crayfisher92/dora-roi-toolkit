@@ -1,4 +1,4 @@
-"""An editable register: raw cell values as source of truth, re-validated after every change.
+"""The editable register: raw cell values as source of truth, re-validated after every change.
 
 * The raw values (exactly what the user typed, including invalid ones) stay visible and
   editable; the typed register, validation report and analysis are derived on demand.
@@ -15,16 +15,11 @@
 from __future__ import annotations
 
 import threading
-import time
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
 
 from dora_roi.analytics import ConcentrationAnalysis, analyse
-from dora_roi.io.parse import parse_raw, parse_row
+from dora_roi.io.parse import parse_raw
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE, RegisterOfInformation, RoIRecord
 from dora_roi.quality import QualityScore, quality_score
@@ -36,9 +31,17 @@ from dora_roi.validation import (
     finding_key,
     validate,
 )
-
-MAX_VERSIONS = 200
-DEFAULT_USER = "local user"
+from dora_roi.workspace.derived import Derived, Parser, apply_acceptances
+from dora_roi.workspace.history import (
+    DEFAULT_USER,
+    MAX_VERSIONS,
+    Acceptance,
+    Change,
+    Version,
+    _now,
+    undo,
+)
+from dora_roi.workspace.session import WebSession
 
 
 class EditError(ValueError):
@@ -47,58 +50,6 @@ class EditError(ValueError):
 
 class ReadOnlyError(EditError):
     """Raised for a change to a workspace opened read-only (someone else holds the lock)."""
-
-
-def _now() -> datetime:
-    return datetime.now(UTC)
-
-
-@dataclass(frozen=True)
-class Change:
-    """One entry of the audit trail."""
-
-    kind: str  # "set" | "add" | "delete" | "accept" | "unaccept"
-    template: str
-    row: int
-    column: str | None
-    old: RawValue
-    new: RawValue
-    at: datetime = field(default_factory=_now)
-    user: str = DEFAULT_USER
-    note: str = ""
-    values: tuple[tuple[str, RawValue], ...] = ()  # full row for add/delete
-    index: int = -1  # position of a deleted row
-
-
-@dataclass
-class Version:
-    number: int
-    label: str
-    change_count: int
-    errors: int
-    warnings: int
-    created: datetime = field(default_factory=_now)
-    user: str = DEFAULT_USER
-
-
-@dataclass(frozen=True)
-class Acceptance:
-    """A warning/info finding accepted with a justification."""
-
-    key: str
-    rule_id: str
-    reason: str
-    user: str
-    at: datetime
-
-
-@dataclass
-class _Derived:
-    register: RegisterOfInformation
-    report: ValidationReport
-
-
-ParseKey = tuple[str, int | None, tuple[tuple[str, Any], ...]]
 
 
 def _ensure_all_tables(raw: RawRegister) -> None:
@@ -125,30 +76,15 @@ class Workspace:
         self.changes: list[Change] = []
         self.versions: list[Version] = []
         self.acceptances: dict[str, Acceptance] = {}
-        self.visited: set[str] = set()
         self.import_notes: list[str] | None = None
-        #: Browser session that owns the workspace in the web app (``""`` elsewhere).
-        self.owner: str = ""
-        #: Name of the owner as shown to others (e.g. who holds a project's edit lock).
-        self.owner_label: str = ""
+        #: Web-app state (owner, project file, edit lock); unused by the CLI and library.
+        self.session = WebSession()
         #: Called after every change (used for autosaving project files).
         self.on_change: Callable[[Workspace], None] | None = None
-        #: Where the workspace is autosaved, if anywhere.
-        self.project_path: Path | None = None
-        #: Modification time and size of ``project_path`` when last read or written.
-        self.project_stamp: tuple[int, int] | None = None
-        #: Project space in the web app (``private`` or ``team``).
-        self.space: str = "private"
-        #: Set when someone else holds the edit lock: every change is refused.
-        self.read_only: str | None = None
-        #: Messages for the user, as ``(i18n key, parameters)``.
-        self.notices: list[tuple[str, dict[str, str]]] = []
-        #: ``time.monotonic()`` of the last request (edit locks expire after inactivity).
-        self.last_active = time.monotonic()
         self.lock = threading.RLock()
-        self._derived: _Derived | None = None
+        self._derived: Derived | None = None
         self._analysis: ConcentrationAnalysis | None = None
-        self._parse_cache: dict[ParseKey, tuple[RoIRecord, list[Finding]]] = {}
+        self._parser = Parser()
         self._row_index: dict[str, dict[int, RawRow]] = {}
         self.snapshot("Imported", user=user)
 
@@ -158,53 +94,19 @@ class Workspace:
 
     # ------------------------------------------------------------------ derived state
 
-    def _parse(self) -> tuple[RegisterOfInformation, list[Finding]]:
-        register = RegisterOfInformation()
-        findings: list[Finding] = list(self.raw.findings)
-        cache: dict[ParseKey, tuple[RoIRecord, list[Finding]]] = {}
-        for code, table in self.raw.tables.items():
-            model = TEMPLATES_BY_CODE[code]
-            source = table.source or self.raw.source
-            for row in table.rows:
-                key: ParseKey = (code, row.row, tuple(sorted(row.values.items())))
-                hit = self._parse_cache.get(key)
-                if hit is None:
-                    hit = parse_row(model, row, source)
-                cache[key] = hit
-                register.add(hit[0])
-                findings.extend(hit[1])
-        self._parse_cache = cache
-        return register, findings
-
-    def _derive(self) -> _Derived:
+    def _derive(self) -> Derived:
         with self.lock:
             if self._derived is None:
-                register, parse_findings = self._parse()
+                register, parse_findings = self._parser.parse(self.raw)
                 report = validate(register, parse_findings=parse_findings, config=self.config,
                                   source=self.source)
-                self._apply_acceptances(report)
-                self._derived = _Derived(register, report)
+                for acc in apply_acceptances(report, self.acceptances):
+                    del self.acceptances[acc.key]  # finding resolved or record changed
+                    self.changes.append(Change(
+                        "unaccept", "register", 0, None, None, None, user=acc.user,
+                        note=f"{acc.rule_id}: acceptance expired – finding no longer present"))
+                self._derived = Derived(register, report)
             return self._derived
-
-    def _apply_acceptances(self, report: ValidationReport) -> None:
-        if not self.acceptances:
-            return
-        open_: list[Finding] = []
-        matched: set[str] = set()
-        for f in report.findings:
-            key = finding_key(f)
-            acc = self.acceptances.get(key)
-            if acc is not None and f.severity is not Severity.ERROR:
-                report.accepted.append(f.model_copy(update={"accepted_reason": acc.reason}))
-                matched.add(key)
-            else:
-                open_.append(f)
-        report.findings = open_
-        for key in set(self.acceptances) - matched:  # finding resolved or record changed
-            acc = self.acceptances.pop(key)
-            self.changes.append(Change("unaccept", "register", 0, None, None, None,
-                                       user=acc.user, note=f"{acc.rule_id}: acceptance "
-                                       "expired – finding no longer present"))
 
     def _invalidate(self) -> None:
         self._derived = None
@@ -289,8 +191,8 @@ class Workspace:
         return change
 
     def _check_writable(self) -> None:
-        if self.read_only is not None:
-            raise ReadOnlyError(f"read-only: {self.read_only} is editing this project")
+        if self.session.read_only is not None:
+            raise ReadOnlyError(f"read-only: {self.session.read_only} is editing this project")
 
     def edit(self, template: str, row: int, column: str, value: RawValue,
              user: str = DEFAULT_USER) -> Change | None:
@@ -424,25 +326,7 @@ class Workspace:
     def raw_at(self, number: int) -> RawRegister:
         """Reconstruct the raw register as it was at version ``number``."""
         with self.lock:
-            target = self.version(number).change_count
-            copy = RawRegister(source=self.raw.source, findings=list(self.raw.findings))
-            for code, t in self.raw.tables.items():
-                copy.tables[code] = RawTable(t.template, list(t.columns),
-                                             [RawRow(r.row, dict(r.values)) for r in t.rows],
-                                             source=t.source)
-            for ch in reversed(self.changes[target:]):
-                table = copy.tables.get(ch.template)
-                if table is None:
-                    continue
-                if ch.kind == "set":
-                    for r in table.rows:
-                        if r.row == ch.row and ch.column:
-                            r.values[ch.column] = ch.old
-                elif ch.kind == "add":
-                    table.rows = [r for r in table.rows if r.row != ch.row]
-                elif ch.kind == "delete":
-                    table.rows.insert(max(ch.index, 0), RawRow(ch.row, dict(ch.values)))
-            return copy
+            return undo(self.raw, self.changes[self.version(number).change_count:])
 
     def register_at(self, number: int) -> RegisterOfInformation:
         return parse_raw(self.raw_at(number)).register

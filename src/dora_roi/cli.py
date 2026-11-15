@@ -12,6 +12,7 @@ import click
 
 from dora_roi import __version__
 from dora_roi.api import validate_loaded
+from dora_roi.io.limits import InputTooLargeError
 from dora_roi.io.loader import LoadResult, UnsupportedInputError, load
 from dora_roi.io.xbrl_csv import CodeMap, XbrlCsvOptions, export_xbrl_csv, load_code_map
 from dora_roi.validation import Severity, ValidationConfig, ValidationReport, rules_catalogue
@@ -45,7 +46,7 @@ def _write_pdf(render_pdf: Callable[[], bytes], output: Path) -> None:
 def _load(path: Path, code_map: CodeMap | None) -> LoadResult:
     try:
         return load(path, code_map)
-    except (FileNotFoundError, UnsupportedInputError) as exc:
+    except (FileNotFoundError, UnsupportedInputError, InputTooLargeError) as exc:
         raise click.UsageError(str(exc)) from exc
 
 
