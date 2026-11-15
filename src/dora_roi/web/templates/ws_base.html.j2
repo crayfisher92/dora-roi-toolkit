@@ -48,10 +48,10 @@
   <div>{{ t("ready.incomplete", n=ws.report.rule_failures | length) }}
   <span class="small mono">{{ ws.report.rule_failures | map(attribute="rule_id") | join(", ") }}</span></div></div></div>
 {% endif %}
-{% if ws.read_only %}
-<div class="inner"><div class="banner warn" role="status" data-readonly><span class="icon" aria-hidden="true">!</span><div>{{ t("ws.readonly", user=ws.read_only) }}</div></div></div>
+{% if ws.session.read_only %}
+<div class="inner"><div class="banner warn" role="status" data-readonly><span class="icon" aria-hidden="true">!</span><div>{{ t("ws.readonly", user=ws.session.read_only) }}</div></div></div>
 {% endif %}
-{% for key, params in ws.notices %}
+{% for key, params in ws.session.notices %}
 <div class="inner"><div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t(key, **params) }}</div></div></div>
 {% endfor %}
 {% endblock %}

@@ -22,6 +22,7 @@ from dora_roi.project import load_project
 from dora_roi.web import app as web_app
 from dora_roi.web.app import MAX_REQUEST_BYTES, LRUStore, create_app
 from dora_roi.web.auth import AuthConfig, clean_identity, parse_networks
+from dora_roi.web.routes import home as home_routes
 from dora_roi.web.security import BodySizeLimitMiddleware
 from dora_roi.web.spaces import ProjectLocks, user_folder
 
@@ -162,7 +163,7 @@ def test_idle_lock_can_be_taken_over(tmp_path: Path) -> None:
     anna.post(url + "/share")
     name = next((tmp_path / "team").glob("*.roiproj")).name
     ws = app.state.workspaces.peek(url.rsplit("/", 1)[-1])  # type: ignore[attr-defined]
-    ws.last_active = time.monotonic() - 24 * 3600  # anna went home
+    ws.session.last_active = time.monotonic() - 24 * 3600  # anna went home
     r = bob.post("/projects/open", data={"space": "team", "file": name}, follow_redirects=False)
     bob_url = r.headers["location"]
     assert bob.post(bob_url + "/cell", data={**CELL, "value": "1"},
@@ -246,7 +247,7 @@ def test_slow_import_does_not_block_other_requests(monkeypatch: pytest.MonkeyPat
         time.sleep(1.5)
         raise ValueError("slow and broken")
 
-    monkeypatch.setattr(web_app, "load_raw", slow_load)
+    monkeypatch.setattr(home_routes, "load_raw", slow_load)
     app = create_app(auth=AuthConfig())
     timings: dict[str, float] = {}
 

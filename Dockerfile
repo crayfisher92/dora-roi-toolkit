@@ -8,10 +8,13 @@ FROM python:3.12-slim AS build
 WORKDIR /src
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 COPY pyproject.toml README.md LICENSE ./
+COPY requirements/runtime.txt ./requirements/runtime.txt
 COPY src ./src
+# exactly the locked, hash-checked dependency versions (requirements/runtime.txt)
 RUN --mount=type=secret,id=ca_bundle,required=false \
     if [ -s /run/secrets/ca_bundle ]; then export PIP_CERT=/run/secrets/ca_bundle; fi; \
-    pip wheel --wheel-dir /wheels ".[web,pdf]"
+    pip wheel --wheel-dir /wheels --require-hashes -r requirements/runtime.txt \
+    && pip wheel --wheel-dir /wheels --no-deps .
 
 FROM python:3.12-slim
 LABEL org.opencontainers.image.title="DORA RoI Workbench" \
@@ -26,7 +29,7 @@ RUN apt-get update \
        libharfbuzz-subset0 fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /wheels /wheels
-RUN pip install /wheels/*.whl && rm -rf /wheels \
+RUN pip install --no-index /wheels/*.whl && rm -rf /wheels \
     && useradd --create-home --uid 10001 roi \
     && mkdir /data && chown roi:roi /data
 # /data: projects folder for ROI_PROJECTS_DIR (named volumes inherit this owner)

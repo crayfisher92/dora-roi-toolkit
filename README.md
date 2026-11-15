@@ -248,19 +248,28 @@ team, run the workbench behind oauth2-proxy with Microsoft Entra ID – see
 ## Known limitations
 
 - Not the official EBA validation rules or DPM; run your authority's validation before filing.
-- The xBRL-CSV export is **best effort**: enumerations other than countries and currencies are
-  exported with toolkit codes unless you provide a taxonomy code map
-  (`--code-map`, see [`examples/code-map.example.json`](examples/code-map.example.json)).
-- No GLEIF look-up (LEIs are checked for syntax and checksum only), no FX conversion.
-- Licensed activities (B_06.01 c0020) are free text.
-- The workbench keeps data in memory and has no authentication – run it locally or behind SSO.
+- The xBRL-CSV export follows the EBA reporting framework 4.0 (official code map, filing
+  indicators, conventions) but is not an official tool; reference dates from December 2027
+  need the announced framework 4.4 phase 2 package.
+- No GLEIF/BRIS look-up (LEIs and EUIDs are checked for format and check digits only), no FX
+  conversion.
+- The workbench has no login of its own: run it locally, or for a team behind the SSO proxy
+  ([`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md)); it runs as a single process.
 - Per-finding validator messages are English; the interface, rule titles and explanations are
   English and German.
 
 ## Development
 
 ```bash
-pip install -e ".[dev]"
+make install      # exactly the locked, hash-checked versions (requirements/dev.txt) + the package
+```
+
+```bash
+make lock         # after changing dependencies in pyproject.toml (needs uv); CI checks the locks
+```
+
+```bash
+HYPOTHESIS_PROFILE=fuzz pytest tests/test_fuzz.py   # long fuzz run of the file parsers
 ```
 
 ```bash

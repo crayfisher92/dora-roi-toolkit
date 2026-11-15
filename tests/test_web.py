@@ -78,7 +78,7 @@ def test_import_roi_workbook_and_errors(client: TestClient, tmp_path: Path) -> N
 
 
 def test_upload_too_large(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    import dora_roi.web.app as webapp
+    import dora_roi.web.context as webapp  # read_upload checks the limit
 
     monkeypatch.setattr(webapp, "MAX_UPLOAD_BYTES", 10)
     r = client.post("/import", files={"file": ("big.xlsx", b"x" * 50)})

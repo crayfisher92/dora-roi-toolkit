@@ -36,9 +36,9 @@ def stepper(ws: Workspace, current: str) -> list[Step]:
     done = {"import"}
     if errors == 0:
         done.add("fix")
-    if "analyse" in ws.visited:
+    if "analyse" in ws.session.visited:
         done.add("analyse")
-    if "export" in ws.visited:
+    if "export" in ws.session.visited:
         done.add("export")
     hrefs = {"import": f"/w/{ws.id}", "fix": f"/w/{ws.id}/fix",
              "analyse": f"/w/{ws.id}/analyse", "export": f"/w/{ws.id}/export"}

@@ -25,7 +25,7 @@
   <span id="user-help" class="small muted">{{ t("user.help") }}</span>
 </form>
 {% endif %}
-{% if ws.project_path or ws.read_only %}
+{% if ws.session.project_path or ws.session.read_only %}
 <div class="row">
   {% if can_share %}<form method="post" action="/w/{{ ws.id }}/share"><button class="btn" type="submit">{{ t("ws.share") }}</button></form>{% endif %}
   <form method="post" action="/w/{{ ws.id }}/close"><button class="btn" type="submit" aria-describedby="close-help">{{ t("ws.close") }}</button></form>

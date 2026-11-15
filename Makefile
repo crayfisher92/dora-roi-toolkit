@@ -1,10 +1,17 @@
-.PHONY: install lint type test cov docs examples serve check
+.PHONY: install lint type test cov docs examples serve check lock lock-upgrade fuzz
 
-install:
-	pip install -e ".[dev]"
+install:  # exactly the locked versions (requirements/dev.txt)
+	pip install --require-hashes -r requirements/dev.txt
+	pip install --no-deps -e .
+
+lock:  # after changing dependencies in pyproject.toml
+	sh scripts/lock.sh
+
+lock-upgrade:  # move every locked dependency to its newest allowed version
+	sh scripts/lock.sh --upgrade
 
 lint:
-	ruff check src tests
+	ruff check src tests scripts
 
 type:
 	mypy
