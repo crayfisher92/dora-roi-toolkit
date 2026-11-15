@@ -149,9 +149,16 @@ jobs:
     permissions:
       contents: write
     steps:
+      # only what the release needs: CI uploads further artifacts (screenshots, ZAP and
+      # self-test reports, Docker build records) that must not block the release
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
         with:
-          path: artifacts
+          name: dist
+          path: artifacts/dist
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: release-notes
+          path: artifacts/release-notes
       - name: Create or update the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -159,13 +166,15 @@ jobs:
           VERSION: ${{ needs.verify.outputs.version }}
           PRERELEASE: ${{ needs.verify.outputs.prerelease }}
         run: |
+          # the wheel carries the normalised version (0.2.0rc1 for 0.2.0-rc.1)
+          wheel="$(basename artifacts/dist/*.whl)"
           {
             cat artifacts/release-notes/release-notes.md
             echo
             echo "### Install"
             echo
             echo '```bash'
-            echo "pip install \"dora_roi_toolkit-${VERSION}-py3-none-any.whl[web,pdf]\""
+            echo "pip install \"${wheel}[web,pdf]\""
             echo "docker run --rm -p 127.0.0.1:8000:8000 --read-only --tmpfs /tmp ghcr.io/${GH_REPO}:${VERSION}"
             echo '```'
           } > notes.md
