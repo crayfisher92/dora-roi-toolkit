@@ -4,7 +4,7 @@
 #   docker run --rm -p 127.0.0.1:8000:8000 dora-roi-toolkit
 # Behind a TLS-inspecting corporate proxy, pass its CA bundle as an (optional) build secret:
 #   docker build --secret id=ca_bundle,src=/path/to/corporate-ca.pem -t dora-roi-toolkit .
-FROM python:3.12-slim AS build
+FROM python:3.15-slim AS build
 WORKDIR /src
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 COPY pyproject.toml README.md LICENSE ./
@@ -16,7 +16,7 @@ RUN --mount=type=secret,id=ca_bundle,required=false \
     pip wheel --wheel-dir /wheels --require-hashes -r requirements/runtime.txt \
     && pip wheel --wheel-dir /wheels --no-deps .
 
-FROM python:3.12-slim
+FROM python:3.15-slim
 LABEL org.opencontainers.image.title="DORA RoI Workbench" \
       org.opencontainers.image.description="Validate, fix and analyse a DORA Register of Information" \
       org.opencontainers.image.licenses="MIT" \
