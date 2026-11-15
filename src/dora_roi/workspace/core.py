@@ -17,10 +17,12 @@ from __future__ import annotations
 import threading
 import uuid
 from collections.abc import Callable
+from datetime import datetime
 
 from dora_roi.analytics import ConcentrationAnalysis, analyse
 from dora_roi.contracts.analysis import Portfolio, evaluate
 from dora_roi.contracts.model import AssessmentBook
+from dora_roi.gleif import LeiRecord, gleif_findings
 from dora_roi.incidents.model import IncidentLog
 from dora_roi.io.parse import parse_raw
 from dora_roi.io.raw import RawRegister, RawRow, RawTable, RawValue
@@ -89,6 +91,10 @@ class Workspace:
         #: LEIs of entities kept in the dataset but outside the DORA reporting scope (e.g. the
         #: Swiss bank of a group); left out of the xBRL-CSV package (``dora_roi.scope``).
         self.out_of_scope: set[str] = set()
+        #: Result of the last online LEI check (opt-in, ``dora_roi.gleif``): record per LEI,
+        #: ``None`` where GLEIF has none. Kept in memory only; findings follow every edit.
+        self.gleif: dict[str, LeiRecord | None] = {}
+        self.gleif_checked_at: datetime | None = None
         #: Called after every change (used for autosaving project files).
         self.on_change: Callable[[Workspace], None] | None = None
         self.lock = threading.RLock()
@@ -109,6 +115,8 @@ class Workspace:
         with self.lock:
             if self._derived is None:
                 register, parse_findings = self._parser.parse(self.raw)
+                if self.gleif:
+                    parse_findings = [*parse_findings, *gleif_findings(register, self.gleif)]
                 report = validate(register, parse_findings=parse_findings, config=self.config,
                                   source=self.source)
                 for acc in apply_acceptances(report, self.acceptances):
@@ -384,6 +392,19 @@ class Workspace:
                 raise EditError("no such accepted finding")
             self.changes.append(Change("unaccept", "register", 0, None, None, None, user=user,
                                        note=f"{acc.rule_id}: {acc.reason}"))
+            self._invalidate()
+            self._changed()
+
+    def set_gleif(self, records: dict[str, LeiRecord | None], user: str = DEFAULT_USER) -> None:
+        """Store the result of an online LEI check and log it in the audit trail."""
+        with self.lock:
+            self.gleif = dict(records)
+            self.gleif_checked_at = _now()
+            missing = sum(1 for r in records.values() if r is None)
+            lapsed = sum(1 for r in records.values() if r is not None and not r.in_good_standing)
+            self.changes.append(Change("gleif", "register", 0, None, None, None, user=user,
+                                       note=f"{len(records)} LEI(s) checked with GLEIF: "
+                                       f"{missing} not found, {lapsed} not in good standing"))
             self._invalidate()
             self._changed()
 

@@ -1,0 +1,46 @@
+name: Pilot feedback
+description: Report a problem or an idea from the 0.2.0 pilot (docs/PILOT.md). No real client data!
+labels: [pilot]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never include real register data** – no names, LEIs, contract references or costs of
+        real entities, in text, screenshots or files. Reproduce with the Alpenrand sample or
+        describe the problem in general terms. Security problems: report them privately
+        (SECURITY.md), not here.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: [Bug, Usability, Missing feature, Regulatory content, Documentation]
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact on the pilot work
+      options: [High – blocks the work, Medium – workaround exists, Low – cosmetic or idea]
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Import, Fix and validation, Export (xBRL-CSV), Analysis and reports, Team use and sign-in, Art. 30 contracts, Incidents, FINMA, Readiness, GLEIF check, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Steps with the sample data if possible.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown at the bottom of every page (e.g. 0.2.0-rc.1).
+    validations:
+      required: true

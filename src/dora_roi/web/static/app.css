@@ -25,6 +25,8 @@ main { max-width: 1240px; }
 .brand .logo { color: var(--accent-ink); }
 .tools { margin-left: auto; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .tools ul { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.tools .user { margin: 0; }
+.tools .user a { min-width: 0; display: inline; }
 .tools a, .tools button { display: inline-flex; align-items: center; justify-content: center; min-width: 36px;
   min-height: 32px; padding: 4px 10px; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 600;
   color: var(--text-secondary); text-decoration: none; background: transparent; border: 1px solid var(--border); cursor: pointer; }

@@ -146,6 +146,13 @@ def test_security_headers(client: TestClient) -> None:
     assert rep.headers["content-security-policy"] == REPORT_CSP
 
 
+def test_no_interactive_api_docs(client: TestClient) -> None:
+    """Security self-test finding: Swagger UI/ReDoc publish the route surface and load CDN
+    scripts; they are switched off."""
+    for path in ("/docs", "/redoc", "/openapi.json", "/docs/oauth2-redirect"):
+        assert client.get(path).status_code == 404, path
+
+
 def test_workspace_ids_are_unguessable(client: TestClient) -> None:
     url = _ws_url(client)
     assert len(url.rsplit("/", 1)[1]) == 32

@@ -206,3 +206,55 @@ jobs:
         run: docker build -t dora-roi-toolkit:ci .
       - name: Smoke test (read-only, no capabilities, non-root)
         run: scripts/docker_smoke.sh dora-roi-toolkit:ci
+
+  dast:
+    name: Security self-test, ZAP scan and sign-in (oauth2-proxy + mock Entra ID)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Build
+        run: docker build -t dora-roi-toolkit:ci .
+      - name: Start the workbench (local mode, hardened container)
+        run: |
+          docker run -d --name roi -p 127.0.0.1:8000:8000 --read-only --tmpfs /tmp \
+            --cap-drop ALL --security-opt no-new-privileges:true dora-roi-toolkit:ci
+          for _ in $(seq 1 30); do curl -fsS http://127.0.0.1:8000/api/health && break; sleep 1; done
+      - name: Security self-test (local mode)
+        run: python3 scripts/security_selftest.py http://127.0.0.1:8000 --report selftest-local.md
+      - name: OWASP ZAP baseline scan (fails on the rules marked FAIL in .zap/rules.tsv)
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25  # v0.15.0
+        with:
+          target: http://127.0.0.1:8000/
+          rules_file_name: .zap/rules.tsv
+          cmd_options: -I
+          fail_action: true
+          allow_issue_writing: false
+          artifact_name: zap-baseline
+      - name: Stop the local-mode container
+        if: always()
+        run: docker rm -f roi
+      - name: Start the team stack with a mock Entra ID
+        working-directory: deploy/team
+        run: |
+          echo "127.0.0.1 mock-oidc" | sudo tee -a /etc/hosts
+          export OAUTH2_PROXY_COOKIE_SECRET="$(python3 -c 'import secrets,base64;print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())')"
+          docker compose -f docker-compose.yml -f compose.ci-mock.yml up -d
+          for _ in $(seq 1 60); do curl -fsS http://localhost:4180/ping && break; sleep 1; done
+      - name: Sign-in end to end (authorisation code flow through oauth2-proxy)
+        run: python3 scripts/sso_check.py http://localhost:4180 --expect-user anna.muster@example.com
+      - name: Security self-test (team mode, public address)
+        run: python3 scripts/security_selftest.py http://localhost:4180 --team --report selftest-team.md
+      - name: The workbench container publishes no port
+        run: "! curl -fsS --max-time 3 http://127.0.0.1:8000/api/health"
+      - name: Logs
+        if: failure()
+        working-directory: deploy/team
+        run: docker compose -f docker-compose.yml -f compose.ci-mock.yml logs --tail 80
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        if: always()
+        with:
+          name: security-selftest
+          path: selftest-*.md
+          retention-days: 30

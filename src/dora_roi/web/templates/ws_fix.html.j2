@@ -4,6 +4,19 @@
 {% block content %}
 <h2>{{ t("fix.title") }}</h2>
 <p class="lead">{{ t("fix.lead") }}</p>
+{% if gleif_enabled() %}
+{% if gleif_status == "error" %}
+<div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span><div>{{ t("gleif.error") }}</div></div>
+{% elif gleif_status == "done" %}
+<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("gleif.done", n=ws.gleif | length) }}</div></div>
+{% endif %}
+{% if not ws.session.read_only %}
+<form method="post" action="/w/{{ ws.id }}/gleif" class="filter-row" data-gleif>
+  <button class="btn" type="submit">{{ t("gleif.button") }}</button>
+  <span class="small muted">{{ t("gleif.note") }}{% if ws.gleif_checked_at %} {{ t("gleif.last", at=ws.gleif_checked_at.strftime("%Y-%m-%d %H:%M UTC")) }}{% endif %}</span>
+</form>
+{% endif %}
+{% endif %}
 {% if not grouped %}
 <div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("fix.none_all") }}</div></div>
 {% else %}

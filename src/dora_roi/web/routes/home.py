@@ -34,6 +34,7 @@ from dora_roi.web.helpers import (
 )
 from dora_roi.web.i18n import translator
 from dora_roi.web.security import (
+    cookie_secure,
     safe_next,
 )
 from dora_roi.web.spaces import (
@@ -171,5 +172,5 @@ async def set_user(ctx: Ctx, request: Request) -> Response:
     target = safe_next(str(form.get("next", "")), "/")
     response = RedirectResponse(target, status_code=303)
     response.set_cookie("roi_user", name, max_age=31536000, samesite="strict",
-                        httponly=True)
+                        httponly=True, secure=cookie_secure(request))
     return response

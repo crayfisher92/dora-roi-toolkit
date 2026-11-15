@@ -41,6 +41,14 @@ BASE_HEADERS = {
 }
 
 
+def cookie_secure(request: Request) -> bool:
+    """Whether cookies get the ``Secure`` flag: over HTTPS, and always in team mode or with
+    ``ROI_SECURE_COOKIES=1`` – behind a TLS-terminating proxy the app itself only sees HTTP
+    (it deliberately ignores ``X-Forwarded-Proto``)."""
+    return request.url.scheme == "https" or bool(
+        getattr(request.app.state, "secure_cookies", False))
+
+
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         response = await call_next(request)
@@ -175,5 +183,5 @@ class SessionMiddleware(BaseHTTPMiddleware):
             CURRENT_SESSION.reset(token)
         if new:
             response.set_cookie(SESSION_COOKIE, sid, httponly=True, samesite="strict",
-                                secure=request.url.scheme == "https", path="/")
+                                secure=cookie_secure(request), path="/")
         return response

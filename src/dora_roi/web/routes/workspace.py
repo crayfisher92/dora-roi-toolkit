@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 
 from dora_roi.fixes import bulk_groups, findings_by_template, suggest
+from dora_roi.gleif import GleifError, register_leis
 from dora_roi.model import TEMPLATE_MODELS, TEMPLATES_BY_CODE
 from dora_roi.project import save_project
 from dora_roi.validation import Finding, finding_key
@@ -51,7 +52,8 @@ def overview(ctx: Ctx, request: Request, wid: str) -> HTMLResponse:
 
 @router.get("/w/{wid}/fix", response_class=HTMLResponse)
 def fix(ctx: Ctx, request: Request, wid: str, template: str | None = None,
-        severity: str | None = None, rule: str | None = None) -> HTMLResponse:
+        severity: str | None = None, rule: str | None = None,
+        gleif: str | None = None) -> HTMLResponse:
     ws = ctx.ws_or_404(wid)
     findings = ws.report.sorted_findings()
     grouped = findings_by_template(findings)
@@ -67,6 +69,7 @@ def fix(ctx: Ctx, request: Request, wid: str, template: str | None = None,
     return ctx.ws_page(request, ws, "ws_fix.html.j2", "fix", grouped=grouped,
                    template=template, by_sev=by_sev, severity=severity, rule=rule,
                    bulks=bulks, suggest=suggest, limit=FIX_GROUP_LIMIT,
+                   gleif_status=gleif if gleif in ("done", "error") else None,
                    column_label=_column_label, raw_value=lambda f: _raw_value(ws, f))
 
 @router.post("/w/{wid}/cell")
@@ -225,6 +228,25 @@ async def unaccept(ctx: Ctx, request: Request, wid: str) -> Response:
         raise HTTPException(status_code=404) from exc
     return RedirectResponse(safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
                             status_code=303)
+
+@router.post("/w/{wid}/gleif")
+async def gleif_check(ctx: Ctx, request: Request, wid: str) -> Response:
+    """Check the register's LEIs against GLEIF (only when ROI_GLEIF=1)."""
+    client = ctx.gleif
+    if client is None:
+        raise HTTPException(status_code=404)
+    ws = ctx.ws_for_edit(wid)
+    user = user_of(request)
+
+    def run() -> None:
+        ws.set_gleif(client.lookup(register_leis(ws.register)), user=user)
+        ws.report  # noqa: B018 - re-validate in the worker thread
+
+    try:
+        await ctx.offload(run)
+    except GleifError:
+        return RedirectResponse(f"/w/{wid}/fix?gleif=error", status_code=303)
+    return RedirectResponse(f"/w/{wid}/fix?gleif=done", status_code=303)
 
 @router.post("/w/{wid}/close")
 def close(ctx: Ctx, wid: str) -> Response:

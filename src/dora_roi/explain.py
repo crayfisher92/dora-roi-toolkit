@@ -111,6 +111,33 @@ EXPLANATIONS: dict[str, Explanation] = {
                  "Der Dienstleistercode passt nicht zum Typ: Ein LEI muss gültig sein, eine EUID "
                  "beginnt mit Ländercode und Registernummer, und ein gültiger LEI ist als LEI "
                  "zu kennzeichnen. Korrigieren Sie Code oder Typ."),
+    "GLEIF-001": E("LEI nicht im GLEIF-Index",
+                   "The LEI has valid check digits but GLEIF has no record of it. Check it for "
+                   "typing errors against the entity's LEI certificate or search.gleif.org.",
+                   "Der LEI hat gültige Prüfziffern, ist bei GLEIF aber nicht verzeichnet. "
+                   "Prüfen Sie ihn auf Tippfehler anhand des LEI-Nachweises oder "
+                   "search.gleif.org."),
+    "GLEIF-002": E("LEI nicht gültig registriert",
+                   "The LEI is lapsed (not renewed), retired, annulled or a duplicate, or the "
+                   "entity no longer exists (e.g. merged). Ask the entity to renew its LEI, or "
+                   "report the successor's LEI if the message names one.",
+                   "Der LEI ist abgelaufen (nicht erneuert), stillgelegt, annulliert oder ein "
+                   "Duplikat, oder die Einheit besteht nicht mehr (z. B. fusioniert). Lassen Sie "
+                   "den LEI erneuern oder melden Sie den LEI des Nachfolgers, falls genannt."),
+    "GLEIF-003": E("Name weicht vom GLEIF-Eintrag ab",
+                   "The name in the register is neither the GLEIF legal name nor one of its "
+                   "other names. Use the legal name, or check that the LEI belongs to this "
+                   "entity.",
+                   "Der Name im Register ist weder der rechtliche Name bei GLEIF noch einer der "
+                   "weiteren Namen. Verwenden Sie den rechtlichen Namen oder prüfen Sie, ob der "
+                   "LEI zu dieser Einheit gehört."),
+    "GLEIF-004": E("Land weicht vom GLEIF-Eintrag ab",
+                   "The country differs from GLEIF: the legal address for entities, the "
+                   "headquarters for providers. Correct the country, or the LEI if it belongs "
+                   "to another entity of the group.",
+                   "Das Land weicht von GLEIF ab: rechtliche Adresse bei Unternehmen, Hauptsitz "
+                   "bei Dienstleistern. Korrigieren Sie das Land oder den LEI, falls er zu einer "
+                   "anderen Gruppengesellschaft gehört."),
     "FLD-014": E("Bedingtes Pflichtfeld leer",
                  "The ITS makes this column mandatory in this case – for example notice periods "
                  "and governing law when the service supports a critical or important function, "

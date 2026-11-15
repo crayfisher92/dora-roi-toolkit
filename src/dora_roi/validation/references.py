@@ -44,6 +44,8 @@ REFERENCES: dict[str, str] = {
     "ITS Art. – consistency": "Information across templates must be consistent and linked "
     "through the contractual arrangement reference number and identification codes.",
     "ISO 17442": "Legal Entity Identifier format and MOD 97-10 check digits.",
+    "GLEIF Global LEI Index (reference data)": "Public LEI reference data of the Global Legal "
+    "Entity Identifier Foundation (api.gleif.org); used only by the opt-in online check.",
     "ISO 3166-1": "Country codes (alpha-2).",
     "ISO 4217": "Currency codes.",
     "ISO 8601": "Date format YYYY-MM-DD.",

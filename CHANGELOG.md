@@ -8,8 +8,38 @@ format; they are listed under **Changed** with migration notes.
 
 ## [Unreleased]
 
-Team use of the workbench ([`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md)) and the
-reconciliation of the register with the official EBA material for reporting framework 4.0.
+## [0.2.0-rc.1] - 2026-11-15
+
+Release candidate for the pilot ([`docs/PILOT.md`](docs/PILOT.md)): team use of the
+workbench ([`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md)), the reconciliation of the
+register with the official EBA material for reporting framework 4.0, the DORA programme
+modules (experimental), an opt-in GLEIF check and a security self-test in CI.
+
+### Added – pilot readiness
+
+- **Opt-in online LEI check against GLEIF** (`roi validate --online`; in the workbench
+  *Check LEIs with GLEIF* on the Fix page when `ROI_GLEIF=1`): unknown LEIs (`GLEIF-001`),
+  lapsed, retired or annulled LEIs and inactive entities with their successor (`GLEIF-002`),
+  names (`GLEIF-003`) and countries (`GLEIF-004`) that differ from the GLEIF record. Sends
+  only the LEIs to `api.gleif.org`; off by default, the toolkit stays offline otherwise.
+- **Security self-test in CI** on the built container: `scripts/security_selftest.py`
+  (headers, cookies, CSRF, path traversal, size limits, API surface, team-mode header
+  spoofing), an OWASP ZAP baseline scan, and the **sign-in end to end through oauth2-proxy
+  with a mock Entra ID** (`scripts/sso_check.py`, `deploy/team/compose.ci-mock.yml`).
+  Scope for the external penetration test in
+  [`docs/SECURITY_TESTING.md`](docs/SECURITY_TESTING.md).
+- **Entra ID sign-in test protocol** for the client's tenant
+  ([`docs/ENTRA_SIGNIN_TEST.md`](docs/ENTRA_SIGNIN_TEST.md)) and a pilot plan with success and
+  exit criteria ([`docs/PILOT.md`](docs/PILOT.md)); *Pilot feedback* issue template.
+- In team mode the header shows the signed-in user and a *Sign out* link.
+
+### Security
+
+- Cookies carry the `Secure` flag in team mode (the TLS proxy made the app see HTTP, so the
+  session cookie never had it) or with `ROI_SECURE_COOKIES=1`; all cookies are `HttpOnly`.
+- The interactive API docs (`/docs`, `/redoc`, `/openapi.json`) are switched off.
+- The team deployment uses oauth2-proxy **v7.15.6** (was v7.7.1) with the `entra-id`
+  provider, PKCE, `SameSite=Lax` and an 8-hour session.
 
 ### Added – engineering
 
@@ -266,5 +296,6 @@ reconciled against the official EBA taxonomy package (see [Known limitations](#k
 - The workbench has no user accounts; shared deployments need an authenticating reverse
   proxy. Project files are not encrypted.
 
-[Unreleased]: https://github.com/crayfisher92/dora-roi-toolkit/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/crayfisher92/dora-roi-toolkit/compare/v0.2.0-rc.1...HEAD
+[0.2.0-rc.1]: https://github.com/crayfisher92/dora-roi-toolkit/compare/v0.1.0...v0.2.0-rc.1
 [0.1.0]: https://github.com/crayfisher92/dora-roi-toolkit/releases/tag/v0.1.0

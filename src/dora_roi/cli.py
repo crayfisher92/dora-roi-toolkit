@@ -15,7 +15,13 @@ from dora_roi.api import validate_loaded
 from dora_roi.io.limits import InputTooLargeError
 from dora_roi.io.loader import LoadResult, UnsupportedInputError, load
 from dora_roi.io.xbrl_csv import CodeMap, XbrlCsvOptions, export_xbrl_csv, load_code_map
-from dora_roi.validation import Severity, ValidationConfig, ValidationReport, rules_catalogue
+from dora_roi.validation import (
+    Finding,
+    Severity,
+    ValidationConfig,
+    ValidationReport,
+    rules_catalogue,
+)
 from dora_roi.validation import validate as validate_register
 
 EXIT_FINDINGS = 1
@@ -106,10 +112,13 @@ def main() -> None:
 @click.option("--disable", multiple=True, metavar="RULE", help="Skip a rule (repeatable).")
 @click.option("--downgrade", multiple=True, metavar="RULE",
               help="Report a rule as a warning instead of its default severity (repeatable).")
+@click.option("--online", is_flag=True,
+              help="Also check the LEIs against the GLEIF Global LEI Index (rules GLEIF-*). "
+              "Sends only the LEIs to api.gleif.org; off by default.")
 @ref_date_opt
 @code_map_opt
 def validate(input_path: Path, fmt: str, output: Path | None, fail_on: str,
-             disable: tuple[str, ...], downgrade: tuple[str, ...],
+             disable: tuple[str, ...], downgrade: tuple[str, ...], online: bool,
              reference_date: object, code_map: Path | None) -> None:
     """Validate a register and print or save a report."""
     from dora_roi.reporting import render
@@ -119,7 +128,18 @@ def validate(input_path: Path, fmt: str, output: Path | None, fail_on: str,
         raise click.UsageError(f"--format {fmt} needs --output FILE")
     ref = reference_date.date() if hasattr(reference_date, "date") else None
     loaded = _load(input_path, _code_map(code_map))
-    report = validate_loaded(loaded, _config(disable, ref, downgrade))
+    extra: list[Finding] = []
+    if online:
+        from dora_roi.gleif import GleifError, check_register
+
+        try:
+            records, extra = check_register(loaded.register)
+        except GleifError as exc:
+            click.echo(f"Online LEI check failed: {exc}. Run without --online to validate "
+                       "offline.", err=True)
+            sys.exit(EXIT_USAGE)
+        click.echo(f"GLEIF: {len(records)} LEI(s) checked, {len(extra)} finding(s).", err=True)
+    report = validate_loaded(loaded, _config(disable, ref, downgrade), extra)
     if fmt == "pdf" and output is not None:
         _write_pdf(lambda: render_pdf(report), output)
     elif fmt == "xlsx" and output is not None:

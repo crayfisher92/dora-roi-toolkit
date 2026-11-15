@@ -1,7 +1,7 @@
 {
   "schema": "dora-roi-toolkit/validation-report/v1",
-  "toolkit_version": "0.1.0",
-  "generated_at": "2026-11-15T10:27:01.756591+00:00",
+  "toolkit_version": "0.2.0-rc.1",
+  "generated_at": "2026-11-15T12:30:34.190730+00:00",
   "source": "alpenrand-sample.xlsx",
   "reference_date": "2025-12-31",
   "maintainer": {
@@ -15,7 +15,7 @@
       "warning": 6,
       "info": 1
     },
-    "rules_run": 65,
+    "rules_run": 69,
     "record_counts": {
       "B_01.01": 1,
       "B_01.02": 3,

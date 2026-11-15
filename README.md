@@ -11,10 +11,12 @@ It gives GRC consultants and ICT third-party risk teams:
 - a **typed data model** of all 14 ITS templates (B_01.01 – B_07.01) and the DPM's B_99.01
   (internal definitions) with column codes,
   mandatory/conditional flags, code lists and cross-template keys;
-- a **validation engine** with 65 rules – field formats (LEI checksum per ISO 17442, ISO
+- a **validation engine** with 69 rules – field formats (LEI checksum per ISO 17442, ISO
   3166/4217/8601, code lists), cross-template referential integrity, subcontracting-chain
   resolution and DORA business rules (e.g. *critical functions have an exit plan*) – producing
-  **HTML, Markdown and JSON** reports with severities and exact row/column locations;
+  **HTML, Markdown and JSON** reports with severities and exact row/column locations; an
+  **opt-in online LEI check** against the GLEIF index (`--online`, `ROI_GLEIF=1`) finds
+  unknown, lapsed and retired LEIs and name or country mismatches;
 - **import/export**: multi-sheet Excel (with a blank template generator), CSV folders/zips and
   a **best-effort xBRL-CSV** report package;
 - **concentration-risk analytics** and an **executive summary** (HTML with charts) for a CRO;
@@ -171,7 +173,7 @@ story is in [`docs/DEMO.md`](docs/DEMO.md). Screenshots are regenerated with
 
 | Command | Purpose | Notable options |
 |---|---|---|
-| `roi validate INPUT` | Validate a register | `-f text\|json\|md\|html\|pdf`, `-o FILE`, `--fail-on error\|warning\|never`, `--disable RULE`, `--downgrade RULE`, `--reference-date`, `--code-map` |
+| `roi validate INPUT` | Validate a register | `-f text\|json\|md\|html\|pdf`, `-o FILE`, `--fail-on error\|warning\|never`, `--disable RULE`, `--downgrade RULE`, `--online` (GLEIF check), `--reference-date`, `--code-map` |
 | `roi report INPUT -o FILE` | Executive summary (`.html` or `.pdf`) | `--client`, `--prepared-by`, `--validation-report FILE`, `--json FILE` |
 | `roi export INPUT -o OUT` | Export | `--format xbrl-csv\|excel\|csv`, `--unzipped`, `--strict`, `--level CON\|IND\|SUB`, `--entry-point`, `--code-map`, `--exclude-entity LEI` (xbrl-csv: entity outside the DORA scope, repeatable) |
 | `roi template FILE` | Blank Excel template | `--sample [--clean]` to pre-fill |
@@ -288,6 +290,8 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
 | `ROI_LOCK_MINUTES` | `30` | Inactivity after which a project's edit lock may be taken over |
 | `ROI_MAX_USER_WORKSPACES` / `ROI_MAX_USER_ROWS` | `10` / `200000` | Per-user share of the workspaces and rows held in memory |
 | `ROI_MAX_PARALLEL_JOBS` | `4` | Imports, project loads and edits processed at the same time |
+| `ROI_GLEIF` | *(unset: off)* | `1` shows *Check LEIs with GLEIF* on the Fix page; the server then needs outbound HTTPS to `api.gleif.org` (proxy via `HTTPS_PROXY`). Sends only LEIs |
+| `ROI_SECURE_COOKIES` | *(unset)* | `1` marks cookies `Secure` in local mode too, when the workbench is served over HTTPS by a proxy; always on in team mode |
 | `ROI_MAX_UNCOMPRESSED_MB` | `200` | Maximum uncompressed size of an uploaded workbook / zip / project file |
 | `ROI_MAX_ROWS_PER_TABLE` | `100000` | Maximum rows per template on import |
 | `ROI_MAX_STORE_ROWS` | `500000` | Rows the workbench keeps in memory across all workspaces (≈ 2 KB per row); least recently used workspaces are evicted first |
@@ -309,6 +313,10 @@ team, run the workbench behind oauth2-proxy with Microsoft Entra ID – see
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Engineering decisions and their rationale |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Modules, data flow, report schema, extension guide |
 | [`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md) | Running the workbench for a team: SSO with oauth2-proxy and Entra ID, private and team project spaces, edit locks, limits |
+| [`docs/ENTRA_SIGNIN_TEST.md`](docs/ENTRA_SIGNIN_TEST.md) | Sign-in test protocol for the client's Entra ID tenant |
+| [`docs/SECURITY_TESTING.md`](docs/SECURITY_TESTING.md) | Security self-test in CI, its findings, and the scope for an external penetration test |
+| [`docs/PILOT.md`](docs/PILOT.md) | Pilot plan for the release candidate: scope, timeline, data handling, success and exit criteria |
+| [`docs/MODULE_REVIEW.md`](docs/MODULE_REVIEW.md) | Review of the programme modules against the source texts, open items |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model (STRIDE), security controls and residual risks; disclosure policy in [`SECURITY.md`](SECURITY.md) |
 | [`docs/UX.md`](docs/UX.md) | Personas, jobs to be done, screen flow, accessibility principles |
 | [`docs/ART30_CHECKLIST.md`](docs/ART30_CHECKLIST.md) | The 22 Art. 30 provisions with references (generated) |
@@ -325,7 +333,8 @@ team, run the workbench behind oauth2-proxy with Microsoft Entra ID – see
 - The xBRL-CSV export follows the EBA reporting framework 4.0 (official code map, filing
   indicators, conventions) but is not an official tool; reference dates from December 2027
   need the announced framework 4.4 phase 2 package.
-- No GLEIF/BRIS look-up (LEIs and EUIDs are checked for format and check digits only), no FX
+- Offline, LEIs and EUIDs are checked for format and check digits only; the GLEIF check is
+  opt-in and sends only the LEIs to api.gleif.org. No BRIS look-up for EUIDs, no FX
   conversion.
 - The workbench has no login of its own: run it locally, or for a team behind the SSO proxy
   ([`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md)); it runs as a single process.
