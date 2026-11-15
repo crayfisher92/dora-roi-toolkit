@@ -5,6 +5,7 @@
 {% macro coverage_pill(c) -%}{{ pill({"full": "present", "partial": "partial", "none": "missing"}[c.value], t("fin.cov." ~ c.value)) }}{%- endmacro %}
 <h2>{{ t("fin.title") }}</h2>
 <p class="lead">{{ t("fin.lead") }}</p>
+<p class="small muted"><strong>{{ t("mod.experimental.label") }}</strong> – {{ t("mod.experimental") }}</p>
 {% set counts = view.counts() %}
 <section class="grid tiles" aria-label="{{ t('fin.coverage') }}">
   <div class="card tile"><div class="label">{{ t("fin.score") }}</div><div class="value">{{ "%.0f" | format(view.coverage_score * 100) }}%</div>

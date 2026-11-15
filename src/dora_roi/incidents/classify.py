@@ -215,10 +215,15 @@ def classify_answers(a: Answers, th: Thresholds = DEFAULT_THRESHOLDS,
                      incident: Incident | None = None,
                      now: datetime | None = None) -> Classification:
     results: dict[Criterion, CriterionResult] = {}
-    crit = CriterionResult(Criterion.CRITICAL_SERVICES, a.critical_services)
-    if a.critical_services is None:
+    # RTS 2024/1772 Art. 6(c): a successful, malicious and unauthorised access to network and
+    # information systems is itself an impact on critical services
+    gate = True if a.malicious_access is True else a.critical_services
+    crit = CriterionResult(Criterion.CRITICAL_SERVICES, gate)
+    if gate is None:
         crit.open_questions.append("critical_services")
-    elif a.critical_services:
+    elif a.malicious_access is True and not a.critical_services:
+        crit.triggers.append(Trigger("malicious_access", "yes", "RTS Art. 6(c)"))
+    elif gate:
         crit.triggers.append(Trigger("critical_services", "yes", "required"))
     results[Criterion.CRITICAL_SERVICES] = crit
     results[Criterion.CLIENTS] = _clients(a, th)

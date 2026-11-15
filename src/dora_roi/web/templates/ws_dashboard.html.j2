@@ -3,6 +3,8 @@
 {% block content %}
 <h2>{{ t("rd.title") }}</h2>
 <p class="lead">{{ t("rd.lead") }}</p>
+<p class="small muted"><strong>{{ t("mod.experimental.label") }}</strong> – {{ t("mod.experimental") }}</p>
+<p class="small muted">{{ t("rd.scope") }}</p>
 <section class="card overall-card rag-{{ rd.overall.value }}" aria-labelledby="h-overall">
   <h3 id="h-overall">{{ t("rd.overall") }}: <span class="pill {{ rd.overall.value }}">{{ t("rag." ~ rd.overall.value) }}</span></h3>
   <p>{{ t("rd.overall." ~ rd.overall.value) }}</p>

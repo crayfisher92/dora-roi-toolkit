@@ -57,10 +57,12 @@ def test_evaluation_without_and_with_programme_data() -> None:
     reg = generate_sample().register
     bare = evaluate_finma(reg)
     by_id = {s.requirement.id: s for s in bare.statuses}
-    assert by_id["FIN-OS-02"].effective is Coverage.FULL
+    # Rz 14 also covers non-ICT outsourcings and Swiss entities: the RoI is partial by design
+    assert by_id["FIN-OS-02"].effective is Coverage.PARTIAL
     assert by_id["FIN-OS-05"].effective is Coverage.NONE
     assert by_id["FIN-OS-11"].effective is Coverage.NONE  # only Art. 30 evidence, none given
-    assert by_id["FIN-OS-14"].effective is Coverage.FULL  # nothing applicable to measure
+    assert by_id["FIN-OS-14"].effective is Coverage.PARTIAL  # nothing to measure: design kept
+    assert by_id["FIN-OR-02"].effective is Coverage.NONE  # an RTO is no disruption tolerance
     now = datetime(2026, 1, 15, tzinfo=UTC)
     full = evaluate_finma(reg, evaluate(reg, sample_assessments(reg)),
                           sample_incidents(reg, now), now)
@@ -69,7 +71,8 @@ def test_evaluation_without_and_with_programme_data() -> None:
     assert 0 < (by_id["FIN-OS-11"].art30_share or 0) < 0.2
     assert by_id["FIN-OR-07"].incidents_classified == 1.0
     assert full.coverage_score > bare.coverage_score
-    assert full.counts(OUTSOURCING)["full"] == 5 and sum(full.counts().values()) == 24
+    assert full.counts(OUTSOURCING) == {"full": 0, "partial": 13, "none": 1}
+    assert sum(full.counts().values()) == 24
     assert len(full.by_circular(OPRISK)) == 10
     ctx = full.context
     assert ctx.swiss_entities == 0 and "Helix Core Banking AG" in [n for _, n in
@@ -82,7 +85,7 @@ def test_full_coverage_needs_complete_data() -> None:
     reg.b_05_01[0].hq_country = None
     reg.b_05_01[1].hq_country = None
     s = {x.requirement.id: x for x in evaluate_finma(reg).statuses}
-    assert s["FIN-OS-02"].effective is Coverage.PARTIAL and s["FIN-OS-02"].completeness == 0
+    assert s["FIN-OS-02"].effective is Coverage.NONE and s["FIN-OS-02"].completeness == 0
     empty = evaluate_finma(RegisterOfInformation())
     assert all(x.effective is not Coverage.FULL for x in empty.statuses)
     assert empty.context.swiss_spend_share == 0.0
@@ -113,7 +116,8 @@ def test_cli_finma(tmp_path: Path) -> None:
     assert r.exit_code == 0
     r = runner.invoke(main, ["finma", str(reg), "--assessments", str(tmp_path / "a.json"),
                              "--incidents", str(tmp_path / "i.json")])
-    assert r.exit_code == 0 and "Coverage score 56%" in r.output
+    assert r.exit_code == 0
+    assert "Coverage score 44%: 0 covered, 21 partly, 3 not covered." in r.output
     r = runner.invoke(main, ["finma", str(reg), "-f", "json", "-o", str(tmp_path / "f.json"),
                              "--lang", "de"])
     data = json.loads((tmp_path / "f.json").read_text())

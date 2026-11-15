@@ -158,10 +158,53 @@ footer { margin-top: 48px; color: var(--text-muted); font-size: 12.5px; }
 .filter-row input, .filter-row select { font: inherit; font-size: 14px; padding: 6px 10px;
   border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1);
   color: var(--text-primary); }
+/* ------------------------------------------------------------------ print / PDF
+   Used by the browser's "Print → Save as PDF" and by the PDF export (WeasyPrint), so both
+   produce the same A4 document: light colours, page numbers, repeated table headers, no
+   interactive controls. */
+@page {
+  size: A4;
+  margin: 16mm 14mm 18mm;
+  @bottom-left { content: string(doc-title); font: 8pt sans-serif; color: #6f6d68; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt sans-serif;
+    color: #6f6d68; }
+}
+h1 { string-set: doc-title content(); }
 @media print {
-  body { background: #fff; }
-  .card, .table-wrap { break-inside: avoid; }
-  .filter-row { display: none; }
+  :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+    color-scheme: light;
+    --page: #ffffff; --surface-1: #ffffff; --surface-2: #f3f2ee;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #6f6d68;
+    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11, 11, 11, 0.16);
+    --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+    --ord-1: #86b6ef; --ord-2: #3987e5; --ord-3: #1c5cab; --ord-4: #0d366b;
+    --series-muted: #c3c2b7; --accent-ink: #1c5cab; --good-ink: #006300;
+  }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; font-size: 9.5pt; line-height: 1.45; }
+  main { max-width: none; padding: 0; margin: 0; }
+  h1 { font-size: 20pt; }
+  h2 { font-size: 13.5pt; margin: 20pt 0 8pt; break-after: avoid; }
+  h3 { font-size: 11pt; margin: 12pt 0 6pt; break-after: avoid; }
+  .tiles { grid-template-columns: repeat(3, 1fr); gap: 8pt; }
+  .two { grid-template-columns: 1fr; gap: 10pt; }  /* charts stay legible at full width */
+  svg.chart { max-width: 150mm; }
+  .tile .value { font-size: 18pt; }
+  .card { padding: 9pt 11pt; }
+  .card, .tile, .banner, .kf li, tr, .seg-bar, .legend, svg.chart { break-inside: avoid; }
+  .table-wrap { overflow: visible; border-radius: 4pt; }
+  table { font-size: 8.5pt; }
+  thead { display: table-header-group; }
+  th { position: static; }
+  th, td { padding: 4pt 6pt; overflow-wrap: break-word; hyphens: auto; }
+  td .small, td.small, .mono, code { font-size: 8pt; }
+  .section-lead { break-after: avoid; }
+  th.num { white-space: normal; }  /* long numeric headers wrap instead of widening the table */
+  .badge { display: inline-block; padding: 1pt 6pt 1pt 5pt; }
+  .badge::before { display: inline-block; margin-right: 4pt; vertical-align: 0; }
+  a { color: inherit; text-decoration: none; }
+  .filter-row, #viz-tip, .no-print { display: none !important; }
+  footer { margin-top: 18pt; }
 }/* Shared styles of the programme reports (remediation plan, incident summary, readiness). */
 .section-lead { color: var(--text-secondary); max-width: 80ch; }
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650;
@@ -192,6 +235,13 @@ td.wrap, th.wrap { min-width: 220px; }
 @page { size: A4; margin: 16mm 14mm; }
 @media print {
   :root, :root[data-theme="dark"] { color-scheme: light; }
+  .rag { grid-template-columns: repeat(3, 1fr); gap: 8pt; }
+  .rag .card { padding: 8pt 10pt; }
+  .rag .metric { font-size: 15pt; }
+  .pill { display: inline-block; padding: 1pt 6pt 1pt 5pt; }
+  .pill::before { display: inline-block; margin-right: 4pt; vertical-align: 0; }
+  .overall { display: block; }
+  .overall .light { float: left; margin-right: 12pt; width: 30pt; height: 30pt; }
   body { font-size: 11.5px; }
   main { max-width: none; padding: 0; }
   h2 { break-after: avoid; page-break-after: avoid; }
@@ -206,14 +256,15 @@ td.wrap, th.wrap { min-width: 220px; }
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0;
   margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .incident-detail { margin-top: 16px; }
-.incident-detail h2 { margin-top: 0; }</style>
+.incident-detail h2 { margin-top: 0; }
+.pill.exception::before { background: var(--accent-ink); }</style>
 </head>
 <body>
 <main>
 <header class="doc">
   <p class="eyebrow">DORA · Regulation (EU) 2022/2554 · Art. 30</p>
   <h1>Contract remediation plan (DORA Art. 30) – Alpenrand Group</h1>
-  <p class="meta">Prepared 05 Nov 2026</p>
+  <p class="meta">Prepared 15 Nov 2026</p>
   <p class="section-lead">Gaps found when the contractual arrangements of the register were assessed against the key contractual provisions of DORA Art. 30, prioritised by the criticality of the functions they support.</p>
 </header>
 
@@ -224,16 +275,17 @@ td.wrap, th.wrap { min-width: 220px; }
     <div class="sub">16% of arrangements supporting critical functions assessed</div></div>
   <div class="card tile"><div class="label">With gaps</div><div class="value">14</div>
     <div class="sub">Gaps (missing · partial): 22 · 22</div></div>
-  <div class="card tile"><div class="label">Remediation actions</div><div class="value">35</div>
-    <div class="sub"><span class="pill high">18 high</span> <span class="pill medium">15 medium</span> <span class="pill low">2 low</span></div></div>
+  <div class="card tile"><div class="label">Remediation actions</div><div class="value">34</div>
+    <div class="sub"><span class="pill high">18 high</span> <span class="pill medium">14 medium</span> <span class="pill low">2 low</span></div></div>
 </section>
+<p class="section-lead">Progress: 1 agreed · 2 in negotiation · 1 planned · 30 not started. <strong>1 past the agreed target date.</strong> 30 past the proposed target date (no date agreed).</p>
 
 <h2 id="actions">Remediation actions</h2>
 <div class="table-wrap" tabindex="0" role="region" aria-label="Remediation actions"><table>
   <caption class="visually-hidden">Remediation actions</caption>
   <thead><tr><th scope="col">#</th><th scope="col">Priority</th><th scope="col">ICT third-party service provider · Arrangement</th>
     <th scope="col" class="wrap">Provision</th><th scope="col" class="wrap">Finding</th>
-    <th scope="col" class="wrap">Recommended action</th><th scope="col">Target date</th><th scope="col">Contract end</th></tr></thead>
+    <th scope="col" class="wrap">Recommended action</th><th scope="col">Progress</th><th scope="col">Target date</th><th scope="col">Contract end</th></tr></thead>
   <tbody>
   <tr>
     <td class="num">1</td>
@@ -243,7 +295,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No TLPT clause; penetration testing by customers is prohibited without the provider&#39;s consent (clause 8.7).</div></td>
     <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill present">Agreed, awaiting signature</span><br><span class="small">Cloud sourcing office (sample)</span></td>
+    <td class="num">31 Dec 2026</td>
     <td class="num">22 Jan 2029</td>
   </tr>
   <tr>
@@ -254,7 +307,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No TLPT participation clause.</div></td>
     <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill partial">In negotiation</span><br><span class="small">Vendor management – core banking (sample)</span></td>
+    <td class="num">31 Mar 2027</td>
     <td class="num">23 Aug 2030</td>
   </tr>
   <tr>
@@ -264,8 +318,9 @@ td.wrap, th.wrap { min-width: 220px; }
 <br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
     <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No exit or transition provisions; licence ends at termination.</div></td>
-    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
-    <td class="num">03 Feb 2027</td>
+    <td>Add an exit clause with a mandatory, adequate transition period during which the provider continues the service at agreed terms (DORA sets no length).</td>
+    <td><span class="pill partial">In negotiation</span><br><span class="small">Vendor management – core banking (sample)</span></td>
+    <td class="num">31 Mar 2027</td>
     <td class="num">23 Aug 2030</td>
   </tr>
   <tr>
@@ -276,7 +331,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(2)(a)</span><br>Subcontracting: whether permitted and under which conditions</td>
     <td><span class="pill missing">Missing</span><div class="evidence">Silent on subcontracting although the service is hosted by Nimbus Cloud Services EMEA.</div></td>
     <td>Add a subcontracting clause: permitted or not; if permitted, prior notification or approval, the right to object, flow-down of the provider&#39;s obligations, monitoring of the chain and termination if conditions are breached.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill partial">Planned</span><br><span class="small">Vendor management (sample)</span></td>
+    <td class="num">30 Sep 2026<br><strong class="small">overdue</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -287,7 +343,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No TLPT clause.</div></td>
     <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">31 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -297,8 +354,9 @@ td.wrap, th.wrap { min-width: 220px; }
 <br><span class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</span></td>
     <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No audit or access rights; only an annual ISAE 3402 report.</div></td>
-    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
-    <td class="num">03 Feb 2027</td>
+    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies of documentation critical to the provider&#39;s operations.</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">31 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -309,7 +367,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No TLPT clause (only the provider&#39;s own penetration tests, 5.2).</div></td>
     <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">02 Feb 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">11 Oct 2027</td>
   </tr>
   <tr>
@@ -319,8 +378,9 @@ td.wrap, th.wrap { min-width: 220px; }
 <br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
     <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No transition period – the provider may stop at termination.</div></td>
-    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
-    <td class="num">03 Feb 2027</td>
+    <td>Add an exit clause with a mandatory, adequate transition period during which the provider continues the service at agreed terms (DORA sets no length).</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">02 Feb 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">11 Oct 2027</td>
   </tr>
   <tr>
@@ -330,8 +390,9 @@ td.wrap, th.wrap { min-width: 220px; }
 <br><span class="small">◆ F-LU-02 Portfolio management and investment advice</span></td>
     <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
     <td><span class="pill missing">Missing</span><div class="evidence">Explicitly no audit rights (&#39;the customer relies on the provider&#39;s SOC 1 report&#39;).</div></td>
-    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
-    <td class="num">03 Feb 2027</td>
+    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies of documentation critical to the provider&#39;s operations.</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">05 Jan 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -342,7 +403,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(2)(i)</span><br>Participation in ICT security awareness and resilience training</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No reference to security awareness or resilience training.</div></td>
     <td>Add a clause on the provider&#39;s participation in security awareness programmes and operational resilience training.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">29 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">23 Aug 2030</td>
   </tr>
   <tr>
@@ -353,7 +415,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(e)(ii)</span><br>Right to agree alternative assurance levels</td>
     <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
     <td>Add the option of alternative assurance (pooled audits, independent certifications or reports) where other clients&#39; rights are affected.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">29 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">23 Aug 2030</td>
   </tr>
   <tr>
@@ -364,7 +427,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(f)(ii)</span><br>Exit strategy: migration to another provider or in-house</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No migration assistance; source code escrow only.</div></td>
     <td>Add migration assistance obligations (data, know-how transfer, cooperation with the successor provider, re-insourcing support).</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">29 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">23 Aug 2030</td>
   </tr>
   <tr>
@@ -375,7 +439,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(2)(b)</span><br>Advance notice before changing locations</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No obligation to notify location changes.</div></td>
     <td>Add an obligation to notify location changes in advance, with a minimum notice period and the right to object or terminate.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">31 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -386,7 +451,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(e)(iii)</span><br>Full cooperation during on-site inspections and audits</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No cooperation obligation for inspections.</div></td>
     <td>Add a cooperation duty for on-site inspections and audits, naming the Lead Overseer.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">31 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -397,7 +463,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(e)(iv)</span><br>Scope, procedures and frequency of inspections and audits</td>
     <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
     <td>Define audit scope, procedure (notice, conduct, reporting) and frequency in an audit schedule.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">31 Dec 2025<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -408,7 +475,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(e)(ii)</span><br>Right to agree alternative assurance levels</td>
     <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
     <td>Add the option of alternative assurance (pooled audits, independent certifications or reports) where other clients&#39; rights are affected.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">02 Feb 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">11 Oct 2027</td>
   </tr>
   <tr>
@@ -419,7 +487,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(e)(iii)</span><br>Full cooperation during on-site inspections and audits</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No cooperation obligation for inspections.</div></td>
     <td>Add a cooperation duty for on-site inspections and audits, naming the Lead Overseer.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">02 Feb 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">11 Oct 2027</td>
   </tr>
   <tr>
@@ -430,7 +499,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(e)(iii)</span><br>Full cooperation during on-site inspections and audits</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No cooperation obligation for inspections.</div></td>
     <td>Add a cooperation duty for on-site inspections and audits, naming the Lead Overseer.</td>
-    <td class="num">03 Feb 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">05 Jan 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -440,8 +510,9 @@ td.wrap, th.wrap { min-width: 220px; }
 <br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
     <td><span class="mono small">DORA Art. 30(2)(h)</span><br>Termination rights and minimum notice periods</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 9</span><div class="evidence">Ordinary termination only; Art. 28(7) termination circumstances not provided for.</div></td>
-    <td>Add termination rights for the Art. 28(7) circumstances (breach of law or contract, impaired performance, ICT risk weaknesses, impeded supervision) and minimum notice periods for both parties.</td>
-    <td class="num">04 May 2027</td>
+    <td>Add termination rights with minimum notice periods. Check separately that the entity can terminate in the cases of DORA Art. 28(7)(a)–(d) (breach of law or contract, impaired performance, ICT risk weaknesses, impeded supervision).</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">24 Mar 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
@@ -451,8 +522,9 @@ td.wrap, th.wrap { min-width: 220px; }
 <br><span class="small">◆ F-LU-01 Core banking and custody accounts</span></td>
     <td><span class="mono small">DORA Art. 30(2)(h)</span><br>Termination rights and minimum notice periods</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 9</span><div class="evidence">Ordinary termination only; Art. 28(7) termination circumstances not provided for.</div></td>
-    <td>Add termination rights for the Art. 28(7) circumstances (breach of law or contract, impaired performance, ICT risk weaknesses, impeded supervision) and minimum notice periods for both parties.</td>
-    <td class="num">04 May 2027</td>
+    <td>Add termination rights with minimum notice periods. Check separately that the entity can terminate in the cases of DORA Art. 28(7)(a)–(d) (breach of law or contract, impaired performance, ICT risk weaknesses, impeded supervision).</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">25 Mar 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">17 May 2028</td>
   </tr>
   <tr>
@@ -463,7 +535,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(2)(a)</span><br>Subcontracting: whether permitted and under which conditions</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 6.3</span><div class="evidence">General authorisation of sub-processors with a public list; no conditions for services supporting critical functions and no right to object.</div></td>
     <td>Add a subcontracting clause: permitted or not; if permitted, prior notification or approval, the right to object, flow-down of the provider&#39;s obligations, monitoring of the chain and termination if conditions are breached.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">19 Apr 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">22 Jan 2029</td>
   </tr>
   <tr>
@@ -473,8 +546,9 @@ td.wrap, th.wrap { min-width: 220px; }
 <br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
     <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 12</span><div class="evidence">Audit by the bank only, once a year, 30 days&#39; notice; no rights for the competent authority; no on-site copies.</div></td>
-    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
-    <td class="num">04 May 2027</td>
+    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies of documentation critical to the provider&#39;s operations.</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">03 May 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">11 Oct 2027</td>
   </tr>
   <tr>
@@ -485,7 +559,8 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
     <td><span class="pill partial">Partial</span> <span class="small">Addendum 7</span><div class="evidence">Participation only in pooled TLPT, at the provider&#39;s discretion and with 6 months&#39; notice.</div></td>
     <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">12 Apr 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">03 Sep 2026</td>
   </tr>
   <tr>
@@ -493,131 +568,131 @@ td.wrap, th.wrap { min-width: 220px; }
     <td><span class="pill medium">Medium</span></td>
     <td><strong>Nimbus Cloud Services EMEA Ltd</strong><br><span class="mono">MSA-DE-0001</span>
 <br><span class="small">◆ F-DE-02 Core banking and account management; F-DE-01 Payment processing (SEPA, instant, cross-border); F-DE-07 Digital and mobile banking channels</span><br><span class="small muted">also relied on by CO-AT-0003, CO-LU-0002</span></td>
-    <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
-    <td><span class="pill partial">Partial</span> <span class="small">Addendum 4.1</span><div class="evidence">Audit rights for the bank and the competent authority, but on-site access only to &#39;shared-responsibility&#39; documentation; no right to take copies.</div></td>
-    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 22.4</span><div class="evidence">Transition period of 90 days only – too short for the core-banking hosting migration (exit plan assumes 18 months).</div></td>
+    <td>Add an exit clause with a mandatory, adequate transition period during which the provider continues the service at agreed terms (DORA sets no length).</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">12 Apr 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">03 Sep 2026</td>
   </tr>
   <tr>
     <td class="num">25</td>
     <td><span class="pill medium">Medium</span></td>
-    <td><strong>Nimbus Cloud Services EMEA Ltd</strong><br><span class="mono">MSA-DE-0001</span>
-<br><span class="small">◆ F-DE-02 Core banking and account management; F-DE-01 Payment processing (SEPA, instant, cross-border); F-DE-07 Digital and mobile banking channels</span><br><span class="small muted">also relied on by CO-AT-0003, CO-LU-0002</span></td>
-    <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
-    <td><span class="pill partial">Partial</span> <span class="small">Clause 22.4</span><div class="evidence">Transition period of 90 days only – too short for the core-banking hosting migration (exit plan assumes 18 months).</div></td>
-    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
-    <td class="num">04 May 2027</td>
-    <td class="num">03 Sep 2026</td>
-  </tr>
-  <tr>
-    <td class="num">26</td>
-    <td><span class="pill medium">Medium</span></td>
     <td><strong>Wealthbridge Software Ltd</strong><br><span class="mono">AR-LU-0049</span>
 <br><span class="small">◆ F-LU-02 Portfolio management and investment advice</span></td>
     <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 20</span><div class="evidence">Transition period of 6 months, at the provider&#39;s then-current rates.</div></td>
-    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
-    <td class="num">04 May 2027</td>
+    <td>Add an exit clause with a mandatory, adequate transition period during which the provider continues the service at agreed terms (DORA sets no length).</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">05 Apr 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">open-ended</td>
   </tr>
   <tr>
-    <td class="num">27</td>
+    <td class="num">26</td>
     <td><span class="pill medium">Medium</span></td>
     <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
 <br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
     <td><span class="mono small">DORA Art. 30(2)(f)</span><br>Assistance in ICT incidents at no additional or a pre-agreed cost</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 10.2</span><div class="evidence">Incident support billed on time and material at rates &#39;applicable at the time&#39;.</div></td>
     <td>Add an incident-assistance clause with response obligations and either no additional charge or a pre-agreed rate card.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">29 Mar 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">23 Aug 2030</td>
   </tr>
   <tr>
-    <td class="num">28</td>
+    <td class="num">27</td>
     <td><span class="pill medium">Medium</span></td>
     <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
 <br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
     <td><span class="mono small">DORA Art. 30(3)(b)</span><br>Notice periods and reporting obligations, incl. material developments</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 8</span><div class="evidence">Quarterly reports; no obligation to notify material developments.</div></td>
     <td>Add regular reporting duties and an obligation to notify material developments (financial distress, change of control, major incidents) within a fixed time.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">29 Mar 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">23 Aug 2030</td>
   </tr>
   <tr>
-    <td class="num">29</td>
+    <td class="num">28</td>
     <td><span class="pill medium">Medium</span></td>
     <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
 <br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
     <td><span class="mono small">DORA Art. 30(3)(e)(iv)</span><br>Scope, procedures and frequency of inspections and audits</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 12.1</span><div class="evidence">Frequency defined; scope and procedure not defined.</div></td>
     <td>Define audit scope, procedure (notice, conduct, reporting) and frequency in an audit schedule.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">03 May 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">11 Oct 2027</td>
   </tr>
   <tr>
-    <td class="num">30</td>
+    <td class="num">29</td>
     <td><span class="pill medium">Medium</span></td>
     <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
 <br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
     <td><span class="mono small">DORA Art. 30(3)(f)(ii)</span><br>Exit strategy: migration to another provider or in-house</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 14.2</span><div class="evidence">Migration cooperation only at then-current rates; no obligation to continue the service during migration.</div></td>
     <td>Add migration assistance obligations (data, know-how transfer, cooperation with the successor provider, re-insourcing support).</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">03 May 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">11 Oct 2027</td>
   </tr>
   <tr>
-    <td class="num">31</td>
+    <td class="num">30</td>
     <td><span class="pill medium">Medium</span></td>
     <td><strong>CustomerSphere Inc.</strong><br><span class="mono">AR-DE-0061</span>
 </td>
     <td><span class="mono small">DORA Art. 30(2)(g)</span><br>Full cooperation with competent and resolution authorities</td>
     <td><span class="pill missing">Missing</span><div class="evidence">No cooperation with authorities beyond legal compulsion.</div></td>
     <td>Add an authority-cooperation clause naming competent and resolution authorities and persons appointed by them.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">27 Apr 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">31 Mar 2028</td>
   </tr>
   <tr>
-    <td class="num">32</td>
+    <td class="num">31</td>
     <td><span class="pill medium">Medium</span></td>
     <td><strong>PeopleLedger SE</strong><br><span class="mono">AR-DE-0064</span>
 </td>
     <td><span class="mono small">DORA Art. 30(2)(b)</span><br>Advance notice before changing locations</td>
     <td><span class="pill missing">Missing</span><div class="evidence">Locations may be changed by the provider without notice.</div></td>
     <td>Add an obligation to notify location changes in advance, with a minimum notice period and the right to object or terminate.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">26 Apr 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">31 Oct 2025</td>
   </tr>
   <tr>
-    <td class="num">33</td>
+    <td class="num">32</td>
     <td><span class="pill medium">Medium</span></td>
     <td><strong>PeopleLedger SE</strong><br><span class="mono">AR-DE-0064</span>
 </td>
     <td><span class="mono small">DORA Art. 30(2)(i)</span><br>Participation in ICT security awareness and resilience training</td>
     <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
     <td>Add a clause on the provider&#39;s participation in security awareness programmes and operational resilience training.</td>
-    <td class="num">04 May 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">26 Apr 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">31 Oct 2025</td>
   </tr>
   <tr>
-    <td class="num">34</td>
+    <td class="num">33</td>
     <td><span class="pill low">Low</span></td>
     <td><strong>CustomerSphere Inc.</strong><br><span class="mono">AR-DE-0061</span>
 </td>
     <td><span class="mono small">DORA Art. 30(2)(d)</span><br>Access, recovery and return of data on insolvency, resolution or termination</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 12.4</span><div class="evidence">Data export only within 30 days after termination; insolvency and resolution not covered.</div></td>
     <td>Add a data return and deletion clause: formats, timelines, assistance, and its survival of insolvency, resolution and termination.</td>
-    <td class="num">05 Nov 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">29 Oct 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">31 Mar 2028</td>
   </tr>
   <tr>
-    <td class="num">35</td>
+    <td class="num">34</td>
     <td><span class="pill low">Low</span></td>
     <td><strong>CustomerSphere Inc.</strong><br><span class="mono">AR-DE-0061</span>
 </td>
     <td><span class="mono small">DORA Art. 30(2)(b)</span><br>Locations of service provision and of data processing and storage</td>
     <td><span class="pill partial">Partial</span> <span class="small">Clause 7</span><div class="evidence">Data &#39;in the EU or the US&#39; – no specific countries.</div></td>
     <td>Annex a list of service and data locations (countries or regions, incl. storage) for the provider and its subcontractors.</td>
-    <td class="num">05 Nov 2027</td>
+    <td><span class="pill not_assessed">Not started</span></td>
+    <td class="num">29 Oct 2026<br><strong class="small">proposed date passed</strong></td>
     <td class="num">31 Mar 2028</td>
   </tr>
   </tbody></table></div>
@@ -627,7 +702,7 @@ td.wrap, th.wrap { min-width: 220px; }
 <h2 id="h-prov">Gaps by provision</h2>
 <div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-prov"><table>
   <thead><tr><th scope="col">Provision</th><th scope="col" class="num">Missing</th><th scope="col" class="num">Partial</th></tr></thead>
-  <tbody><tr><td><span class="mono small">DORA Art. 30(2)(a)</span> Subcontracting: whether permitted and under which conditions</td><td class="num">1</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Locations of service provision and of data processing and storage</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Advance notice before changing locations</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(d)</span> Access, recovery and return of data on insolvency, resolution or termination</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(f)</span> Assistance in ICT incidents at no additional or a pre-agreed cost</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(g)</span> Full cooperation with competent and resolution authorities</td><td class="num">1</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(h)</span> Termination rights and minimum notice periods</td><td class="num">0</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(i)</span> Participation in ICT security awareness and resilience training</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(b)</span> Notice periods and reporting obligations, incl. material developments</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(d)</span> Participation and full cooperation in threat-led penetration testing (TLPT)</td><td class="num">4</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(i)</span> Unrestricted rights of access, inspection and audit</td><td class="num">2</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(ii)</span> Right to agree alternative assurance levels</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(iii)</span> Full cooperation during on-site inspections and audits</td><td class="num">3</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(iv)</span> Scope, procedures and frequency of inspections and audits</td><td class="num">1</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(f)(i)</span> Exit strategy: mandatory adequate transition period</td><td class="num">2</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(f)(ii)</span> Exit strategy: migration to another provider or in-house</td><td class="num">1</td><td class="num">1</td></tr></tbody>
+  <tbody><tr><td><span class="mono small">DORA Art. 30(2)(a)</span> Subcontracting: whether permitted and under which conditions</td><td class="num">1</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Locations of service provision and of data processing and storage</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Advance notice before changing locations</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(d)</span> Access, recovery and return of data on insolvency, resolution or termination</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(f)</span> Assistance in ICT incidents at no additional or a pre-agreed cost</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(g)</span> Full cooperation with competent and resolution authorities</td><td class="num">1</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(h)</span> Termination rights and minimum notice periods</td><td class="num">0</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(i)</span> Participation in ICT security awareness and resilience training</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(b)</span> Notice periods and reporting obligations, incl. material developments</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(d)</span> Participation and full cooperation in threat-led penetration testing (TLPT)</td><td class="num">4</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(i)</span> Unrestricted rights of access, inspection and audit</td><td class="num">2</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(ii)</span> Right to agree alternative assurance levels</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(iii)</span> Full cooperation during on-site inspections and audits</td><td class="num">3</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(iv)</span> Scope, procedures and frequency of inspections and audits</td><td class="num">1</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(f)(i)</span> Exit strategy: mandatory adequate transition period</td><td class="num">2</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(f)(ii)</span> Exit strategy: migration to another provider or in-house</td><td class="num">1</td><td class="num">1</td></tr></tbody>
 </table></div>
 </section>
 <section aria-labelledby="h-pv">
@@ -709,7 +784,7 @@ td.wrap, th.wrap { min-width: 220px; }
     <td class="num">0/4</td>
     <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>TreasuryOne SaaS GmbH</td><td class="num">1</td>
     <td class="num">1/1</td>
-    <td><span class="pill compliant">Compliant</span></td></tr><tr><td>PeopleLedger SE</td><td class="num">0</td>
+    <td><span class="pill compliant">All checklist items present</span></td></tr><tr><td>PeopleLedger SE</td><td class="num">0</td>
     <td class="num">1/1</td>
     <td><span class="pill gaps">Gaps</span> <span class="small">2 · 0</span></td></tr><tr><td>CustomerSphere Inc.</td><td class="num">0</td>
     <td class="num">1/3</td>
@@ -717,6 +792,16 @@ td.wrap, th.wrap { min-width: 220px; }
 </table></div>
 </section>
 </div>
+
+<h2 id="h-exc">Approved exceptions</h2>
+<p class="section-lead">Gaps for which a time-bound exception was approved (e.g. compensating controls until the next renewal). They are not compliant and are not in the action list until they expire – review them before the end date.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-exc"><table>
+  <thead><tr><th scope="col">ICT third-party service provider · Arrangement</th><th scope="col">Provision</th>
+    <th scope="col">Reason and compensating controls</th><th scope="col">Approved by</th><th scope="col">Valid until</th></tr></thead>
+  <tbody><tr><td><strong>Nimbus Cloud Services EMEA Ltd</strong><br><span class="mono">MSA-DE-0001</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit <span class="pill partial">Partial</span></td>
+    <td>Pooled audit through the financial-services customer consortium and annual SOC 2 Type II report as compensating controls; full on-site rights to be renegotiated at the 2027 renewal.</td><td>Head of ICT Third-Party Risk (sample)</td><td class="num">30 Jun 2027</td></tr></tbody>
+</table></div>
 
 <h2 id="to-assess">Arrangements still to assess</h2>
 <p class="section-lead">Arrangements without a complete assessment, those supporting critical or important functions first.</p>
@@ -935,7 +1020,7 @@ td.wrap, th.wrap { min-width: 220px; }
 
 
 <h2>Method and caveats</h2>
-<p class="section-lead">Status per provision: present, partial or missing, recorded by the assessor with the clause reference and evidence. Art. 30(3) applies when the register links the arrangement to a critical or important function (B_02.02 → B_06.01). Call-offs inherit unassessed items from their overarching arrangement (B_02.01 c0030); such gaps are fixed – and listed – once, in the overarching arrangement. Priority: missing clause on an arrangement supporting a critical function = high; partial clause on such an arrangement or missing clause elsewhere = medium; partial clause elsewhere = low. Target dates: high 90 days, medium 180 days, low 365 days from the plan date – align them with renewal dates where earlier.</p>
+<p class="section-lead">Status per provision: present, partial or missing, recorded by the assessor with the clause reference and evidence. Art. 30(3) applies when the register links the arrangement to a critical or important function (B_02.02 → B_06.01). Call-offs inherit unassessed items from their overarching arrangement (B_02.01 c0030); such gaps are fixed – and listed – once, in the overarching arrangement. Priority: missing clause on an arrangement supporting a critical function = high; partial clause on such an arrangement or missing clause elsewhere = medium; partial clause elsewhere = low. Proposed target dates: high 90 days, medium 180 days, low 365 days from the assessment that found the gap (the plan date if undated) – align them with renewal dates where earlier; a target date agreed for a gap replaces the proposal.</p>
 <footer>Generated by the DORA RoI Toolkit. Not legal advice: the checklist, thresholds and mappings are the authors&#39; reading of the texts and are listed as assumptions in docs/ASSUMPTIONS.md. · dora-roi-toolkit 0.1.0</footer>
 </main>
 </body>

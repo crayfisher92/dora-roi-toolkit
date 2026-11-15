@@ -61,7 +61,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "st.partial": "Partial",
         "st.missing": "Missing",
         "st.not_assessed": "Not assessed",
-        "cs.compliant": "Compliant",
+        "cs.compliant": "All checklist items present",
         "cs.gaps": "Gaps",
         "cs.incomplete": "Assessment incomplete",
         "cs.not_assessed": "Not assessed",
@@ -238,7 +238,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.ui.row_panel": "DORA Art. 30 contract assessment",
         "c30.ui.open": "Open assessment",
         "c30.ui.assess": "Assess this arrangement",
-        "c30.ui.provider_section": "Art. 30 contract compliance",
+        "c30.ui.provider_section": "Art. 30 clause coverage",
         # ---------------------------------------------------------------- incidents
         "inc.name": "Incidents",
         "inc.page_title": "Major ICT-related incident classification",
@@ -254,8 +254,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
                               "apparent root cause and occurred at least twice within six "
                               "months are assessed together. When together they meet the "
                               "criteria, they are reported as one major incident.",
-        "inc.recurring.major": "Together these incidents meet the major criteria – report them "
-                               "as one major incident.",
+        "inc.recurring.major": "Together these incidents meet the major criteria (on the "
+                               "toolkit's aggregation, A-INC-05) – report them as one major "
+                               "incident. Not applicable to microenterprises and entities under "
+                               "DORA Art. 16(1) (RTS Art. 8(2)).",
         "inc.recurring.not_major": "Together they do not meet the major criteria.",
         "inc.recurring.window": "Window {start} – {end}",
         "inc.st.open": "Open",
@@ -278,8 +280,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.report.intermediate": "Intermediate report",
         "inc.report.final": "Final report",
         "inc.dl.done": "Submitted on time",
-        "inc.dl.late": "Submitted late",
-        "inc.dl.overdue": "Overdue",
+        "inc.dl.late": "Submitted after the conservative deadline",
+        "inc.dl.overdue": "Past the conservative deadline",
         "inc.dl.due": "Due",
         "inc.dl.projected": "Projected",
         "inc.dl.basis.classification": "4 h after classification",
@@ -434,10 +436,17 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.closed": "Closed",
         "inc.ev.reopened": "Reopened",
         "inc.ev.imported": "Imported",
-        "rd.name": "DORA readiness",
-        "rd.title": "DORA readiness dashboard",
-        "rd.report.title": "DORA readiness report",
-        "rd.lead": "Register data quality, Art. 30 contract compliance, incident management "
+        "rd.name": "DORA readiness – third parties and incidents",
+        "rd.title": "DORA readiness dashboard – third parties and incidents",
+        "rd.report.title": "DORA readiness report – third parties and incidents",
+        "mod.experimental.label": "Experimental",
+        "mod.experimental": "reviewed against the source texts, with open points that need a "
+                            "specialist's sign-off (docs/MODULE_REVIEW.md). Not legal advice.",
+        "rd.scope": "Covers the Register of Information (Art. 28(3)), Art. 30 contract clauses, "
+                    "major-incident reporting (Art. 17–19) and ICT concentration. Not covered: ICT"
+                    " risk management (Art. 5–16), resilience testing (Art. 24–27) and information"
+                    " sharing (Art. 45) – this is not an overall DORA assessment.",
+        "rd.lead": "Register data quality, Art. 30 clause coverage, incident management "
                    "and ICT concentration risk of this client on one page.",
         "rd.report.lead": "Status of the client's DORA programme for the Register of "
                           "Information, ICT third-party contracts, major-incident reporting and "
@@ -446,7 +455,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.overall.red": "Action required: at least one area has material gaps.",
         "rd.overall.amber": "On the way: no area has material gaps, but several need "
                             "attention.",
-        "rd.overall.green": "On track in every area assessed.",
+        "rd.overall.green": "On track in every area assessed here.",
         "rd.overall.grey": "Not enough data to assess.",
         "rd.pillar.register": "Register of Information",
         "rd.pillar.contracts": "ICT contracts (Art. 30)",
@@ -463,9 +472,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.reg.scope": "Submission view: {n} entit(y/ies) outside the DORA scope are not "
                         "counted.",
         "rd.reg.findings": "{errors} error(s) and {warnings} warning(s) in {records} records.",
-        "rd.ready.ready": "ready for submission",
-        "rd.ready.almost": "almost ready",
-        "rd.ready.not_ready": "not ready for submission",
+        "rd.ready.ready": "no blocking errors in the toolkit's validation",
+        "rd.ready.almost": "few blocking errors in the toolkit's validation",
+        "rd.ready.not_ready": "blocking errors in the toolkit's validation",
         "rd.ready.empty": "register is empty",
         "rd.c30.metric": "Critical arrangements assessed",
         "rd.c30.assessed": "{assessed} of {total} arrangements supporting critical or important "
@@ -477,7 +486,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.inc.metric": "Major incidents",
         "rd.inc.counts": "{total} incident(s) recorded, {open} open, {major} major.",
         "rd.inc.next": "Next: {report} for {id} {when}.",
-        "rd.inc.recurring": "Recurring series '{series}' ({n} incidents) meets the major criteria.",
+        "rd.inc.recurring": "Recurring series '{series}' ({n} incidents) meets the major "
+                            "criteria on the toolkit's aggregation (A-INC-05).",
         "rd.conc.metric": "Largest provider group",
         "rd.conc.top": "Largest provider group: {share} of spend; HHI {hhi} ({band}).",
         "rd.conc.cif": "{n} critical or important functions, {single} relying on a single "
@@ -498,14 +508,14 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.act.c30_notice": "Decide on {n} critical arrangement(s) whose notice deadline is "
                              "within 90 days or has passed.",
         "rd.act.c30_expiring": "Renew {n} expiring arrangement(s) supporting critical functions "
-                               "on DORA-compliant terms.",
+                               "with the Art. 30 clauses.",
         "rd.act.c30_exc_expiring": "Review {n} contract exception(s) expiring within 90 days.",
         "rd.act.c30_overdue": "Escalate {n} contract remediation(s) past the agreed target "
                               "date.",
         "rd.conc.multi": "{n} provider group(s) support {k} or more critical functions "
                          "(incl. subcontracting).",
-        "rd.conc.third": "{share} of spend with groups headquartered outside the EEA and "
-                         "Switzerland.",
+        "rd.conc.third": "{share} of spend with groups headquartered in third countries "
+                         "(outside the EU/EEA, Switzerland included; cf. Art. 29(2)).",
         "rd.act.conc_multi": "Assess substitution and exit for the {n} provider group(s) "
                              "supporting {k}+ critical functions ({names}).",
         "rd.act.conc_top": "{group} accounts for {share} of ICT spend – assess the "
@@ -665,7 +675,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "st.partial": "Teilweise",
         "st.missing": "Fehlt",
         "st.not_assessed": "Nicht bewertet",
-        "cs.compliant": "Konform",
+        "cs.compliant": "Alle Checklistenpunkte vorhanden",
         "cs.gaps": "Lücken",
         "cs.incomplete": "Bewertung unvollständig",
         "cs.not_assessed": "Nicht bewertet",
@@ -868,8 +878,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
                               "von sechs Monaten auftraten, werden zusammen bewertet. Erfüllen "
                               "sie gemeinsam die Kriterien, werden sie als ein schwerwiegender "
                               "Vorfall gemeldet.",
-        "inc.recurring.major": "Gemeinsam erfüllen diese Vorfälle die Kriterien – als ein "
-                               "schwerwiegender Vorfall melden.",
+        "inc.recurring.major": "Gemeinsam erfüllen diese Vorfälle die Kriterien (nach der "
+                               "Aggregation des Toolkits, A-INC-05) – als ein schwerwiegender "
+                               "Vorfall melden. Gilt nicht für Kleinstunternehmen und "
+                               "Unternehmen nach DORA Art. 16(1) (RTS Art. 8(2)).",
         "inc.recurring.not_major": "Gemeinsam erfüllen sie die Kriterien nicht.",
         "inc.recurring.window": "Zeitraum {start} – {end}",
         "inc.st.open": "Offen",
@@ -892,8 +904,8 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.report.intermediate": "Zwischenbericht",
         "inc.report.final": "Abschlussbericht",
         "inc.dl.done": "Fristgerecht übermittelt",
-        "inc.dl.late": "Verspätet übermittelt",
-        "inc.dl.overdue": "Überfällig",
+        "inc.dl.late": "Nach der konservativen Frist übermittelt",
+        "inc.dl.overdue": "Konservative Frist überschritten",
         "inc.dl.due": "Fällig",
         "inc.dl.projected": "Voraussichtlich",
         "inc.dl.basis.classification": "4 h nach Klassifizierung",
@@ -1057,10 +1069,19 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ev.closed": "Abgeschlossen",
         "inc.ev.reopened": "Wieder geöffnet",
         "inc.ev.imported": "Importiert",
-        "rd.name": "DORA-Reifegrad",
-        "rd.title": "DORA-Reifegrad im Überblick",
-        "rd.report.title": "DORA-Statusbericht",
-        "rd.lead": "Datenqualität des Registers, Vertragskonformität nach Art. 30, "
+        "rd.name": "DORA-Reifegrad – Drittdienstleister und Vorfälle",
+        "rd.title": "DORA-Reifegrad im Überblick – Drittdienstleister und Vorfälle",
+        "rd.report.title": "DORA-Statusbericht – Drittdienstleister und Vorfälle",
+        "mod.experimental.label": "Experimentell",
+        "mod.experimental": "an den Quelltexten geprüft, mit offenen Punkten, die eine "
+                            "Fachperson freigeben muss (docs/MODULE_REVIEW.md). Keine "
+                            "Rechtsberatung.",
+        "rd.scope": "Umfasst das Informationsregister (Art. 28 Abs. 3), die Vertragsklauseln nach "
+                    "Art. 30, die Meldung schwerwiegender Vorfälle (Art. 17–19) und die IKT-"
+                    "Konzentration. Nicht abgedeckt: IKT-Risikomanagement (Art. 5–16), "
+                    "Resilienztests (Art. 24–27) und Informationsaustausch (Art. 45) – keine "
+                    "Gesamtbeurteilung nach DORA.",
+        "rd.lead": "Datenqualität des Registers, Abdeckung der Art.-30-Klauseln, "
                    "Vorfallmanagement und IKT-Konzentrationsrisiko dieses Kunden auf einer Seite.",
         "rd.report.lead": "Stand des DORA-Programms für Informationsregister, Verträge mit "
                           "IKT-Drittdienstleistern, Meldung schwerwiegender Vorfälle und "
@@ -1069,7 +1090,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.overall.red": "Handlungsbedarf: Mindestens ein Bereich hat wesentliche Lücken.",
         "rd.overall.amber": "Auf dem Weg: Kein Bereich hat wesentliche Lücken, mehrere "
                             "brauchen Aufmerksamkeit.",
-        "rd.overall.green": "In allen bewerteten Bereichen im Plan.",
+        "rd.overall.green": "In allen hier bewerteten Bereichen im Plan.",
         "rd.overall.grey": "Zu wenige Daten für eine Bewertung.",
         "rd.pillar.register": "Informationsregister",
         "rd.pillar.contracts": "IKT-Verträge (Art. 30)",
@@ -1087,9 +1108,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
                         "DORA-Umfangs werden nicht gezählt.",
         "rd.reg.findings": "{errors} Fehler und {warnings} Warnung(en) in {records} "
                            "Datensätzen.",
-        "rd.ready.ready": "einreichungsbereit",
-        "rd.ready.almost": "fast einreichungsbereit",
-        "rd.ready.not_ready": "nicht einreichungsbereit",
+        "rd.ready.ready": "keine blockierenden Fehler in der Prüfung des Toolkits",
+        "rd.ready.almost": "wenige blockierende Fehler in der Prüfung des Toolkits",
+        "rd.ready.not_ready": "blockierende Fehler in der Prüfung des Toolkits",
         "rd.ready.empty": "Register ist leer",
         "rd.c30.metric": "Kritische Vereinbarungen bewertet",
         "rd.c30.assessed": "{assessed} von {total} Vereinbarungen für kritische oder wichtige "
@@ -1103,7 +1124,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
                          "schwerwiegend.",
         "rd.inc.next": "Als Nächstes: {report} für {id} {when}.",
         "rd.inc.recurring": "Wiederkehrende Serie „{series}“ ({n} Vorfälle) erfüllt die "
-                            "Kriterien.",
+                            "Kriterien nach der Aggregation des Toolkits (A-INC-05).",
         "rd.conc.metric": "Größte Dienstleistergruppe",
         "rd.conc.top": "Größte Dienstleistergruppe: {share} der Kosten; HHI {hhi} ({band}).",
         "rd.conc.cif": "{n} kritische oder wichtige Funktionen, {single} davon mit nur einem "
@@ -1125,13 +1146,14 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.act.c30_notice": "Über {n} kritische Vereinbarung(en) entscheiden, deren "
                              "Kündigungsfrist in 90 Tagen abläuft oder verstrichen ist.",
         "rd.act.c30_expiring": "{n} auslaufende Vereinbarung(en) für kritische Funktionen zu "
-                               "DORA-konformen Bedingungen verlängern.",
+                               "den Art.-30-Klauseln verlängern.",
         "rd.act.c30_exc_expiring": "{n} Vertragsausnahme(n) prüfen, die in 90 Tagen ablaufen.",
         "rd.act.c30_overdue": "{n} Vertragsnachbesserung(en) nach vereinbartem Zieltermin "
                               "eskalieren.",
         "rd.conc.multi": "{n} Dienstleistergruppe(n) unterstützen {k} oder mehr kritische "
                          "Funktionen (inkl. Unterauftragsvergabe).",
-        "rd.conc.third": "{share} der Kosten bei Gruppen mit Sitz außerhalb von EWR und Schweiz.",
+        "rd.conc.third": "{share} der Kosten bei Gruppen mit Sitz in Drittländern (außerhalb "
+                         "von EU/EWR, Schweiz eingeschlossen; vgl. Art. 29 Abs. 2).",
         "rd.act.conc_multi": "Ersetzbarkeit und Ausstieg für die {n} Dienstleistergruppe(n) mit "
                              "{k}+ kritischen Funktionen bewerten ({names}).",
         "rd.act.conc_top": "{group} vereint {share} der IKT-Kosten – Konzentration bewerten "

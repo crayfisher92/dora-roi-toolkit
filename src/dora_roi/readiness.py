@@ -22,8 +22,6 @@ from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any
 
-from markupsafe import Markup
-
 from dora_roi import __version__
 from dora_roi.analytics import AnalyticsConfig, ConcentrationAnalysis
 from dora_roi.analytics.renewals import NoticeItem, NoticeStatus, notice_schedule
@@ -238,7 +236,8 @@ def _concentration_pillar(t: Any, a: ConcentrationAnalysis, cfg: AnalyticsConfig
     single = [f for f in a.critical_functions if f.single_provider]
     hard_single = [f for f in single if f.hard_to_substitute]
     coverage = float(a.totals.get("exit_plan_coverage", 1.0))
-    third = next((r.share for r in a.group_regions if r.key == "Third country"), 0.0)
+    # DORA view: Switzerland is a third country (Art. 29(2)); the FINMA view keeps it apart
+    third = sum(r.share for r in a.group_regions if r.key in ("Third country", "Switzerland"))
     hidden = [s for s in a.subcontractors if s.critical_chains >= 2]
     top = a.groups[0] if a.groups else None
     red = [bool(top and top.spend_share >= cfg.single_group_share_threshold),
@@ -299,7 +298,8 @@ def build_readiness(*, report: ValidationReport, quality: QualityScore,
     t = translator(lang)
     moment = now or datetime.now(UTC)
     cfg = config or AnalyticsConfig()
-    notices = notice_schedule(register, register.reference_date) if register is not None else []
+    # notice deadlines are measured from today, not from the register's reference date
+    notices = notice_schedule(register, moment.date()) if register is not None else []
     actions: list[Action] = []
     pillars = [_register_pillar(t, quality, report, actions, out_of_scope),
                _contracts_pillar(t, lang, portfolio, plan, notices, analysis, moment.date(),
@@ -326,7 +326,7 @@ def render_readiness_html(view: ReadinessView, *, lang: str = "en", client: str 
         "v": view, "t": t, "lang": lang, "client": client or view.entity or "",
         "prepared_by": prepared_by, "version": __version__,
         "fmt": lambda d: format_date(d, lang), "money": money, "pct": pct,
-        "charts": {k: Markup(charts[k]) for k in ("groups", "cif")},
+        "charts": {k: charts[k] for k in ("groups", "cif")},  # already escaped Markup
         "by_provision": gaps_by_provision(view.portfolio)[:8],
         "humanise": lambda d: humanise(d, lang),
     }

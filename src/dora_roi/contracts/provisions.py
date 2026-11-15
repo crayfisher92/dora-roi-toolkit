@@ -147,7 +147,8 @@ PROVISIONS: tuple[Provision, ...] = (
                           r"(Zustimmung|Genehmigung|Anzeige|Mitteilung)",
                           r"Widerspruchsrecht", r"widersprechen", r"subject to the conditions",
                           r"unter den Bedingungen"))),
-        related=("DORA Art. 30(5)", "RTS on subcontracting (Art. 30(5))"),
+        related=("DORA Art. 30(5)",
+                 "Commission Delegated Regulation (EU) 2025/532 (RTS on subcontracting)"),
         register_fields=("B_05.02",),
         key=True,
     ),
@@ -214,7 +215,7 @@ PROVISIONS: tuple[Provision, ...] = (
         "Zugang, Wiederherstellung und Rückgabe der Daten bei Insolvenz, Abwicklung oder "
         "Beendigung",
         "Access, recovery and return, in an easily accessible format, of personal and "
-        "non-personal data processed for the financial entity in the event of the provider's "
+        "non-personal data processed by the financial entity in the event of the provider's "
         "insolvency, resolution or discontinuation of business, or termination of the contract.",
         "Zugang, Wiederherstellung und Rückgabe personenbezogener und nicht personenbezogener "
         "Daten in leicht zugänglichem Format bei Insolvenz, Abwicklung oder Einstellung der "
@@ -289,18 +290,21 @@ PROVISIONS: tuple[Provision, ...] = (
         "30.2.h", "DORA Art. 30(2)(h)", Scope.ALL,
         "Termination rights and minimum notice periods",
         "Kündigungsrechte und Mindestkündigungsfristen",
-        "Termination rights and related minimum notice periods, in line with the expectations "
-        "of competent and resolution authorities; the termination circumstances of DORA "
-        "Art. 28(7) must be covered.",
-        "Kündigungsrechte und zugehörige Mindestkündigungsfristen entsprechend den Erwartungen "
-        "der zuständigen Behörden und Abwicklungsbehörden; die Kündigungsgründe nach DORA "
-        "Art. 28 Abs. 7 müssen abgedeckt sein.",
-        "Add termination rights for the Art. 28(7) circumstances (breach of law or contract, "
-        "impaired performance, ICT risk weaknesses, impeded supervision) and minimum notice "
-        "periods for both parties.",
-        "Kündigungsrechte für die Fälle des Art. 28 Abs. 7 (Rechts- oder Vertragsverstoß, "
-        "beeinträchtigte Leistung, Schwächen im IKT-Risikomanagement, behinderte Aufsicht) und "
-        "Mindestkündigungsfristen für beide Parteien ergänzen.",
+        "Termination rights and related minimum notice periods for the termination of the "
+        "contractual arrangements, in accordance with the expectations of competent authorities "
+        "and resolution authorities. (The termination grounds of DORA Art. 28(7) are a separate "
+        "obligation and are not checked by this item.)",
+        "Kündigungsrechte und zugehörige Mindestkündigungsfristen für die Beendigung der "
+        "vertraglichen Vereinbarungen entsprechend den Erwartungen der zuständigen Behörden und "
+        "Abwicklungsbehörden. (Die Kündigungsgründe nach DORA Art. 28 Abs. 7 sind eine eigene "
+        "Pflicht und werden mit diesem Punkt nicht geprüft.)",
+        "Add termination rights with minimum notice periods. Check separately that the entity "
+        "can terminate in the cases of DORA Art. 28(7)(a)–(d) (breach of law or contract, "
+        "impaired performance, ICT risk weaknesses, impeded supervision).",
+        "Kündigungsrechte mit Mindestkündigungsfristen ergänzen. Gesondert prüfen, dass das "
+        "Unternehmen in den Fällen von DORA Art. 28 Abs. 7 lit. a–d kündigen kann (Rechts- oder "
+        "Vertragsverstoß, beeinträchtigte Leistung, Schwächen im IKT-Risikomanagement, "
+        "behinderte Aufsicht).",
         (C("termination", (r"terminat", r"Kündigung", r"kündig")),
          C("notice period", (r"notice period", r"\d+\s*(calendar |business )?(days|months)'?"
                              r"\s*(prior )?(written )?notice", r"Kündigungsfrist",
@@ -333,12 +337,14 @@ PROVISIONS: tuple[Provision, ...] = (
         "30.3.a", "DORA Art. 30(3)(a)", Scope.CRITICAL,
         "Full service levels with precise quantitative and qualitative targets",
         "Vollständige Service Level mit präzisen quantitativen und qualitativen Zielen",
-        "Full service level descriptions with precise quantitative and qualitative performance "
-        "targets, allowing effective monitoring and appropriate corrective action without "
-        "undue delay when service levels are not met.",
-        "Vollständige Service-Level-Beschreibungen mit präzisen quantitativen und qualitativen "
-        "Leistungszielen, die eine wirksame Überwachung und unverzügliche Abhilfemaßnahmen bei "
-        "Nichterreichen ermöglichen.",
+        "Full service level descriptions, including updates and revisions thereof, with "
+        "precise quantitative and qualitative performance targets within the agreed service "
+        "levels, allowing effective monitoring and appropriate corrective action without undue "
+        "delay when service levels are not met.",
+        "Vollständige Service-Level-Beschreibungen einschließlich ihrer Aktualisierungen und "
+        "Überarbeitungen, mit präzisen quantitativen und qualitativen Leistungszielen innerhalb "
+        "der vereinbarten Service Level, die eine wirksame Überwachung und unverzügliche "
+        "Abhilfemaßnahmen bei Nichterreichen ermöglichen.",
         "Define measurable targets (availability %, response and resolution times, RTO/RPO), "
         "reporting on them and corrective measures such as service credits.",
         "Messbare Ziele (Verfügbarkeit in %, Reaktions- und Lösungszeiten, RTO/RPO), Berichte "
@@ -420,23 +426,27 @@ PROVISIONS: tuple[Provision, ...] = (
         "Uneingeschränkte Zugangs-, Inspektions- und Prüfungsrechte",
         "Unrestricted rights of access, inspection and audit by the financial entity, an "
         "appointed third party and the competent authority, including the right to take copies "
-        "of relevant documentation on site, not impeded by other contractual arrangements or "
-        "policies.",
+        "of relevant documentation on site if they are critical to the operations of the ICT "
+        "third-party service provider, not impeded by other contractual arrangements or "
+        "policies. (A microenterprise may agree that these rights are delegated to an "
+        "independent third party appointed by the provider – Art. 30(3), last subparagraph.)",
         "Uneingeschränkte Zugangs-, Inspektions- und Prüfungsrechte des Finanzunternehmens, "
         "eines beauftragten Dritten und der zuständigen Behörde, einschließlich des Rechts, vor "
-        "Ort Kopien relevanter Unterlagen anzufertigen, ohne Einschränkung durch andere "
-        "Vereinbarungen oder Richtlinien.",
+        "Ort Kopien relevanter Unterlagen anzufertigen, wenn diese für den Betrieb des "
+        "IKT-Drittdienstleisters kritisch sind, ohne Einschränkung durch andere Vereinbarungen "
+        "oder Richtlinien. (Ein Kleinstunternehmen kann vereinbaren, dass diese Rechte an einen "
+        "vom Dienstleister bestellten unabhängigen Dritten übertragen werden – Art. 30 Abs. 3, "
+        "letzter Unterabsatz.)",
         "Negotiate an audit addendum granting unrestricted access, inspection and audit rights "
         "to the entity, its appointed auditors and the competent authority, incl. on-site "
-        "copies.",
+        "copies of documentation critical to the provider's operations.",
         "Einen Prüfungsnachtrag mit uneingeschränkten Zugangs-, Inspektions- und Prüfungsrechten "
-        "für das Unternehmen, beauftragte Prüfer und die zuständige Behörde, inkl. Kopien vor "
-        "Ort, verhandeln.",
+        "für das Unternehmen, beauftragte Prüfer und die zuständige Behörde verhandeln, inkl. "
+        "Kopien vor Ort von Unterlagen, die für den Betrieb des Dienstleisters kritisch sind.",
         (C("audit", (_AUDIT,)),
          C("access", (r"\baccess\b", r"Zugang", r"Zutritt", r"premises", r"Räumlichkeiten",
                       r"on[- ]site", r"vor Ort")),
          C("authority", (_AUTHORITY,))),
-        related=("DORA Art. 28(6)",),
         register_fields=("B_07.01 c0070",),
         key=True,
     ),
@@ -452,9 +462,10 @@ PROVISIONS: tuple[Provision, ...] = (
         "reports) where other clients' rights are affected.",
         "Die Möglichkeit alternativer Prüfungen (Poolprüfungen, unabhängige Zertifizierungen "
         "oder Berichte) ergänzen, wenn Rechte anderer Kunden berührt sind.",
+        # certifications and audit reports alone are no evidence of this right (RTS 2024/1773
+        # Art. 8(3): entities must not over time rely solely on them)
         (C("alternative assurance", (r"pooled audit", r"alternative assurance",
-                                     r"third[- ]party certification", r"ISAE ?3402",
-                                     r"\bSOC ?[12]\b", r"Sammelprüfung", r"Poolprüfung",
+                                     r"Sammelprüfung", r"Poolprüfung",
                                      r"gepoolte\w* Prüfung")),),
     ),
     Provision(
@@ -507,10 +518,11 @@ PROVISIONS: tuple[Provision, ...] = (
         "in dem der Dienstleister die Funktionen oder IKT-Dienstleistungen weiter erbringt, um "
         "das Störungsrisiko zu verringern oder eine wirksame Abwicklung und Umstrukturierung "
         "sicherzustellen.",
-        "Add an exit clause with a mandatory transition period (e.g. 12–24 months) during "
-        "which the provider continues the service at agreed terms.",
-        "Eine Exit-Klausel mit verpflichtendem Übergangszeitraum (z. B. 12–24 Monate) ergänzen, "
-        "in dem der Dienstleister die Leistung zu vereinbarten Bedingungen fortführt.",
+        "Add an exit clause with a mandatory, adequate transition period during which the "
+        "provider continues the service at agreed terms (DORA sets no length).",
+        "Eine Exit-Klausel mit verpflichtendem, angemessenem Übergangszeitraum ergänzen, in dem "
+        "der Dienstleister die Leistung zu vereinbarten Bedingungen fortführt (DORA legt keine "
+        "Dauer fest).",
         (C("exit", (r"\bexit\b", r"Ausstieg", r"Exit")),
          C("transition period", (r"transition(al)? period", r"transition services",
                                  r"Übergangsfrist", r"Übergangszeitraum", r"Übergangsphase",

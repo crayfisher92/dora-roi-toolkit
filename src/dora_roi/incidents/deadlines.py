@@ -1,15 +1,21 @@
 """Reporting timeline of a major ICT-related incident (initial, intermediate, final report).
 
-Time limits (A-INC-04; Commission Delegated Regulation (EU) 2025/301, to be verified):
+Time limits (A-INC-04; Commission Delegated Regulation (EU) 2025/301, Art. 5 – checked against
+the Official Journal text):
 
 * **initial notification** – within 4 hours of classifying the incident as major, and no
-  later than 24 hours after becoming aware of it;
+  later than 24 hours after becoming aware of it (Art. 5(1)(a)); an incident classified as
+  major more than 24 hours after awareness is due within 4 hours of the classification
+  (Art. 5(2));
 * **intermediate report** – within 72 hours of submitting the initial notification;
 * **final report** – within one month of the (latest) intermediate report.
 
 Deadlines that depend on a report not yet submitted are *projected* from the previous
-deadline. The optional weekend/bank-holiday relief of the RTS is deliberately **not**
-applied: the earlier, conservative deadline is shown (A-INC-04).
+deadline. Not modelled (A-INC-04): the weekend/bank-holiday relief of Art. 5(4)–(6) – the
+earlier, conservative deadline is shown, so "late" means "after the conservative deadline";
+updated intermediate reports (Art. 5(1)(b)) – the final report is due one month after the
+recorded intermediate report; the notice of a delay (Art. 5(3)) and of a reclassification
+to non-major.
 """
 
 from __future__ import annotations
@@ -55,11 +61,19 @@ def timeline(incident: Incident, classification: Classification, now: datetime,
     """The three reporting deadlines – empty unless the incident is (classified) major."""
     if not classification.major:
         return []
-    classified = incident.classified_at or now
-    by_class = classified + timedelta(hours=th.initial_after_classification_hours)
     by_aware = incident.detected_at + timedelta(hours=th.initial_after_awareness_hours)
-    initial_due, basis = ((by_class, "classification") if by_class <= by_aware
-                          else (by_aware, "awareness"))
+    if incident.classified_at is None:
+        # classification time not recorded: the awareness limit applies, never "now" (which
+        # would move the deadline every time it is computed)
+        initial_due, basis = by_aware, "awareness"
+    else:
+        by_class = incident.classified_at + timedelta(
+            hours=th.initial_after_classification_hours)
+        if incident.classified_at > by_aware or by_class <= by_aware:
+            # Art. 5(2): classified as major later than 24 h after awareness → 4 h from then
+            initial_due, basis = by_class, "classification"
+        else:
+            initial_due, basis = by_aware, "awareness"
     initial = Deadline(ReportKind.INITIAL, initial_due, basis, incident.initial_submitted_at,
                        False)
     base = incident.initial_submitted_at or initial_due

@@ -197,11 +197,15 @@ def suggest(text: str, critical: bool = True) -> SuggestionResult:
 
 
 def apply_suggestions(assessment: ContractAssessment, result: SuggestionResult,
-                      overwrite: bool = False, lang: str = "en") -> ContractAssessment:
-    """Return a copy of ``assessment`` pre-filled with suggestions (unsaved draft).
+                      overwrite: bool = False, lang: str = "en",
+                      prefill: bool = True) -> ContractAssessment:
+    """Return a copy of ``assessment`` with the suggestions (unsaved draft).
 
-    Items the reviewer already assessed are kept unless ``overwrite``. Each pre-filled item
-    records ``suggested_status`` so that the audit trail shows what the heuristic proposed.
+    Items the reviewer already assessed are kept unless ``overwrite``. Each item records
+    ``suggested_status`` so that the audit trail shows what the heuristic proposed. With
+    ``prefill`` the status is pre-selected for a reviewer who confirms it in the form; without
+    it (files written for later import) every status stays *not assessed*, so a keyword hit
+    can never count as a present provision without human review.
     """
     draft = assessment.model_copy(deep=True)
     for s in result.items:
@@ -211,7 +215,8 @@ def apply_suggestions(assessment: ContractAssessment, result: SuggestionResult,
             draft.items[s.provision.id] = current.model_copy(
                 update={"suggested_status": s.suggestion.status})
             continue
-        draft.set(s.provision.id, s.suggestion.status, s.clause_ref, s.evidence(lang),
+        status = s.suggestion.status if prefill else ProvisionStatus.NOT_ASSESSED
+        draft.set(s.provision.id, status, s.clause_ref, s.evidence(lang),
                   suggested=s.suggestion.status,
                   exception=(current.exception_reason, current.exception_approver,
                              current.exception_until) if current else None,

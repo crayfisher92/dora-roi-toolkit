@@ -98,7 +98,7 @@ def _docx(name: str, data: bytes) -> ExtractedText:
                 raise ExtractionError("corrupt .docx file") from exc
             if len(xml) > MAX_UNCOMPRESSED_BYTES:
                 raise ExtractionError("document is too large when uncompressed")
-            if b"<!DOCTYPE" in xml[:4096] or b"<!ENTITY" in xml:
+            if b"<!DOCTYPE" in xml or b"<!ENTITY" in xml:
                 raise ExtractionError("document declares a DTD; refused for safety")
             chunks.append(_docx_xml_text(xml))
     return ExtractedText(name, "docx", "\n".join(c for c in chunks if c.strip()))
@@ -106,7 +106,9 @@ def _docx(name: str, data: bytes) -> ExtractedText:
 
 def _docx_xml_text(xml: bytes) -> str:
     try:
-        root = ElementTree.fromstring(xml)  # DTDs are rejected above
+        # bandit B314: any DTD (and so any entity) is refused before parsing, the size is
+        # capped, and expat resolves no external resources (test_extract_docx_guards)
+        root = ElementTree.fromstring(xml)  # nosec B314
     except ElementTree.ParseError as exc:
         raise ExtractionError("corrupt .docx content") from exc
     paragraphs: list[str] = []

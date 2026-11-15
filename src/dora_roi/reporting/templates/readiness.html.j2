@@ -25,6 +25,7 @@ ol.actions-list li { margin-bottom: 8px; }
   <h1>{{ client or t("rd.report.title") }}</h1>
   <p class="meta">{{ t("g.prepared", date=fmt(v.generated)) }}{% if prepared_by %} {{ t("g.prepared_by", name=prepared_by) }}{% endif %}{% if v.reference_date %} · RoI {{ fmt(v.reference_date) }}{% endif %}</p>
   <p class="section-lead">{{ t("rd.report.lead") }}</p>
+  <p class="small">{{ t("rd.scope") }}</p>
 </header>
 
 <section class="card overall" aria-labelledby="h-overall">

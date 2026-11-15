@@ -395,6 +395,9 @@ def test_extract_docx_guards(monkeypatch: pytest.MonkeyPatch) -> None:
         extract_text("c.docx", _zip({"other.xml": b"<a/>"}))
     with pytest.raises(ExtractionError, match="DTD"):
         extract_text("c.docx", _zip({"word/document.xml": b'<!DOCTYPE x [<!ENTITY a "b">]><x/>'}))
+    late = b"<!--" + b" " * 5000 + b"-->" + b'<!DOCTYPE x SYSTEM "file:///etc/passwd"><x/>'
+    with pytest.raises(ExtractionError, match="DTD"):
+        extract_text("c.docx", _zip({"word/document.xml": late}))
     with pytest.raises(ExtractionError, match="corrupt"):
         extract_text("c.docx", _zip({"word/document.xml": b"<unclosed"}))
     monkeypatch.setattr("dora_roi.contracts.extract.MAX_UNCOMPRESSED_BYTES", 10)
@@ -500,6 +503,16 @@ def test_apply_suggestions_keeps_reviewed_items() -> None:
     assert forced.item("30.3.d").status is ProvisionStatus.MISSING
 
 
+def test_suggestions_without_prefill_stay_not_assessed() -> None:
+    result = suggest(SAMPLE_CONTRACT_TEXT)
+    draft = apply_suggestions(ContractAssessment(contract_ref="AR-DE-0057"), result,
+                              prefill=False)
+    items = [draft.item(s.provision.id) for s in result.items]
+    assert items and all(i.status is ProvisionStatus.NOT_ASSESSED for i in items)
+    proposed = {draft.item(s.provision.id).suggested_status for s in result.items}
+    assert ProvisionStatus.MISSING in proposed and None not in proposed  # audit trail kept
+
+
 # =========================================================================== reports
 
 
@@ -564,7 +577,9 @@ def test_cli_contracts(tmp_path: Path) -> None:
                              str(tmp_path / "draft.json"), "--contract-ref", "AR-DE-0057"])
     assert r.exit_code == 0 and "30.3.d      not_found" in r.output
     draft = AssessmentBook.from_json((tmp_path / "draft.json").read_text())
-    assert draft.get("AR-DE-0057") is not None
+    written = draft.get("AR-DE-0057")
+    assert written is not None  # a keyword hit never counts as present without review
+    assert all(i.status is ProvisionStatus.NOT_ASSESSED for i in written.items.values())
     r = runner.invoke(main, ["contracts", "suggest", str(tmp_path / "c.docx"), "--not-critical"])
     assert "30.3" not in r.output
     (tmp_path / "x.rtf").write_text("x")

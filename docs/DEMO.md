@@ -31,7 +31,9 @@ starts at about 2 h 30 min.
 > contracts, incident reporting and concentration – and at what a Swiss parent needs from
 > the same data."
 
-**Point at** the *DORA readiness dashboard* box on the overview: four red lights.
+**Point at** the *DORA readiness – third parties and incidents* box on the overview: every
+light red. (It covers third-party risk and incident reporting, not ICT risk management or
+testing – the scope note says so.)
 
 ## 0:30 – The register: where do we stand? (60 s)
 
@@ -144,8 +146,9 @@ kronos-certificate-rotation*.
 > spreadsheet: 24 FINMA requirements mapped to the RoI fields, the Art. 30 checklist and the
 > incident log."
 
-**Point at** **56 %** coverage: 5 covered, 17 partly, 2 not covered; then the *Swiss
-context*: six Swiss providers with 38 % of the spend.
+**Point at** **44 %** coverage: none fully covered, 21 partly, 3 not covered – the RoI only
+holds ICT arrangements of EU entities, so the FINMA inventory is never complete from it
+alone. Then the *Swiss context*: six Swiss providers with 38 % of the spend.
 
 > "Provider, sub-providers, locations and terms come straight from the register. What FINMA
 > needs on top – the responsible unit per outsourcing, scenario tests, FINMA named in the
@@ -166,8 +169,8 @@ context*: six Swiss providers with 38 % of the spend.
 
 > "Everything on one page: register red with 25 errors, contracts red with 18 high-priority
 > gaps and only 16 % of critical contracts assessed, incidents red because of the
-> unreported recurring series, concentration red. Below: the eight actions that matter,
-> each a link to where it is fixed."
+> unreported recurring series, concentration and FINMA red. Below: the eight actions that
+> matter, each a link to where it is fixed."
 
 **Click** *Open the readiness report* (or *PDF*):
 

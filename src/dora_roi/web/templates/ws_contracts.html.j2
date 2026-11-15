@@ -4,6 +4,7 @@
 {% block content %}
 <h2>{{ t("c30.title") }}</h2>
 <p class="lead">{{ t("c30.ui.lead") }}</p>
+<p class="small muted"><strong>{{ t("mod.experimental.label") }}</strong> – {{ t("mod.experimental") }}</p>
 {% if imported >= 0 %}
 <div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("c30.ui.imported", n=imported) }}{% if updated %} {{ t("c30.ui.imported_updated", n=updated) }}{% endif %}{% if problems %} {{ t("c30.ui.import_problems", n=problems) }}{% endif %}</div></div>
 {% endif %}

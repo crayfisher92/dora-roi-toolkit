@@ -171,6 +171,29 @@ texts and its fixes are listed in [`docs/MODULE_REVIEW.md`](docs/MODULE_REVIEW.m
   sample assessments, contract document and incidents (`roi sample --assessments
   --incidents --contract-document`); 10-minute demo in `docs/DEMO.md`.
 
+### Changed – review of the programme modules against the source texts
+
+Details, sources and open items in [`docs/MODULE_REVIEW.md`](docs/MODULE_REVIEW.md); the
+modules carry an *Experimental* notice in the workbench.
+
+- **Art. 30**: keyword suggestions never count as present – `roi contracts suggest` writes
+  every status as *not assessed* with the proposal in `suggested_status`; "Compliant" is now
+  "All checklist items present". Item texts corrected for 30.2.d, 30.2.h (Art. 28(7) is a
+  separate obligation), 30.3.a, 30.3.e.i (copies only where critical to the provider;
+  microenterprise delegation) and 30.3.e.ii (certifications alone are no evidence, RTS
+  2024/1773 Art. 8(3)); invented transition period removed; RTS 2025/532 cited as final.
+- **Incidents**: a classification made more than 24 h after awareness is due 4 h later
+  (RTS 2025/301 Art. 5(2)); a missing classification time no longer makes the deadline move
+  with the clock; a malicious access meets the critical-services criterion (RTS 2024/1772
+  Art. 6(c)); "overdue" now reads "past the conservative deadline".
+- **FINMA**: margin numbers cited and checked; FIN-OS-02/03/04/14 partly instead of fully
+  covered, FIN-OR-02 not covered (an RTO is no tolerance for disruption). The sample now
+  scores 44 % instead of 56 %.
+- **Readiness**: renamed "DORA readiness – third parties and incidents" with a scope note;
+  "ready for submission" now "no blocking errors in the toolkit's validation"; Switzerland
+  counts as a third country in the DORA view; notice periods measured from today.
+- `.docx` extraction refuses a DTD anywhere in the part, not only in the first 4 KiB.
+
 ### Reconciliation (continued)
 
 

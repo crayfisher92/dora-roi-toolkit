@@ -54,8 +54,8 @@ def test_sample_is_red_with_actions() -> None:
     v = view_for(reg, sample_assessments(reg), sample_incidents(reg, NOW))
     rags = {p.key: p.rag for p in v.pillars}
     assert rags == {"register": Rag.RED, "contracts": Rag.RED, "incidents": Rag.RED,
-                    "concentration": Rag.RED, "finma": Rag.AMBER}
-    assert v.overall is Rag.RED and v.pillar("finma").metric == "56%"
+                    "concentration": Rag.RED, "finma": Rag.RED}
+    assert v.overall is Rag.RED and v.pillar("finma").metric == "44%"
     texts = [a.text for a in v.actions]
     assert any("blocking validation error" in t for t in texts)
     assert any("kronos-certificate-rotation" in t for t in texts)

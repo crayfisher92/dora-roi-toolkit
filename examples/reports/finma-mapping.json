@@ -1,10 +1,10 @@
 {
   "schema": "dora-roi-toolkit/finma-mapping/v1",
-  "coverage_score": 0.5625,
+  "coverage_score": 0.4375,
   "counts": {
-    "full": 5,
-    "partial": 17,
-    "none": 2
+    "full": 0,
+    "partial": 21,
+    "none": 3
   },
   "requirements": [
     {
@@ -26,9 +26,9 @@
     {
       "id": "FIN-OS-02",
       "circular": "FINMA Circ. 2018/3",
-      "title": "Service provider: name and domicile",
-      "coverage_by_design": "full",
-      "coverage_in_register": "full",
+      "title": "Service provider (Rz 14)",
+      "coverage_by_design": "partial",
+      "coverage_in_register": "partial",
       "roi_fields": {
         "B_05.01 c0050": 1.0,
         "B_05.01 c0080": 1.0,
@@ -37,14 +37,14 @@
       "art30": [],
       "art30_share": null,
       "incidents_classified": null,
-      "missing": "—"
+      "missing": "The inventory covers all significant outsourced functions, including non-ICT ones; the RoI only holds ICT providers."
     },
     {
       "id": "FIN-OS-03",
       "circular": "FINMA Circ. 2018/3",
-      "title": "Sub-providers of significant functions",
-      "coverage_by_design": "full",
-      "coverage_in_register": "full",
+      "title": "Sub-providers of significant functions (Rz 14)",
+      "coverage_by_design": "partial",
+      "coverage_in_register": "partial",
       "roi_fields": {
         "B_05.02 c0030": 1.0,
         "B_05.02 c0050": 1.0,
@@ -53,14 +53,14 @@
       "art30": [],
       "art30_share": null,
       "incidents_classified": null,
-      "missing": "—"
+      "missing": "Covered for ICT services; sub-providers of non-ICT outsourcings are not in the RoI."
     },
     {
       "id": "FIN-OS-04",
       "circular": "FINMA Circ. 2018/3",
-      "title": "Service recipient within the group",
-      "coverage_by_design": "full",
-      "coverage_in_register": "full",
+      "title": "Service recipient within the group (Rz 14)",
+      "coverage_by_design": "partial",
+      "coverage_in_register": "partial",
       "roi_fields": {
         "B_02.02 c0020": 1.0,
         "B_04.01 c0020": 1.0,
@@ -69,7 +69,7 @@
       "art30": [],
       "art30_share": null,
       "incidents_classified": null,
-      "missing": "Swiss group entities are outside the DORA scope: add them to B_01.02 for the group view and exclude them from the supervisory xBRL-CSV export."
+      "missing": "Swiss group entities are outside the DORA scope: add them to B_01.02 for the group view and mark them as outside the DORA reporting scope (this page, or `roi export --exclude-entity`) so the xBRL-CSV package leaves them out."
     },
     {
       "id": "FIN-OS-05",
@@ -101,9 +101,9 @@
     {
       "id": "FIN-OS-07",
       "circular": "FINMA Circ. 2018/3",
-      "title": "Term of the outsourcing and notice periods",
-      "coverage_by_design": "full",
-      "coverage_in_register": "full",
+      "title": "Term and notice periods – evidence for an orderly change of provider (Rz 18–18.1)",
+      "coverage_by_design": "partial",
+      "coverage_in_register": "partial",
       "roi_fields": {
         "B_02.02 c0070": 1.0,
         "B_02.02 c0080": 0.9933774834437086,
@@ -113,7 +113,7 @@
       "art30": [],
       "art30_share": null,
       "incidents_classified": null,
-      "missing": "—"
+      "missing": "Not an inventory or minimum contract requirement (Rz 14, 32–35); the dates support the orderly change of provider or insourcing (Rz 18–18.1)."
     },
     {
       "id": "FIN-OS-08",
@@ -122,7 +122,7 @@
       "coverage_by_design": "partial",
       "coverage_in_register": "partial",
       "roi_fields": {
-        "B_07.01 c0070": 0.9339622641509434
+        "B_07.01 c0070": 1.0
       },
       "art30": [],
       "art30_share": null,
@@ -132,7 +132,7 @@
     {
       "id": "FIN-OS-09",
       "circular": "FINMA Circ. 2018/3",
-      "title": "Security and confidentiality, incl. bank-client confidentiality",
+      "title": "Contractual security requirements and contingency framework (Rz 24–25)",
       "coverage_by_design": "partial",
       "coverage_in_register": "partial",
       "roi_fields": {
@@ -143,7 +143,7 @@
       ],
       "art30_share": 0.15555555555555556,
       "incidents_classified": null,
-      "missing": "Data sensitivity and the Art. 30(2)(c) clause cover security in general; document client identifying data (CID) and the bank-client confidentiality assessment for providers abroad."
+      "missing": "Data sensitivity and the Art. 30(2)(c) clause cover security in general. Critical data held abroad and its confidentiality are 2023/1 topics (Rz 79, 82); bank-client confidentiality follows from the Banking Act, not from 2018/3."
     },
     {
       "id": "FIN-OS-10",
@@ -199,7 +199,7 @@
     {
       "id": "FIN-OS-13",
       "circular": "FINMA Circ. 2018/3",
-      "title": "Written contract: sub-outsourcing conditions, termination, orderly transfer",
+      "title": "Agreement in writing or text form; sub-outsourcing; termination (Rz 32–35)",
       "coverage_by_design": "partial",
       "coverage_in_register": "partial",
       "roi_fields": {
@@ -214,14 +214,14 @@
       ],
       "art30_share": 0.022222222222222223,
       "incidents_classified": null,
-      "missing": "Covered by the Art. 30 checklist; FINMA may expect prior consent to sub-outsourcing of significant functions, which DORA does not require in every case."
+      "missing": "Largely covered by the Art. 30 checklist. Sub-outsourcing: the company must be informed early about the use or replacement of subcontractors and be able to terminate (Rz 33 – no prior consent since the 2020 amendment); internal approval procedures and signing powers (Rz 35) are outside the RoI."
     },
     {
       "id": "FIN-OS-14",
       "circular": "FINMA Circ. 2018/3",
-      "title": "Intra-group outsourcings identified",
-      "coverage_by_design": "full",
-      "coverage_in_register": "full",
+      "title": "Intra-group outsourcings identified (Rz 14)",
+      "coverage_by_design": "partial",
+      "coverage_in_register": "partial",
       "roi_fields": {
         "B_03.03 c0020": null,
         "B_02.03 c0020": null
@@ -229,12 +229,12 @@
       "art30": [],
       "art30_share": null,
       "incidents_classified": null,
-      "missing": "—"
+      "missing": "Covered for ICT services between DORA entities; intra-group outsourcings of Swiss entities and non-ICT outsourcings must be added."
     },
     {
       "id": "FIN-OR-01",
       "circular": "FINMA Circ. 2023/1",
-      "title": "Inventory of critical functions",
+      "title": "Inventory of critical functions (Rz 14–16, 107)",
       "coverage_by_design": "partial",
       "coverage_in_register": "partial",
       "roi_fields": {
@@ -245,21 +245,19 @@
       "art30": [],
       "art30_share": null,
       "incidents_classified": null,
-      "missing": "FINMA critical functions (disruption endangers the bank or the functioning of the financial market) are not the same set as DORA critical or important functions: map them explicitly."
+      "missing": "FINMA critical functions (disruption would jeopardise the institution's continuation or its role on the financial market) are a much narrower set than DORA critical or important functions – typically a few, top-down (Guidance 05/2025 §3.1): map them explicitly, with their dependencies (Rz 107)."
     },
     {
       "id": "FIN-OR-02",
       "circular": "FINMA Circ. 2023/1",
-      "title": "Tolerance for disruption per critical function",
-      "coverage_by_design": "partial",
-      "coverage_in_register": "partial",
-      "roi_fields": {
-        "B_06.01 c0080": 0.95
-      },
+      "title": "Tolerance for disruption per critical function (Rz 17)",
+      "coverage_by_design": "none",
+      "coverage_in_register": "none",
+      "roi_fields": {},
       "art30": [],
       "art30_share": null,
       "incidents_classified": null,
-      "missing": "The RTO approximates, but is not, a tolerance for disruption (which also covers data loss and service level): define tolerances per FINMA critical function."
+      "missing": "A tolerance for disruption is the extent (e.g. duration or expected damage) of a disruption the institution is willing to accept, set by the executive board irrespective of its ability to recover; RTO/RPO are not evidence of it (Guidance 05/2025 §3.2). Define tolerances per FINMA critical function."
     },
     {
       "id": "FIN-OR-03",
@@ -337,7 +335,7 @@
       "art30": [],
       "art30_share": null,
       "incidents_classified": 1.0,
-      "missing": "The incident log covers classification and DORA deadlines; FINMA reporting of cyber attacks follows its own guidance and time limits – track them separately."
+      "missing": "The incident log covers the DORA classification and deadlines, which are no evidence of FINMA materiality. FINMA: significant ICT incidents and incidents involving critical data without delay (Rz 60, 81); cyber attacks with a preliminary notification within 24 hours and a report within 72 hours, then a root cause analysis (Rz 68; Guidance 05/2020, 03/2024; FINMASA Art. 29(2)) – track them separately."
     },
     {
       "id": "FIN-OR-08",
@@ -355,7 +353,7 @@
       ],
       "art30_share": 0.07777777777777778,
       "incidents_classified": null,
-      "missing": "Substitutability and exit plans are reported; test them in severe but plausible scenarios."
+      "missing": "Substitutability and exit plans are reported (2018/3 Rz 18–18.1; 2023/1 Rz 88, 110); test them in severe but plausible scenarios."
     },
     {
       "id": "FIN-OR-09",
@@ -383,7 +381,7 @@
       ],
       "art30_share": 0.13333333333333333,
       "incidents_classified": null,
-      "missing": "Evidenced by the Art. 30 clauses on data security, security measures and training."
+      "missing": "Evidenced by the Art. 30 clauses on data security, security measures and training (2018/3 Rz 24; 2023/1 Rz 82, 85 – RTO/RPO agreed with providers)."
     }
   ],
   "swiss_context": {

@@ -14,133 +14,200 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "partial",
           "clause_ref": "Addendum 7",
-          "evidence": "Participation only in pooled TLPT, at the provider's discretion and with 6 months' notice."
+          "evidence": "Participation only in pooled TLPT, at the provider's discretion and with 6 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "partial",
           "clause_ref": "Addendum 4.1",
-          "evidence": "Audit rights for the bank and the competent authority, but on-site access only to 'shared-responsibility' documentation; no right to take copies."
+          "evidence": "Audit rights for the bank and the competent authority, but on-site access only to 'shared-responsibility' documentation; no right to take copies.",
+          "exception_reason": "Pooled audit through the financial-services customer consortium and annual SOC 2 Type II report as compensating controls; full on-site rights to be renegotiated at the 2027 renewal.",
+          "exception_approver": "Head of ICT Third-Party Risk (sample)",
+          "exception_until": "2027-06-30",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 16.2",
-          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "present",
           "clause_ref": "Clause 16.4",
-          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "partial",
           "clause_ref": "Clause 22.4",
-          "evidence": "Transition period of 90 days only – too short for the core-banking hosting migration (exit plan assumes 18 months)."
+          "evidence": "Transition period of 90 days only – too short for the core-banking hosting migration (exit plan assumes 18 months).",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -163,133 +230,201 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "partial",
           "clause_ref": "Clause 6.3",
-          "evidence": "General authorisation of sub-processors with a public list; no conditions for services supporting critical functions and no right to object."
+          "evidence": "General authorisation of sub-processors with a public list; no conditions for services supporting critical functions and no right to object.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No TLPT clause; penetration testing by customers is prohibited without the provider's consent (clause 8.7)."
+          "evidence": "No TLPT clause; penetration testing by customers is prohibited without the provider's consent (clause 8.7).",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation": "agreed",
+          "remediation_owner": "Cloud sourcing office (sample)",
+          "remediation_due": "2026-12-31"
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "present",
           "clause_ref": "Clause 16.1",
-          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 16.2",
-          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "present",
           "clause_ref": "Clause 16.4",
-          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "present",
           "clause_ref": "Clause 19.1",
-          "evidence": "24-month transition period at contract terms."
+          "evidence": "24-month transition period at contract terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -312,133 +447,203 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "partial",
           "clause_ref": "Clause 10.2",
-          "evidence": "Incident support billed on time and material at rates 'applicable at the time'."
+          "evidence": "Incident support billed on time and material at rates 'applicable at the time'.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No reference to security awareness or resilience training."
+          "evidence": "No reference to security awareness or resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "partial",
           "clause_ref": "Clause 8",
-          "evidence": "Quarterly reports; no obligation to notify material developments."
+          "evidence": "Quarterly reports; no obligation to notify material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No TLPT participation clause."
+          "evidence": "No TLPT participation clause.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation": "negotiating",
+          "remediation_owner": "Vendor management – core banking (sample)",
+          "remediation_due": "2027-03-31"
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "present",
           "clause_ref": "Clause 16.1",
-          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "Not addressed."
+          "evidence": "Not addressed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "present",
           "clause_ref": "Clause 16.4",
-          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No exit or transition provisions; licence ends at termination."
+          "evidence": "No exit or transition provisions; licence ends at termination.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation": "negotiating",
+          "remediation_owner": "Vendor management – core banking (sample)",
+          "remediation_due": "2027-03-31"
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No migration assistance; source code escrow only."
+          "evidence": "No migration assistance; source code escrow only.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -461,133 +666,201 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "Silent on subcontracting although the service is hosted by Nimbus Cloud Services EMEA."
+          "evidence": "Silent on subcontracting although the service is hosted by Nimbus Cloud Services EMEA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation": "planned",
+          "remediation_owner": "Vendor management (sample)",
+          "remediation_due": "2026-09-30"
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No obligation to notify location changes."
+          "evidence": "No obligation to notify location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No TLPT clause."
+          "evidence": "No TLPT clause.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No audit or access rights; only an annual ISAE 3402 report."
+          "evidence": "No audit or access rights; only an annual ISAE 3402 report.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "ISAE 3402 Type II report provided annually."
+          "evidence": "ISAE 3402 Type II report provided annually.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No cooperation obligation for inspections."
+          "evidence": "No cooperation obligation for inspections.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "Not addressed."
+          "evidence": "Not addressed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "present",
           "clause_ref": "Clause 19.1",
-          "evidence": "24-month transition period at contract terms."
+          "evidence": "24-month transition period at contract terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -611,154 +884,220 @@
           "status": "present",
           "clause_ref": "15.1",
           "evidence": "Entire agreement incl. schedules and SLA; written amendments.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "2.1",
           "evidence": "Statement of Work in Schedule 1.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "3",
           "evidence": "Prior written consent; provider remains responsible.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "4.1",
           "evidence": "Austria/Germany; data in German data centres.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "4.2",
           "evidence": "Six months' advance notice.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "5.1",
           "evidence": "All four protection goals; GDPR DPA (Schedule 3).",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "14.1",
           "evidence": "Return within 30 days, also on insolvency.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "6",
           "evidence": "SLA in Schedule 2, reviewed annually.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "7.1",
           "evidence": "Assistance at no additional cost.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "10.1",
           "evidence": "Cooperation with competent and resolution authorities.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "13",
           "evidence": "12 months' notice; Art. 28(7) circumstances listed.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "11.1",
           "evidence": "Participation where reasonably requested.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "6",
           "evidence": "99.9 %, 30-minute response time, service credits.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "8",
           "evidence": "Monthly reports; notification of material developments.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "9",
           "evidence": "BCP/DR tested annually; ISO/IEC 27001.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "missing",
           "clause_ref": "",
           "evidence": "No TLPT clause (only the provider's own penetration tests, 5.2).",
-          "suggested_status": "missing"
+          "suggested_status": "missing",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "partial",
           "clause_ref": "12",
           "evidence": "Audit by the bank only, once a year, 30 days' notice; no rights for the competent authority; no on-site copies.",
-          "suggested_status": "partial"
+          "suggested_status": "partial",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "missing",
           "clause_ref": "",
           "evidence": "Not addressed.",
-          "suggested_status": "missing"
+          "suggested_status": "missing",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "missing",
           "clause_ref": "",
           "evidence": "No cooperation obligation for inspections.",
-          "suggested_status": "missing"
+          "suggested_status": "missing",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "partial",
           "clause_ref": "12.1",
           "evidence": "Frequency defined; scope and procedure not defined.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "missing",
           "clause_ref": "",
           "evidence": "No transition period – the provider may stop at termination.",
-          "suggested_status": "missing"
+          "suggested_status": "missing",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "partial",
           "clause_ref": "14.2",
           "evidence": "Migration cooperation only at then-current rates; no obligation to continue the service during migration.",
-          "suggested_status": "present"
+          "suggested_status": "present",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -781,133 +1120,199 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "present",
           "clause_ref": "Clause 16.3",
-          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "present",
           "clause_ref": "Clause 16.1",
-          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 16.2",
-          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "present",
           "clause_ref": "Clause 16.4",
-          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "present",
           "clause_ref": "Clause 19.1",
-          "evidence": "24-month transition period at contract terms."
+          "evidence": "24-month transition period at contract terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -930,133 +1335,199 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "present",
           "clause_ref": "Clause 16.3",
-          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "present",
           "clause_ref": "Clause 16.1",
-          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 16.2",
-          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "present",
           "clause_ref": "Clause 16.4",
-          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "present",
           "clause_ref": "Clause 19.1",
-          "evidence": "24-month transition period at contract terms."
+          "evidence": "24-month transition period at contract terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -1079,133 +1550,199 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "partial",
           "clause_ref": "Clause 9",
-          "evidence": "Ordinary termination only; Art. 28(7) termination circumstances not provided for."
+          "evidence": "Ordinary termination only; Art. 28(7) termination circumstances not provided for.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "present",
           "clause_ref": "Clause 16.3",
-          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "present",
           "clause_ref": "Clause 16.1",
-          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 16.2",
-          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "present",
           "clause_ref": "Clause 16.4",
-          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "present",
           "clause_ref": "Clause 19.1",
-          "evidence": "24-month transition period at contract terms."
+          "evidence": "24-month transition period at contract terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -1228,73 +1765,109 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "Locations may be changed by the provider without notice."
+          "evidence": "Locations may be changed by the provider without notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "Not addressed."
+          "evidence": "Not addressed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -1317,73 +1890,109 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "partial",
           "clause_ref": "Clause 7",
-          "evidence": "Data 'in the EU or the US' – no specific countries."
+          "evidence": "Data 'in the EU or the US' – no specific countries.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "partial",
           "clause_ref": "Clause 12.4",
-          "evidence": "Data export only within 30 days after termination; insolvency and resolution not covered."
+          "evidence": "Data export only within 30 days after termination; insolvency and resolution not covered.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No cooperation with authorities beyond legal compulsion."
+          "evidence": "No cooperation with authorities beyond legal compulsion.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -1406,133 +2015,199 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "present",
           "clause_ref": "Clause 16.3",
-          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "Explicitly no audit rights ('the customer relies on the provider's SOC 1 report')."
+          "evidence": "Explicitly no audit rights ('the customer relies on the provider's SOC 1 report').",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 16.2",
-          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "missing",
           "clause_ref": "",
-          "evidence": "No cooperation obligation for inspections."
+          "evidence": "No cooperation obligation for inspections.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "partial",
           "clause_ref": "Clause 20",
-          "evidence": "Transition period of 6 months, at the provider's then-current rates."
+          "evidence": "Transition period of 6 months, at the provider's then-current rates.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -1555,73 +2230,109 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "present",
           "clause_ref": "Clause 17",
-          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [
@@ -1644,133 +2355,199 @@
           "provision_id": "30.1",
           "status": "present",
           "clause_ref": "Clause 1 / entire agreement",
-          "evidence": "Single agreement incl. schedules and SLA."
+          "evidence": "Single agreement incl. schedules and SLA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.1": {
           "provision_id": "30.2.a.1",
           "status": "present",
           "clause_ref": "Schedule 1",
-          "evidence": "Statement of work lists the services."
+          "evidence": "Statement of work lists the services.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.a.2": {
           "provision_id": "30.2.a.2",
           "status": "present",
           "clause_ref": "Clause 9",
-          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+          "evidence": "Prior written consent for subcontracting; flow-down of terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.1": {
           "provision_id": "30.2.b.1",
           "status": "present",
           "clause_ref": "Schedule 5",
-          "evidence": "Service and data locations listed."
+          "evidence": "Service and data locations listed.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.b.2": {
           "provision_id": "30.2.b.2",
           "status": "present",
           "clause_ref": "Clause 9.4",
-          "evidence": "Six months' advance notice of location changes."
+          "evidence": "Six months' advance notice of location changes.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.c": {
           "provision_id": "30.2.c",
           "status": "present",
           "clause_ref": "Clause 11",
-          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.d": {
           "provision_id": "30.2.d",
           "status": "present",
           "clause_ref": "Clause 18.3",
-          "evidence": "Data return in machine-readable format, also on insolvency."
+          "evidence": "Data return in machine-readable format, also on insolvency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.e": {
           "provision_id": "30.2.e",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "SLA with annual review."
+          "evidence": "SLA with annual review.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.f": {
           "provision_id": "30.2.f",
           "status": "present",
           "clause_ref": "Clause 12.2",
-          "evidence": "Incident assistance included in the fees."
+          "evidence": "Incident assistance included in the fees.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.g": {
           "provision_id": "30.2.g",
           "status": "present",
           "clause_ref": "Clause 15",
-          "evidence": "Cooperation with competent and resolution authorities."
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.h": {
           "provision_id": "30.2.h",
           "status": "partial",
           "clause_ref": "Clause 9",
-          "evidence": "Ordinary termination only; Art. 28(7) termination circumstances not provided for."
+          "evidence": "Ordinary termination only; Art. 28(7) termination circumstances not provided for.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.2.i": {
           "provision_id": "30.2.i",
           "status": "present",
           "clause_ref": "Clause 13.4",
-          "evidence": "Participation in awareness and resilience training."
+          "evidence": "Participation in awareness and resilience training.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.a": {
           "provision_id": "30.3.a",
           "status": "present",
           "clause_ref": "Schedule 2",
-          "evidence": "99.9 % availability, response/resolution times, service credits."
+          "evidence": "99.9 % availability, response/resolution times, service credits.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.b": {
           "provision_id": "30.3.b",
           "status": "present",
           "clause_ref": "Clause 14",
-          "evidence": "Monthly reporting; notification of material developments."
+          "evidence": "Monthly reporting; notification of material developments.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.c": {
           "provision_id": "30.3.c",
           "status": "present",
           "clause_ref": "Clause 12.5",
-          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.d": {
           "provision_id": "30.3.d",
           "status": "present",
           "clause_ref": "Clause 16.3",
-          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.i": {
           "provision_id": "30.3.e.i",
           "status": "present",
           "clause_ref": "Clause 16.1",
-          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.ii": {
           "provision_id": "30.3.e.ii",
           "status": "present",
           "clause_ref": "Clause 16.2",
-          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iii": {
           "provision_id": "30.3.e.iii",
           "status": "present",
           "clause_ref": "Clause 16.4",
-          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.e.iv": {
           "provision_id": "30.3.e.iv",
           "status": "present",
           "clause_ref": "Clause 16.5",
-          "evidence": "Audit plan with scope, procedure and frequency."
+          "evidence": "Audit plan with scope, procedure and frequency.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.i": {
           "provision_id": "30.3.f.i",
           "status": "present",
           "clause_ref": "Clause 19.1",
-          "evidence": "24-month transition period at contract terms."
+          "evidence": "24-month transition period at contract terms.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         },
         "30.3.f.ii": {
           "provision_id": "30.3.f.ii",
           "status": "present",
           "clause_ref": "Clause 19.2",
-          "evidence": "Migration assistance to a successor or in-house."
+          "evidence": "Migration assistance to a successor or in-house.",
+          "exception_reason": "",
+          "exception_approver": "",
+          "remediation_owner": ""
         }
       },
       "history": [

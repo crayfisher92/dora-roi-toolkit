@@ -2,16 +2,19 @@
 
 A Swiss banking group with EU subsidiaries maintains the DORA Register of Information for its
 EU entities and, in Switzerland, an **outsourcing inventory** under FINMA Circular 2018/3
-"Outsourcing" and **critical-function and ICT resilience documentation** under FINMA Circular
-2023/1 "Operational risks and resilience – banks". This module maps each FINMA requirement to
-the RoI columns (and the Art. 30 contract checklist and incident log of this toolkit) that
-evidence it, states the coverage *by design* (full / partial / none), measures how complete
-that data is in a given register, and lists what has to be maintained in addition – so that
-one dataset serves both regimes.
+"Outsourcing – banks, insurance companies and selected financial institutions under FinIA"
+(version of 4 November 2020) and **critical-function and ICT resilience documentation** under
+FINMA Circular 2023/1 "Operational risks and resilience – banks". This module maps each FINMA
+requirement to the RoI columns (and the Art. 30 contract checklist and incident log of this
+toolkit) that evidence it, states the coverage *by design* (full / partial / none), measures
+how complete that data is in a given register, and lists what has to be maintained in addition
+– so that one dataset serves both regimes.
 
-The requirement texts paraphrase the circulars from the authors' knowledge; margin numbers
-are deliberately not cited (A-FINMA-01). The mapping is an interpretation, not FINMA
-guidance.
+The requirement texts paraphrase the circulars; the margin numbers (Rz) were checked against
+the current versions (``docs/MODULE_REVIEW.md``) – neither circular has a revision pending on
+FINMA's list of regulatory projects (1 September 2026). Proportionality by supervisory
+category (2023/1 Rz 20–21) and the institution types of 2018/3 (Rz 5–6.3) are not modelled.
+The mapping is an interpretation, not FINMA guidance.
 """
 
 from __future__ import annotations
@@ -113,17 +116,23 @@ REQUIREMENTS: tuple[FinmaRequirement, ...] = (
       "Auslagerungen kennzeichnen und Nicht-IKT-Auslagerungen (z. B. Bargeldlogistik, "
       "Backoffice) ergänzen."),
     R("FIN-OS-02", OUTSOURCING, "Inventory", "Inventar",
-      "Service provider: name and domicile", "Dienstleister: Name und Sitz",
-      FULL, (F("B_05.01 c0050"), F("B_05.01 c0080"), F("B_05.01 c0010")),
-      "—", "—"),
+      "Service provider (Rz 14)", "Dienstleister (Rz 14)",
+      PARTIAL, (F("B_05.01 c0050"), F("B_05.01 c0080"), F("B_05.01 c0010")),
+      "The inventory covers all significant outsourced functions, including non-ICT ones; "
+      "the RoI only holds ICT providers.",
+      "Das Inventar umfasst alle wesentlichen ausgelagerten Funktionen, auch Nicht-IKT; das "
+      "RoI enthält nur IKT-Dienstleister."),
     R("FIN-OS-03", OUTSOURCING, "Inventory", "Inventar",
-      "Sub-providers of significant functions", "Unterakkordanten wesentlicher Funktionen",
-      FULL, (F("B_05.02 c0030"), F("B_05.02 c0050"),
-              F("B_05.02 c0060", "subcontractor")),
-      "—", "—"),
+      "Sub-providers of significant functions (Rz 14)",
+      "Unterakkordanten wesentlicher Funktionen (Rz 14)",
+      PARTIAL, (F("B_05.02 c0030"), F("B_05.02 c0050"),
+                F("B_05.02 c0060", "subcontractor")),
+      "Covered for ICT services; sub-providers of non-ICT outsourcings are not in the RoI.",
+      "Für IKT-Dienstleistungen abgedeckt; Unterakkordanten von Nicht-IKT-Auslagerungen stehen "
+      "nicht im RoI."),
     R("FIN-OS-04", OUTSOURCING, "Inventory", "Inventar",
-      "Service recipient within the group", "Leistungsempfänger in der Gruppe",
-      FULL, (F("B_02.02 c0020"), F("B_04.01 c0020"), F("B_01.02 c0010")),
+      "Service recipient within the group (Rz 14)", "Leistungsempfänger in der Gruppe (Rz 14)",
+      PARTIAL, (F("B_02.02 c0020"), F("B_04.01 c0020"), F("B_01.02 c0010")),
       "Swiss group entities are outside the DORA scope: add them to B_01.02 for the group "
       "view and mark them as outside the DORA reporting scope (this page, or `roi export "
       "--exclude-entity`) so the xBRL-CSV package leaves them out.",
@@ -145,9 +154,14 @@ REQUIREMENTS: tuple[FinmaRequirement, ...] = (
       "„Kritische oder wichtige Funktion“ (DORA) und „wesentliche Funktion“ (FINMA) sind "
       "ähnlich, aber nicht identisch: abweichende FINMA-Beurteilung separat erfassen."),
     R("FIN-OS-07", OUTSOURCING, "Inventory / contract", "Inventar / Vertrag",
-      "Term of the outsourcing and notice periods", "Laufzeit und Kündigungsfristen",
-      FULL, (F("B_02.02 c0070"), F("B_02.02 c0080"), F("B_02.02 c0100"), F("B_02.02 c0110")),
-      "—", "—"),
+      "Term and notice periods – evidence for an orderly change of provider (Rz 18–18.1)",
+      "Laufzeit und Kündigungsfristen – Nachweis für einen geordneten Wechsel (Rz 18–18.1)",
+      PARTIAL, (F("B_02.02 c0070"), F("B_02.02 c0080"), F("B_02.02 c0100"),
+                F("B_02.02 c0110")),
+      "Not an inventory or minimum contract requirement (Rz 14, 32–35); the dates support the "
+      "orderly change of provider or insourcing (Rz 18–18.1).",
+      "Keine Inventar- oder Mindestvertragsanforderung (Rz 14, 32–35); die Daten stützen den "
+      "geordneten Wechsel oder die Rückführung (Rz 18–18.1)."),
     R("FIN-OS-08", OUTSOURCING, "Selection, instruction and monitoring",
       "Auswahl, Instruktion und Kontrolle",
       "Due diligence before selection and ongoing monitoring of the provider",
@@ -158,15 +172,16 @@ REQUIREMENTS: tuple[FinmaRequirement, ...] = (
       "Nur das Datum der letzten Prüfung steht im RoI. Nachweise zu Due Diligence und "
       "Überwachung (Datum, Ergebnis, Verantwortliche) führen."),
     R("FIN-OS-09", OUTSOURCING, "Security", "Sicherheit",
-      "Security and confidentiality, incl. bank-client confidentiality",
-      "Sicherheit und Vertraulichkeit, inkl. Bankkundengeheimnis",
+      "Contractual security requirements and contingency framework (Rz 24–25)",
+      "Vertragliche Sicherheitsanforderungen und Notfallrahmen (Rz 24–25)",
       PARTIAL, (F("B_02.02 c0170", "storage"),),
-      "Data sensitivity and the Art. 30(2)(c) clause cover security in general; document "
-      "client identifying data (CID) and the bank-client confidentiality assessment for "
-      "providers abroad.",
+      "Data sensitivity and the Art. 30(2)(c) clause cover security in general. Critical data "
+      "held abroad and its confidentiality are 2023/1 topics (Rz 79, 82); bank-client "
+      "confidentiality follows from the Banking Act, not from 2018/3.",
       "Datensensitivität und die Klausel nach Art. 30 Abs. 2 lit. c decken Sicherheit "
-      "allgemein ab; kundenidentifizierende Daten (CID) und die Beurteilung des "
-      "Bankkundengeheimnisses bei Dienstleistern im Ausland dokumentieren.",
+      "allgemein ab. Kritische Daten im Ausland und ihre Vertraulichkeit sind Themen von "
+      "2023/1 (Rz 79, 82); das Bankkundengeheimnis folgt aus dem Bankengesetz, nicht aus "
+      "2018/3.",
       art30=("30.2.c",)),
     R("FIN-OS-10", OUTSOURCING, "Security", "Sicherheit",
       "Business continuity of outsourced significant functions",
@@ -197,37 +212,52 @@ REQUIREMENTS: tuple[FinmaRequirement, ...] = (
       "Abwicklung nötige Informationen aus der Schweiz zugänglich bleiben.",
       art30=("30.2.d", "30.3.e.i")),
     R("FIN-OS-13", OUTSOURCING, "Contract", "Vertrag",
-      "Written contract: sub-outsourcing conditions, termination, orderly transfer",
-      "Schriftlicher Vertrag: Bedingungen für Unterauslagerung, Kündigung, geordnete Übergabe",
+      "Agreement in writing or text form; sub-outsourcing; termination (Rz 32–35)",
+      "Vertrag schriftlich oder in Textform; Unterauslagerung; Kündigung (Rz 32–35)",
       PARTIAL, (F("B_07.01 c0080"),),
-      "Covered by the Art. 30 checklist; FINMA may expect prior consent to sub-outsourcing of "
-      "significant functions, which DORA does not require in every case.",
-      "Durch die Art.-30-Checkliste abgedeckt; die FINMA kann eine vorgängige Zustimmung zur "
-      "Unterauslagerung wesentlicher Funktionen erwarten, die DORA nicht in jedem Fall "
-      "verlangt.",
+      "Largely covered by the Art. 30 checklist. Sub-outsourcing: the company must be informed "
+      "early about the use or replacement of subcontractors and be able to terminate (Rz 33 – "
+      "no prior consent since the 2020 amendment); internal approval procedures and signing "
+      "powers (Rz 35) are outside the RoI.",
+      "Weitgehend durch die Art.-30-Checkliste abgedeckt. Unterauslagerung: das Unternehmen "
+      "ist frühzeitig über Beizug oder Wechsel von Unterakkordanten zu informieren und muss "
+      "kündigen können (Rz 33 – seit der Änderung 2020 keine vorgängige Zustimmung); interne "
+      "Genehmigungsverfahren und Zeichnungsberechtigungen (Rz 35) liegen ausserhalb des RoI.",
       art30=("30.1", "30.2.a.2", "30.2.h", "30.3.f.i", "30.3.f.ii")),
     R("FIN-OS-14", OUTSOURCING, "Intra-group outsourcing", "Gruppeninterne Auslagerung",
-      "Intra-group outsourcings identified", "Gruppeninterne Auslagerungen identifiziert",
-      FULL, (F("B_03.03 c0020"), F("B_02.03 c0020")),
-      "—", "—"),
+      "Intra-group outsourcings identified (Rz 14)",
+      "Gruppeninterne Auslagerungen identifiziert (Rz 14)",
+      PARTIAL, (F("B_03.03 c0020"), F("B_02.03 c0020")),
+      "Covered for ICT services between DORA entities; intra-group outsourcings of Swiss "
+      "entities and non-ICT outsourcings must be added.",
+      "Für IKT-Dienstleistungen zwischen DORA-Unternehmen abgedeckt; gruppeninterne "
+      "Auslagerungen Schweizer Gesellschaften und Nicht-IKT-Auslagerungen ergänzen."),
     # ------------------------------------------------------------------ 2023/1 resilience
     R("FIN-OR-01", OPRISK, "Operational resilience", "Operationelle Resilienz",
-      "Inventory of critical functions", "Inventar der kritischen Funktionen",
+      "Inventory of critical functions (Rz 14–16, 107)",
+      "Inventar der kritischen Funktionen (Rz 14–16, 107)",
       PARTIAL, (F("B_06.01 c0010"), F("B_06.01 c0030"), F("B_06.01 c0050")),
-      "FINMA critical functions (disruption endangers the bank or the functioning of the "
-      "financial market) are not the same set as DORA critical or important functions: "
-      "map them explicitly.",
-      "Kritische Funktionen nach FINMA (Störung gefährdet Bank oder Finanzmarkt) sind nicht "
-      "deckungsgleich mit kritischen oder wichtigen Funktionen nach DORA: ausdrücklich "
-      "zuordnen."),
+      "FINMA critical functions (disruption would jeopardise the institution's continuation or "
+      "its role on the financial market) are a much narrower set than DORA critical or "
+      "important functions – typically a few, top-down (Guidance 05/2025 §3.1): map them "
+      "explicitly, with their dependencies (Rz 107).",
+      "Kritische Funktionen nach FINMA (Störung gefährdet den Fortbestand des Instituts oder "
+      "seine Rolle am Finanzmarkt) sind ein viel engerer Kreis als kritische oder wichtige "
+      "Funktionen nach DORA – typischerweise wenige, top-down (Aufsichtsmitteilung 05/2025 "
+      "§3.1): ausdrücklich zuordnen, mit ihren Abhängigkeiten (Rz 107)."),
     R("FIN-OR-02", OPRISK, "Operational resilience", "Operationelle Resilienz",
-      "Tolerance for disruption per critical function",
-      "Unterbrechungstoleranz je kritischer Funktion",
-      PARTIAL, (F("B_06.01 c0080", "critical"),),
-      "The RTO approximates, but is not, a tolerance for disruption (which also covers data "
-      "loss and service level): define tolerances per FINMA critical function.",
-      "Die RTO nähert sich der Unterbrechungstoleranz an, ist es aber nicht (diese umfasst "
-      "auch Datenverlust und Service-Niveau): Toleranzen je kritischer Funktion festlegen."),
+      "Tolerance for disruption per critical function (Rz 17)",
+      "Unterbrechungstoleranz je kritischer Funktion (Rz 17)",
+      NONE, (),
+      "A tolerance for disruption is the extent (e.g. duration or expected damage) of a "
+      "disruption the institution is willing to accept, set by the executive board "
+      "irrespective of its ability to recover; RTO/RPO are not evidence of it (Guidance "
+      "05/2025 §3.2). Define tolerances per FINMA critical function.",
+      "Die Unterbrechungstoleranz ist das Ausmass (z. B. Dauer oder erwarteter Schaden) einer "
+      "Störung, das das Institut zu akzeptieren bereit ist, festgelegt von der "
+      "Geschäftsleitung unabhängig von der Wiederherstellungsfähigkeit; RTO/RPO sind kein "
+      "Nachweis dafür (Aufsichtsmitteilung 05/2025 §3.2). Toleranzen je kritischer Funktion "
+      "festlegen."),
     R("FIN-OR-03", OPRISK, "Operational resilience", "Operationelle Resilienz",
       "Mapping of critical functions to resources, incl. third parties",
       "Abbildung kritischer Funktionen auf Ressourcen, inkl. Dritter",
@@ -264,19 +294,25 @@ REQUIREMENTS: tuple[FinmaRequirement, ...] = (
       "Incident management and reporting of cyber attacks to FINMA",
       "Vorfallmanagement und Meldung von Cyber-Angriffen an die FINMA",
       PARTIAL, (),
-      "The incident log covers classification and DORA deadlines; FINMA reporting of cyber "
-      "attacks follows its own guidance and time limits – track them separately.",
-      "Das Vorfallverzeichnis deckt Klassifizierung und DORA-Fristen ab; Meldungen von "
-      "Cyber-Angriffen an die FINMA folgen eigenen Vorgaben und Fristen – separat verfolgen.",
+      "The incident log covers the DORA classification and deadlines, which are no evidence "
+      "of FINMA materiality. FINMA: significant ICT incidents and incidents involving critical "
+      "data without delay (Rz 60, 81); cyber attacks with a preliminary notification within "
+      "24 hours and a report within 72 hours, then a root cause analysis (Rz 68; Guidance "
+      "05/2020, 03/2024; FINMASA Art. 29(2)) – track them separately.",
+      "Das Vorfallverzeichnis deckt DORA-Klassifizierung und -Fristen ab; sie belegen keine "
+      "Wesentlichkeit nach FINMA. FINMA: wesentliche IKT-Vorfälle und Vorfälle mit kritischen "
+      "Daten unverzüglich (Rz 60, 81); Cyber-Angriffe mit Erstmeldung innert 24 Stunden und "
+      "Bericht innert 72 Stunden, danach Ursachenanalyse (Rz 68; Aufsichtsmitteilungen "
+      "05/2020, 03/2024; Art. 29 Abs. 2 FINMAG) – separat verfolgen.",
       incidents=True),
     R("FIN-OR-08", OPRISK, "Operational resilience", "Operationelle Resilienz",
       "Substitutability and exit for critical third-party dependencies",
       "Ersetzbarkeit und Ausstieg bei kritischen Abhängigkeiten von Dritten",
       PARTIAL, (F("B_07.01 c0050"), F("B_07.01 c0080"), F("B_07.01 c0110")),
-      "Substitutability and exit plans are reported; test them in severe but plausible "
-      "scenarios.",
-      "Ersetzbarkeit und Exit-Pläne sind erfasst; in schweren, aber plausiblen Szenarien "
-      "testen.",
+      "Substitutability and exit plans are reported (2018/3 Rz 18–18.1; 2023/1 Rz 88, 110); "
+      "test them in severe but plausible scenarios.",
+      "Ersetzbarkeit und Exit-Pläne sind erfasst (2018/3 Rz 18–18.1; 2023/1 Rz 88, 110); in "
+      "schweren, aber plausiblen Szenarien testen.",
       art30=("30.3.f.i",)),
     R("FIN-OR-09", OPRISK, "Operational resilience", "Operationelle Resilienz",
       "Scenario testing of operational resilience", "Szenariotests der operationellen Resilienz",
@@ -288,9 +324,10 @@ REQUIREMENTS: tuple[FinmaRequirement, ...] = (
       "Contractual security requirements for ICT providers",
       "Vertragliche Sicherheitsanforderungen an IKT-Dienstleister",
       PARTIAL, (),
-      "Evidenced by the Art. 30 clauses on data security, security measures and training.",
+      "Evidenced by the Art. 30 clauses on data security, security measures and training "
+      "(2018/3 Rz 24; 2023/1 Rz 82, 85 – RTO/RPO agreed with providers).",
       "Durch die Art.-30-Klauseln zu Datensicherheit, Sicherheitsmassnahmen und Schulung "
-      "belegt.",
+      "belegt (2018/3 Rz 24; 2023/1 Rz 82, 85 – mit Dienstleistern vereinbarte RTO/RPO).",
       art30=("30.2.c", "30.3.c", "30.2.i")),
 )
 
@@ -398,6 +435,10 @@ def evaluate_finma(register: RegisterOfInformation, portfolio: Portfolio | None 
             # nothing applicable to measure (e.g. no intra-group arrangements) keeps the design
             effective = (Coverage.FULL if (completeness is None and not register.is_empty())
                          or (completeness or 0) >= FULL_THRESHOLD else Coverage.PARTIAL)
+        elif (req.fields and not req.art30 and not req.incidents and completeness is None
+              and not register.is_empty()):
+            # register-only evidence with nothing applicable to measure keeps the design
+            effective = Coverage.PARTIAL
         else:
             effective = Coverage.PARTIAL if any(v > 0 for v in evidence) else Coverage.NONE
         statuses.append(RequirementStatus(req, effective, completeness, share, classified,

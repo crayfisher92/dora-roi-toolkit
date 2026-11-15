@@ -500,7 +500,7 @@ def contracts_assess(input_path: Path, assessments_path: Path, output: Path | No
     counts, pc = pf.counts(), plan.counts()
     click.echo(f"Arrangements: {len(pf.contracts)} ({len(pf.critical_contracts)} supporting "
                f"critical functions) · assessed: {len(pf.contracts) - counts['not_assessed']} · "
-               f"compliant: {counts['compliant']} · with gaps: {counts['gaps']} · "
+               f"all items present: {counts['compliant']} · with gaps: {counts['gaps']} · "
                f"incomplete: {counts['incomplete']}", err=True)
     click.echo(f"Remediation actions: {len(plan.items)} (high {pc['high']}, medium "
                f"{pc['medium']}, low {pc['low']}); {len(plan.exceptions)} approved "
@@ -596,8 +596,9 @@ def contracts_suggest(document: Path, contract_ref: str | None, not_critical: bo
                    f"{i.provision.title(lang)}")
     if output is not None:
         ref = contract_ref or document.stem
+        # statuses stay "not assessed": the file records suggestions for a reviewer only
         draft = apply_suggestions(ContractAssessment(contract_ref=ref, document=document.name),
-                                  result, lang=lang)
+                                  result, lang=lang, prefill=False)
         book = AssessmentBook()
         book.save(draft, summary="Draft from keyword suggestions (not reviewed)")
         _write(book.to_json(), output)

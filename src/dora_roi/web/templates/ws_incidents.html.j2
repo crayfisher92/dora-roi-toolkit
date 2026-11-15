@@ -4,6 +4,7 @@
 {% block content %}
 <h2>{{ t("inc.page_title") }}</h2>
 <p class="lead">{{ t("inc.ui.lead") }}</p>
+<p class="small muted"><strong>{{ t("mod.experimental.label") }}</strong> – {{ t("mod.experimental") }}</p>
 {% if imported >= 0 %}<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("inc.ui.imported", n=imported) }}</div></div>{% endif %}
 {% set c = ov.counts() %}
 {% set nxt = ov.next_deadline() %}

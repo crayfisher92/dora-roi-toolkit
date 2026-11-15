@@ -3,7 +3,7 @@ the DORA readiness dashboard and the readiness report for a CRO."""
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
@@ -29,7 +29,8 @@ def workspace_readiness(ws: Workspace, lang: str, now: datetime | None = None
     moment = now or datetime.now(UTC)
     portfolio = ws.portfolio
     ref = ws.register.reference_date
-    plan = remediation_plan(portfolio, max(ref, date.today()) if ref else date.today())
+    today = moment.date()
+    plan = remediation_plan(portfolio, max(ref, today) if ref else today)
     report = ws.dora_report()  # the submission: entities outside the DORA scope excluded
     return build_readiness(
         report=report, quality=ws.quality if report is ws.report else quality_score(report),

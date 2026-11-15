@@ -207,7 +207,8 @@ def test_timeline_awareness_cap_and_unclassified() -> None:
     initial = timeline(inc, classify(inc, NOW), NOW)[0]
     assert initial.basis == "awareness" and initial.due == NOW + timedelta(hours=2)
     no_ts = inc.model_copy(update={"classified_at": None, "detected_at": NOW})
-    assert timeline(no_ts, classify(no_ts, NOW), NOW)[0].due == NOW + timedelta(hours=4)
+    # no recorded classification time: the 24 h awareness limit, never "now" + 4 h
+    assert timeline(no_ts, classify(no_ts, NOW), NOW)[0].due == NOW + timedelta(hours=24)
     minor = incident(answers=answers())
     assert timeline(minor, classify(minor, NOW), NOW) == []
     assert next_deadline([]) is None
@@ -335,7 +336,7 @@ def test_overview_exports() -> None:
     assert "Recurring incidents" in html
     late = overview(log, reg, now + timedelta(hours=10))
     assert late.counts()["overdue"] == 1
-    assert "Überfällig" in render_summary_html(late, lang="de")
+    assert "Konservative Frist überschritten" in render_summary_html(late, lang="de")
 
 
 def test_sample_incidents_without_register_links() -> None:
@@ -380,3 +381,13 @@ def test_cli_summary_with_csv_register(tmp_path: Path) -> None:
     assert r.exit_code == 0 and "not_major" in r.output
     assert DEFAULT_THRESHOLDS.economic_eur == Decimal(100_000)
     assert IncidentStatus("open") is IncidentStatus.OPEN
+
+
+def test_late_classification_and_malicious_access_gate() -> None:
+    """RTS 2025/301 Art. 5(2) and RTS 2024/1772 Art. 6(c), checked against the OJ texts."""
+    late = incident(answers=answers(malicious_access=True), detected_at=NOW - timedelta(hours=30),
+                    classified_at=NOW)
+    initial = timeline(late, classify(late, NOW), NOW)[0]
+    assert initial.basis == "classification" and initial.due == NOW + timedelta(hours=4)
+    access_only = incident(answers=answers(malicious_access=True, critical_services=False))
+    assert classify(access_only, NOW).major  # a malicious access affects critical services

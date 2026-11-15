@@ -2,11 +2,11 @@
 
 Source: DORA Art. 18 and the RTS on the classification of ICT-related incidents (Commission
 Delegated Regulation (EU) 2024/1772); reporting time limits: RTS/ITS on major incident
-reports (Commission Delegated Regulation (EU) 2025/301). The official texts were **not**
-available offline (no ``reference/eu/``): the article numbers and thresholds below are the
-authors' best understanding and are listed as open assumptions A-INC-* in
-``docs/ASSUMPTIONS.md``. Every threshold is a field of :class:`Thresholds`, so a corrected
-value is a one-line change (or a configuration override) and not a code change.
+reports (Commission Delegated Regulation (EU) 2025/301). Article numbers, criteria,
+thresholds, units and comparison operators were checked against the Official Journal texts
+(``docs/MODULE_REVIEW.md``): the major-incident rule is RTS Art. 8(1), recurring incidents
+Art. 8(2), the thresholds Art. 9(1)–(6). Every threshold is a field of :class:`Thresholds`, so
+a change is a one-line edit (or a configuration override) and not a code change.
 
 Approach (A-INC-02): an incident is **major** when it affects *critical services* and either
 (a) involves a successful, malicious, unauthorised access to network and information systems
@@ -97,10 +97,12 @@ def criteria(th: Thresholds = DEFAULT_THRESHOLDS) -> tuple[CriterionInfo, ...]:
             "Critical services affected", "Betroffenheit kritischer Dienste",
             "Did the incident affect ICT services or network and information systems that "
             "support critical or important functions, financial services that require "
-            "authorisation, or was there a successful malicious unauthorised access?",
+            "authorisation or registration or that are supervised by competent authorities, "
+            "or was there a successful, malicious and unauthorised access (RTS Art. 6(c))?",
             "Waren IKT-Dienste oder Netzwerk- und Informationssysteme betroffen, die kritische "
-            "oder wichtige Funktionen unterstützen, zulassungspflichtige Finanzdienstleistungen, "
-            "oder gab es einen erfolgreichen böswilligen unbefugten Zugriff?",
+            "oder wichtige Funktionen unterstützen, zulassungs- oder registrierungspflichtige "
+            "oder beaufsichtigte Finanzdienstleistungen, oder gab es einen erfolgreichen "
+            "böswilligen unbefugten Zugriff (RTS Art. 6(c))?",
             "Gate: required for a major incident.",
             "Voraussetzung für einen schwerwiegenden Vorfall."),
         CriterionInfo(
@@ -125,12 +127,12 @@ def criteria(th: Thresholds = DEFAULT_THRESHOLDS) -> tuple[CriterionInfo, ...]:
             "Reputational impact", "Reputationsschaden",
             "Was the incident reported in the media, did it cause repeated complaints, can "
             "regulatory requirements not be met, or are clients or counterparts likely to be "
-            "lost?",
+            "lost with a material impact on the business?",
             "Wurde in den Medien berichtet, gab es wiederholte Beschwerden, können "
             "aufsichtsrechtliche Anforderungen nicht erfüllt werden oder drohen Kunden- bzw. "
             "Gegenparteiverluste?",
             "Any of: media coverage, repeated complaints, regulatory requirements not met, "
-            "likely loss of clients or counterparts.",
+            "likely loss of clients or counterparts with a material impact on the business.",
             "Eines davon: Medienberichte, wiederholte Beschwerden, Nichterfüllung "
             "aufsichtsrechtlicher Anforderungen, wahrscheinlicher Kundenverlust."),
         CriterionInfo(
@@ -186,13 +188,16 @@ def criteria_markdown(th: Thresholds = DEFAULT_THRESHOLDS) -> str:
         "",
         f"Criteria of DORA Art. 18 as specified by the RTS on classification ({RTS_CLASSIFICATION})"
         f" and reporting time limits ({RTS_REPORTING}), as implemented by `roi incidents` and "
-        "the *Incidents* screen of the workbench. Thresholds and article numbers are open "
-        "assumptions (A-INC-* in [ASSUMPTIONS.md](ASSUMPTIONS.md)); every value is a field of "
-        "`dora_roi.incidents.criteria.Thresholds`.",
+        "the *Incidents* screen of the workbench. Criteria, thresholds and article numbers "
+        "were checked against the Official Journal texts ([MODULE_REVIEW.md](MODULE_REVIEW.md));"
+        " the toolkit's own choices are listed as A-INC-* in [ASSUMPTIONS.md](ASSUMPTIONS.md). "
+        "Every value is a field of `dora_roi.incidents.criteria.Thresholds`.",
         "",
-        "**Major incident** = *critical services affected* **and** either a successful, "
-        "malicious, unauthorised access to network and information systems that may result in "
-        "data losses, **or** the thresholds of **two or more** of the six other criteria met.",
+        "**Major incident** (RTS Art. 8(1)) = *critical services affected* **and** either a "
+        "successful, malicious, unauthorised access to network and information systems that "
+        "may result in data losses (Art. 9(5)(b)), **or** the thresholds of **two or more** of "
+        "the six other criteria met. A malicious access is itself an impact on critical "
+        "services (Art. 6(c)).",
         "",
         "| Criterion | DORA | RTS | Materiality threshold |",
         "|---|---|---|---|",

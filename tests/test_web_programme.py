@@ -86,7 +86,7 @@ def test_assessment_save_history_and_register_link(client: TestClient, tmp_path:
     assert "DORA Art. 30 contract assessment" in row.text and "Open assessment" in row.text
     row = client.get(url + "/register/B_02.02/4")
     assert "DORA Art. 30 contract assessment" in row.text
-    assert "Art. 30 contract compliance" not in client.get(url + "/register/B_05.01/4").text
+    assert "Art. 30 clause coverage" not in client.get(url + "/register/B_05.01/4").text
     form["st-30.3.d"] = "present"
     client.post(url + "/contract/C-001", data=form)
     page = client.get(url + "/contract/C-001")
@@ -142,7 +142,7 @@ def test_sample_contract_button_and_inheritance(client: TestClient) -> None:
     hr = client.get(url + "/contract/AR-DE-0064")
     assert "Art. 30(3) does not apply" in hr.text
     prov = client.get(url + "/provider/5299XGE5RGK9SNVGG353")
-    assert "Art. 30 contract compliance" in prov.text and "MSA-DE-0001" in prov.text
+    assert "Art. 30 clause coverage" in prov.text and "MSA-DE-0001" in prov.text
 
 
 def test_import_assessments(client: TestClient, tmp_path: Path) -> None:
@@ -290,7 +290,7 @@ def test_finma_page(client: TestClient, tmp_path: Path) -> None:
     page = client.get(url + "/finma")
     assert page.status_code == 200 and "One dataset for DORA and FINMA" in page.text
     assert "FIN-OS-11" in page.text and "Helix Core Banking AG" in page.text
-    assert "No Swiss entity in B_01.02" in page.text and "56%" in page.text
+    assert "No Swiss entity in B_01.02" in page.text and "44%" in page.text
     de = client.get(url + "/finma?lang=de")
     assert "Ein Datenbestand für DORA und FINMA" in de.text
     client.cookies.delete("lang")
