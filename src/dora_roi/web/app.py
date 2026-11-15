@@ -4,18 +4,23 @@ Server-rendered pages (Jinja2) with progressive enhancement: every action is a p
 or link; ``static/app.js`` adds in-place cell saving, filtering, graph highlighting and the
 theme switch. See ``docs/UX.md`` for the personas and screen flow.
 
-Workspaces live **in memory only** (bounded LRU) and are discarded when the process stops;
-uploads are parsed from temporary files that are deleted immediately. Run locally or behind
-the organisation's own authentication.
+Workspaces live **in memory only** (bounded LRU, with a per-user share) and are discarded when
+the process stops unless a projects folder is configured; uploads are parsed from temporary
+files that are deleted immediately. Parsing, validation and saving run in worker threads, so
+one large upload does not block other users. Run locally (single user) or behind a sign-in
+proxy for team use (``dora_roi.web.auth``, ``docs/TEAM_DEPLOYMENT.md``).
 """
 
 from __future__ import annotations
 
+import contextvars
 import io
 import math
 import os
 import re
 import tempfile
+import threading
+import time
 import uuid
 import zipfile
 from collections import OrderedDict
@@ -31,6 +36,7 @@ from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from jinja2 import ChoiceLoader, Environment, PackageLoader, select_autoescape
+from starlette.concurrency import run_in_threadpool
 
 from dora_roi import __version__
 from dora_roi.audit import audit_csv, column_label
@@ -65,16 +71,26 @@ from dora_roi.reporting.pdf import PdfBusyError, html_to_pdf, pdf_available
 from dora_roi.reporting.validation_report import render_xlsx
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
 from dora_roi.validation import RULES, Finding, finding_key
+from dora_roi.web.auth import CURRENT_USER, AuthConfig, IdentityMiddleware, current_owner
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
 from dora_roi.web.security import (
-    CURRENT_SESSION,
+    BodySizeLimitMiddleware,
     SameOriginMiddleware,
     SecurityHeadersMiddleware,
     SessionMiddleware,
     safe_next,
 )
+from dora_roi.web.spaces import (
+    PRIVATE,
+    TEAM,
+    ProjectLocks,
+    ProjectSpaces,
+    conflict_path,
+    file_stamp,
+    unique_path,
+)
 from dora_roi.web.views import display, provider_profile, stepper
-from dora_roi.workspace import DEFAULT_USER, EditError, Workspace
+from dora_roi.workspace import DEFAULT_USER, Change, EditError, Workspace
 
 #: download kinds → how they appear in the audit trail
 EXPORT_LABELS = {
@@ -87,7 +103,14 @@ EXPORT_LABELS = {
     "audit.csv": "Audit log (CSV)",
 }
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+#: Request bodies above this are refused before they are read (upload plus form overhead).
+MAX_REQUEST_BYTES = MAX_UPLOAD_BYTES + 1024 * 1024
 MAX_WORKSPACES = 20
+#: Per signed-in user (or browser session): workspaces and rows held in memory.
+MAX_USER_WORKSPACES = 10
+MAX_USER_ROWS = 200_000
+#: Imports, project loads and edits running at the same time (memory and CPU bound).
+MAX_PARALLEL_JOBS = 4
 PAGE_SIZE = 50
 FIX_GROUP_LIMIT = 25
 ROI_SUFFIXES = {".xlsx", ".xlsm", ".zip"}
@@ -100,31 +123,76 @@ class LRUStore(Generic[T]):
     """Thread-safe bounded store.
 
     Bounded by item count and, optionally, by a total ``weight`` (for workspaces: the number
-    of rows, which drives memory – roughly 2 KB per row once parsed and validated). The most
-    recently added item is always kept.
+    of rows, which drives memory – roughly 2 KB per row once parsed and validated). With an
+    ``owner`` function each owner additionally gets its own count and weight budget, and an
+    owner over budget loses its *own* least recently used items first – one user loading
+    large registers cannot push everyone else's work out. The most recently added item is
+    always kept; ``on_evict`` is called for every evicted item (outside the lock).
     """
 
     def __init__(self, capacity: int, *, max_weight: int | None = None,
-                 weight: Callable[[T], int] | None = None) -> None:
+                 weight: Callable[[T], int] | None = None,
+                 owner: Callable[[T], str] | None = None, owner_capacity: int | None = None,
+                 owner_weight: int | None = None,
+                 on_evict: Callable[[T], None] | None = None) -> None:
         self.capacity = capacity
         self.max_weight = max_weight
+        self.owner_capacity = owner_capacity
+        self.owner_weight = owner_weight
         self._weight = weight
+        self._owner = owner
+        self._on_evict = on_evict
         self._items: OrderedDict[str, T] = OrderedDict()
         self._lock = Lock()
 
-    def _total_weight(self) -> int:
+    def _total_weight(self, keys: list[str] | None = None) -> int:
         weigh = self._weight
-        return sum(weigh(v) for v in self._items.values()) if weigh else 0
+        if weigh is None:
+            return 0
+        items = self._items.values() if keys is None else [self._items[k] for k in keys]
+        return sum(weigh(v) for v in items)
+
+    def _evict_own(self, key: str, item: T) -> list[T]:
+        owner = self._owner
+        if owner is None:
+            return []
+        mine = owner(item)
+        evicted: list[T] = []
+        while True:
+            others = [k for k, v in self._items.items() if k != key and owner(v) == mine]
+            over_count = self.owner_capacity is not None and len(others) >= self.owner_capacity
+            over_weight = (self.owner_weight is not None and others
+                           and self._total_weight([*others, key]) > self.owner_weight)
+            if not others or not (over_count or over_weight):
+                return evicted
+            evicted.append(self._items.pop(others[0]))
 
     def add(self, key: str, item: T) -> None:
         with self._lock:
             self._items[key] = item
             self._items.move_to_end(key)
+            evicted = self._evict_own(key, item)
             while len(self._items) > self.capacity:
-                self._items.popitem(last=False)
+                evicted.append(self._items.popitem(last=False)[1])
             if self.max_weight is not None:
                 while len(self._items) > 1 and self._total_weight() > self.max_weight:
-                    self._items.popitem(last=False)
+                    evicted.append(self._items.popitem(last=False)[1])
+        if self._on_evict is not None:
+            for gone in evicted:
+                self._on_evict(gone)
+
+    def remove(self, key: str) -> T | None:
+        with self._lock:
+            return self._items.pop(key, None)
+
+    def peek(self, key: str) -> T | None:
+        """The item without marking it as used (``None`` if absent)."""
+        with self._lock:
+            return self._items.get(key)
+
+    def contains(self, key: str) -> bool:
+        with self._lock:
+            return key in self._items
 
     def get(self, key: str) -> T:
         with self._lock:
@@ -161,28 +229,61 @@ def _env() -> Environment:
     return env
 
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        return max(1, int(os.environ.get(name, str(default))))
+    except ValueError:
+        return default
+
+
 def max_store_rows() -> int:
     """Row budget for all workspaces held in memory (``ROI_MAX_STORE_ROWS``)."""
-    try:
-        return max(1, int(os.environ.get("ROI_MAX_STORE_ROWS", "500000")))
-    except ValueError:
-        return 500_000
+    return _env_int("ROI_MAX_STORE_ROWS", 500_000)
 
 
-def create_app(capacity: int = MAX_WORKSPACES,
-               projects_dir: str | Path | None = None) -> FastAPI:
+def create_app(capacity: int | None = None, projects_dir: str | Path | None = None,
+               auth: AuthConfig | None = None) -> FastAPI:
+    """The workbench application.
+
+    ``auth`` (default: from ``ROI_AUTH_HEADER`` / ``ROI_TRUSTED_PROXIES``) switches on team
+    mode: users are identified by the sign-in proxy, own their workspaces across browsers and
+    get a private and a team project space.
+    """
+    auth = auth if auth is not None else AuthConfig.from_env()
+    capacity = capacity or _env_int("ROI_MAX_WORKSPACES", MAX_WORKSPACES)
     app = FastAPI(title="DORA RoI Workbench", version=__version__,
                   description="Prepare, fix and analyse a DORA register of information.")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.add_middleware(SameOriginMiddleware)
+    app.add_middleware(IdentityMiddleware, config=auth)
     app.add_middleware(SessionMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
-    workspaces: LRUStore[Workspace] = LRUStore(capacity, max_weight=max_store_rows(),
-                                               weight=Workspace.row_count)
+    app.add_middleware(BodySizeLimitMiddleware, max_bytes=MAX_REQUEST_BYTES)
+
+    def release_lock(ws: Workspace) -> None:
+        if ws.project_path is not None:
+            locks.release(ws.project_path, ws.id)
+
+    workspaces: LRUStore[Workspace] = LRUStore(
+        capacity, max_weight=max_store_rows(), weight=Workspace.row_count,
+        owner=lambda ws: ws.owner,
+        owner_capacity=_env_int("ROI_MAX_USER_WORKSPACES", MAX_USER_WORKSPACES),
+        owner_weight=_env_int("ROI_MAX_USER_ROWS", MAX_USER_ROWS), on_evict=release_lock)
     wizards: LRUStore[Wizard] = LRUStore(capacity)
     app.state.workspaces = workspaces
     app.state.wizards = wizards
+    app.state.auth = auth
     env = _env()
+    job_slots = threading.BoundedSemaphore(_env_int("ROI_MAX_PARALLEL_JOBS", MAX_PARALLEL_JOBS))
+
+    async def offload(fn: Callable[[], T]) -> T:
+        """Run blocking work (parsing, validation, saving) in a worker thread, at most
+        ``ROI_MAX_PARALLEL_JOBS`` at a time, with the request's context (signed-in user)."""
+        def limited() -> T:
+            with job_slots:
+                return fn()
+
+        return await run_in_threadpool(contextvars.copy_context().run, limited)
 
     def lang_of(request: Request) -> str:
         return pick_language(request.query_params.get("lang"), request.cookies.get("lang"),
@@ -199,7 +300,7 @@ def create_app(capacity: int = MAX_WORKSPACES,
         html = env.get_template(page_template).render(
             request=request, lang=lang, t=t, path=request.url.path, lang_href=lang_href,
             explain=lambda rid: explain(rid, lang), rule_title=lambda rid: rule_title(rid, lang),
-            **ctx)
+            signed_in=CURRENT_USER.get(), **ctx)
         response = HTMLResponse(html, status_code=status)
         if request.query_params.get("lang") in LANGUAGES:
             response.set_cookie("lang", lang, max_age=31536000, samesite="lax")
@@ -207,13 +308,29 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     def ws_or_404(wid: str) -> Workspace:
         ws = workspaces.get(wid)
-        if ws.owner != CURRENT_SESSION.get():
+        if ws.owner != current_owner():
             raise HTTPException(status_code=404, detail="not found")
+        ws.last_active = time.monotonic()
+        return ws
+
+    def ws_for_edit(wid: str) -> Workspace:
+        """The workspace if this request may change it (it holds the project's edit lock)."""
+        ws = ws_or_404(wid)
+        if ws.read_only is None and ws.project_path is not None and \
+                not locks.holds(ws.project_path, ws.id):
+            holder = locks.acquire(ws.project_path, ws.id, ws.owner_label)
+            if holder is not None:  # lock expired while idle and someone else took it
+                ws.read_only = holder.user
+                ws.on_change = None
+                ws.notices.append(("ws.notice.lock_lost", {"user": holder.user}))
+        if ws.read_only is not None:
+            raise HTTPException(status_code=403,
+                                detail=f"Read-only: {ws.read_only} is editing this project.")
         return ws
 
     def wiz_or_404(wid: str) -> Wizard:
         wiz = wizards.get(wid)
-        if wiz.owner != CURRENT_SESSION.get():
+        if wiz.owner != current_owner():
             raise HTTPException(status_code=404, detail="not found")
         return wiz
 
@@ -222,24 +339,53 @@ def create_app(capacity: int = MAX_WORKSPACES,
     if autosave:
         folder.mkdir(parents=True, exist_ok=True)
     app.state.projects_dir = folder if autosave else None
+    spaces = ProjectSpaces(folder, team_mode=auth.enabled)
+
+    def last_active(wid: str) -> float:
+        ws = workspaces.peek(wid)
+        return ws.last_active if ws is not None else 0.0
+
+    locks = ProjectLocks(alive=workspaces.contains, last_active=last_active)
+    app.state.locks = locks
 
     def save_to_folder(ws: Workspace) -> None:
-        if ws.project_path is None:
-            slug = re.sub(r"[^A-Za-z0-9]+", "-", Path(ws.name).stem).strip("-")[:40] or "register"
-            ws.project_path = folder / f"{slug}-{ws.id[:8]}{PROJECT_SUFFIX}"
-        save_project(ws, ws.project_path)
+        """Autosave; never overwrite a file that changed on disk since it was read."""
+        path = ws.project_path
+        if ws.read_only is not None or path is None:
+            return
+        on_disk = file_stamp(path)
+        if ws.project_stamp is not None and on_disk is not None and on_disk != ws.project_stamp:
+            new = conflict_path(path)
+            locks.release(path, ws.id)
+            locks.acquire(new, ws.id, ws.owner_label)
+            ws.project_path = path = new
+            ws.notices.append(("ws.notice.conflict", {"file": new.name}))
+        save_project(ws, path)
+        ws.project_stamp = file_stamp(path)
 
-    def own(ws: Workspace) -> Workspace:
-        ws.owner = CURRENT_SESSION.get()
-        if autosave:
-            ws.on_change = save_to_folder
-            save_to_folder(ws)
+    def own(ws: Workspace, request: Request, space: str = PRIVATE) -> Workspace:
+        ws.owner = current_owner()
+        ws.owner_label = user_of(request)
+        ws.last_active = time.monotonic()
+        if autosave and ws.read_only is None:
+            target = spaces.folder(space, CURRENT_USER.get())
+            if ws.project_path is None and target is not None:
+                slug = re.sub(r"[^A-Za-z0-9]+", "-", Path(ws.name).stem).strip("-")[:40]
+                ws.project_path = unique_path(target, f"{slug or 'register'}-{ws.id[:8]}")
+            ws.space = space
+            if ws.project_path is not None:
+                holder = locks.acquire(ws.project_path, ws.id, ws.owner_label)
+                if holder is not None:  # someone opened it a moment earlier
+                    ws.read_only = holder.user
+                else:
+                    ws.on_change = save_to_folder
+                    save_to_folder(ws)
         workspaces.add(ws.id, ws)
         return ws
 
     def my_workspaces() -> list[Workspace]:
-        sid = CURRENT_SESSION.get()
-        return [w for w in workspaces.values() if w.owner == sid]
+        me = current_owner()
+        return [w for w in workspaces.values() if w.owner == me]
 
     def ws_page(request: Request, ws: Workspace, page_template: str, step: str, **ctx: Any
                 ) -> HTMLResponse:
@@ -249,8 +395,9 @@ def create_app(capacity: int = MAX_WORKSPACES,
                       user=user_of(request),
                       quality=ws.quality, counts=ws.report.severity_counts(), **ctx)
 
-    def add_workspace(ws: Workspace) -> RedirectResponse:
-        own(ws)
+    def add_workspace(ws: Workspace, request: Request, space: str = PRIVATE
+                      ) -> RedirectResponse:
+        own(ws, request, space)
         return RedirectResponse(f"/w/{ws.id}", status_code=303)
 
     async def read_upload(file: UploadFile, allowed: set[str]) -> tuple[str, bytes] | str:
@@ -274,8 +421,19 @@ def create_app(capacity: int = MAX_WORKSPACES,
     # ------------------------------------------------------------------ home & basics
 
     def home_ctx() -> dict[str, Any]:
-        return {"recent": my_workspaces(),
-                "projects": list_projects(folder) if autosave else None}
+        project_spaces: list[tuple[str, list[tuple[Path, dict[str, str], str | None]]]] = []
+        me = current_owner()
+        for space in spaces.available() if autosave else ():
+            target = spaces.folder(space, CURRENT_USER.get())
+            items: list[tuple[Path, dict[str, str], str | None]] = []
+            for path, meta in list_projects(target) if target is not None else []:
+                holder = locks.holder(path)
+                holder_ws = workspaces.peek(holder.workspace_id) if holder else None
+                mine = holder_ws is not None and holder_ws.owner == me
+                items.append((path, meta, holder.user if holder and not mine else None))
+            project_spaces.append((space, items))
+        return {"recent": my_workspaces(), "project_spaces": project_spaces if autosave else None,
+                "team_mode": spaces.team_mode}
 
     @app.post("/project/open")
     async def open_project(request: Request, file: Annotated[UploadFile, File()]) -> Response:
@@ -283,34 +441,58 @@ def create_app(capacity: int = MAX_WORKSPACES,
         if isinstance(got, str):
             return upload_error(request, got, "home.html.j2", **home_ctx())
         name, data = got
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / f"project{PROJECT_SUFFIX}"
-            path.write_bytes(data)
-            try:
+
+        def load() -> Workspace:
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / f"project{PROJECT_SUFFIX}"
+                path.write_bytes(data)
                 ws = load_project(path)
-            except ProjectError as exc:
-                t = translator(lang_of(request))
-                return render(request, "home.html.j2", status=400,
-                              error=t("err.read", name=name, error=str(exc)), **home_ctx())
-        ws.id = uuid.uuid4().hex  # never reuse an id from a file (session isolation)
-        return add_workspace(ws)
+            ws.id = uuid.uuid4().hex  # never reuse an id from a file (session isolation)
+            own(ws, request)
+            return ws
+
+        try:
+            ws = await offload(load)
+        except ProjectError as exc:
+            t = translator(lang_of(request))
+            return render(request, "home.html.j2", status=400,
+                          error=t("err.read", name=name, error=str(exc)), **home_ctx())
+        return RedirectResponse(f"/w/{ws.id}", status_code=303)
 
     @app.post("/projects/open")
     async def open_saved(request: Request) -> Response:
         if not autosave:
             raise HTTPException(status_code=404)
         form = await request.form()
-        wanted = str(form.get("file", ""))
-        match = next((p for p, _ in list_projects(folder) if p.name == wanted), None)
-        if match is None:  # only files listed in the projects folder (no paths)
+        space = str(form.get("space", PRIVATE))
+        # only files listed in the user's own spaces (no paths)
+        match = spaces.resolve(space, str(form.get("file", "")), CURRENT_USER.get())
+        if match is None:
             raise HTTPException(status_code=404)
-        try:
+        me = current_owner()
+        for open_ws in workspaces.values():  # already open for this user: go there
+            if open_ws.owner == me and open_ws.read_only is None and \
+                    open_ws.project_path is not None and \
+                    open_ws.project_path.resolve() == match.resolve():
+                return RedirectResponse(f"/w/{open_ws.id}", status_code=303)
+        holder = locks.holder(match)
+
+        def load() -> Workspace:
             ws = load_project(match)
+            ws.id = uuid.uuid4().hex
+            if holder is not None:  # someone else is editing: read-only view
+                ws.read_only = holder.user
+            else:
+                ws.project_path = match
+                ws.project_stamp = file_stamp(match)
+            own(ws, request, space)
+            return ws
+
+        try:
+            ws = await offload(load)
         except ProjectError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        ws.id = uuid.uuid4().hex
-        ws.project_path = match
-        return add_workspace(ws)
+        return RedirectResponse(f"/w/{ws.id}", status_code=303)
 
     @app.get("/", response_class=HTMLResponse)
     def home(request: Request) -> HTMLResponse:
@@ -332,22 +514,26 @@ def create_app(capacity: int = MAX_WORKSPACES,
         if isinstance(got, str):
             return upload_error(request, got, "home.html.j2", **home_ctx())
         name, data = got
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / f"upload{Path(name).suffix.lower()}"
-            path.write_bytes(data)
-            try:
+
+        def build() -> Workspace:
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / f"upload{Path(name).suffix.lower()}"
+                path.write_bytes(data)
                 raw, _ = load_raw(path)
-            except (UnsupportedInputError, zipfile.BadZipFile, InventoryError, KeyError,
-                    ValueError, OSError) as exc:
-                t = translator(lang_of(request))
-                return render(request, "home.html.j2", status=400,
-                              error=t("err.read", name=name, error=_reason(exc)),
-                              **home_ctx())
-        raw.source = name
-        return add_workspace(Workspace(name, raw, source=name))
+            raw.source = name
+            return own(Workspace(name, raw, source=name), request)
+
+        try:
+            ws = await offload(build)
+        except (UnsupportedInputError, zipfile.BadZipFile, InventoryError, KeyError,
+                ValueError, OSError) as exc:
+            t = translator(lang_of(request))
+            return render(request, "home.html.j2", status=400,
+                          error=t("err.read", name=name, error=_reason(exc)), **home_ctx())
+        return RedirectResponse(f"/w/{ws.id}", status_code=303)
 
     @app.post("/sample")
-    def sample(variant: Annotated[str, Form()] = "dirty") -> Response:
+    def sample(request: Request, variant: Annotated[str, Form()] = "dirty") -> Response:
         if variant == "pair":
             prev = generate_previous_year()
             cur = generate_sample(inject_errors=False)
@@ -355,14 +541,14 @@ def create_app(capacity: int = MAX_WORKSPACES,
                                kind="sample")
             new_ws = Workspace("Alpenrand 2025", register_to_raw(cur.source_register),
                                kind="sample")
-            own(old_ws)
-            own(new_ws)
+            own(old_ws, request)
+            own(new_ws, request)
             return RedirectResponse(f"/w/{new_ws.id}/compare?other={old_ws.id}", status_code=303)
         clean = variant == "clean"
         result = generate_sample(inject_errors=not clean)
         name = "Alpenrand (clean)" if clean else "Alpenrand (25 injected errors)"
         return add_workspace(Workspace(name, register_to_raw(result.source_register),
-                                       kind="sample"))
+                                       kind="sample"), request)
 
     # ------------------------------------------------------------------ mapping wizard
 
@@ -391,7 +577,7 @@ def create_app(capacity: int = MAX_WORKSPACES,
                 path = Path(tmp) / f"inventory{Path(name).suffix.lower()}"
                 path.write_bytes(data)
             try:
-                sheet = read_inventory(path)
+                sheet = await offload(lambda: read_inventory(path))
             except Exception as exc:  # spreadsheet/csv readers raise many types on corrupt input
                 t = translator(lang_of(request))
                 return render(request, "wizard_upload.html.j2", status=400, wstep=1,
@@ -400,7 +586,7 @@ def create_app(capacity: int = MAX_WORKSPACES,
         sheet.source = name
         wiz = Wizard(uuid.uuid4().hex, sheet,
                      {s.column: s.field for s in suggest_mapping(sheet) if s.field})
-        wiz.owner = CURRENT_SESSION.get()
+        wiz.owner = current_owner()
         wizards.add(wiz.id, wiz)
         return RedirectResponse(f"/map/{wiz.id}", status_code=303)
 
@@ -477,22 +663,24 @@ def create_app(capacity: int = MAX_WORKSPACES,
                       fields=FIELDS_BY_KEY)
 
     @app.post("/map/{wid}/import")
-    def wizard_import(wid: str) -> Response:
+    def wizard_import(request: Request, wid: str) -> Response:
         wiz = wiz_or_404(wid)
         if wiz.entity is None:
             return RedirectResponse(f"/map/{wid}/entity", status_code=303)
         raw, notes = build_raw(wiz.sheet, wiz.mapping, wiz.entity)
         ws = Workspace(wiz.sheet.source or "inventory", raw, kind="inventory")
         ws.import_notes = notes.summary()
-        return add_workspace(ws)
+        return add_workspace(ws, request)
 
     # ------------------------------------------------------------------ workspace
 
     @app.get("/w/{wid}", response_class=HTMLResponse)
     def overview(request: Request, wid: str) -> HTMLResponse:
         ws = ws_or_404(wid)
+        can_share = (autosave and spaces.team_mode and ws.space == PRIVATE
+                     and ws.project_path is not None and ws.read_only is None)
         return ws_page(request, ws, "ws_overview.html.j2", "import",
-                       notes=ws.import_notes)
+                       notes=ws.import_notes, can_share=can_share)
 
     @app.get("/w/{wid}/fix", response_class=HTMLResponse)
     def fix(request: Request, wid: str, template: str | None = None,
@@ -516,14 +704,21 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     @app.post("/w/{wid}/cell")
     async def edit_cell(request: Request, wid: str) -> Response:
-        ws = ws_or_404(wid)
+        ws = ws_for_edit(wid)
         form = await request.form()
         template = str(form.get("template", ""))
         column = str(form.get("column", ""))
         value = str(form.get("value", ""))
+        user = user_of(request)
+
+        def apply(row: int) -> Change | None:
+            change = ws.edit(template, row, column, value, user=user)
+            ws.report  # noqa: B018 - re-validate in the worker thread
+            return change
+
         try:
             row = int(str(form.get("row", "")))
-            change = ws.edit(template, row, column, value, user=user_of(request))
+            change = await offload(lambda: apply(row))
         except (ValueError, EditError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         if "application/json" in request.headers.get("accept", ""):
@@ -534,13 +729,19 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     @app.post("/w/{wid}/bulk")
     async def bulk(request: Request, wid: str) -> Response:
-        ws = ws_or_404(wid)
+        ws = ws_for_edit(wid)
         form = await request.form()
         rows = [int(x) for x in str(form.get("rows", "")).split(",") if x.strip().isdigit()]
-        try:
+        user = user_of(request)
+
+        def apply() -> None:
             ws.bulk_replace(str(form.get("template", "")), str(form.get("column", "")),
                             str(form.get("old", "")), str(form.get("new", "")), rows or None,
-                            user=user_of(request))
+                            user=user)
+            ws.report  # noqa: B018 - re-validate in the worker thread
+
+        try:
+            await offload(apply)
         except EditError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return RedirectResponse(safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
@@ -589,28 +790,34 @@ def create_app(capacity: int = MAX_WORKSPACES,
     @app.post("/w/{wid}/register/{template}/{row}")
     async def register_row_save(request: Request, wid: str, template: str, row: int
                                 ) -> Response:
-        ws = ws_or_404(wid)
+        ws = ws_for_edit(wid)
         form = await request.form()
+        user = user_of(request)
         if form.get("delete"):
             try:
-                ws.delete_row(template, row, user=user_of(request))
+                await offload(lambda: ws.delete_row(template, row, user=user))
             except EditError as exc:
                 raise HTTPException(status_code=404) from exc
             return RedirectResponse(f"/w/{wid}/register/{template}", status_code=303)
-        try:
+
+        def apply() -> None:
             raw_row = ws.row(template, row)
             for spec in TEMPLATES_BY_CODE[template].columns():
                 if spec.code in form:
                     new = str(form.get(spec.code, ""))
                     if display(raw_row.values.get(spec.code)) != new.strip():
-                        ws.edit(template, row, spec.code, new, user=user_of(request))
-        except EditError as exc:
+                        ws.edit(template, row, spec.code, new, user=user)
+            ws.report  # noqa: B018 - re-validate in the worker thread
+
+        try:
+            await offload(apply)
+        except (EditError, KeyError) as exc:
             raise HTTPException(status_code=404) from exc
         return RedirectResponse(f"/w/{wid}/register/{template}/{row}?saved=1", status_code=303)
 
     @app.post("/w/{wid}/register/{template}")
     def register_add(request: Request, wid: str, template: str) -> Response:
-        ws = ws_or_404(wid)
+        ws = ws_for_edit(wid)
         try:
             row = ws.add_row(template, user=user_of(request))
         except EditError as exc:
@@ -764,20 +971,25 @@ def create_app(capacity: int = MAX_WORKSPACES,
                                 result=None, others=[], other=None, version=None, label=None,
                                 show_all=False)
         name, data = got
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / f"previous{Path(name).suffix.lower()}"
-            path.write_bytes(data)
-            try:
+
+        def build() -> Workspace:
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / f"previous{Path(name).suffix.lower()}"
+                path.write_bytes(data)
                 raw, _ = load_raw(path)
-            except Exception as exc:
-                raise HTTPException(status_code=400, detail=type(exc).__name__) from exc
-        raw.source = name
-        other = Workspace(name, raw, source=name)
-        own(other)
+            raw.source = name
+            return own(Workspace(name, raw, source=name), request)
+
+        try:
+            other = await offload(build)
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=type(exc).__name__) from exc
         return RedirectResponse(f"/w/{wid}/compare?other={other.id}", status_code=303)
 
     @app.post("/user")
     async def set_user(request: Request) -> Response:
+        if auth.enabled:  # the sign-in proxy decides who the user is
+            raise HTTPException(status_code=404)
         form = await request.form()
         name = clean_user(str(form.get("name", "")))
         target = safe_next(str(form.get("next", "")), "/")
@@ -788,14 +1000,15 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     @app.post("/w/{wid}/accept")
     async def accept(request: Request, wid: str) -> Response:
-        ws = ws_or_404(wid)
+        ws = ws_for_edit(wid)
         form = await request.form()
         key = str(form.get("key", ""))
         finding = next((f for f in ws.report.findings if finding_key(f) == key), None)
         if finding is None:
             raise HTTPException(status_code=404)
+        reason, user = str(form.get("reason", "")), user_of(request)
         try:
-            ws.accept(finding, str(form.get("reason", "")), user=user_of(request))
+            await offload(lambda: ws.accept(finding, reason, user=user))
         except EditError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return RedirectResponse(safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
@@ -803,14 +1016,41 @@ def create_app(capacity: int = MAX_WORKSPACES,
 
     @app.post("/w/{wid}/unaccept")
     async def unaccept(request: Request, wid: str) -> Response:
-        ws = ws_or_404(wid)
+        ws = ws_for_edit(wid)
         form = await request.form()
+        key, user = str(form.get("key", "")), user_of(request)
         try:
-            ws.unaccept(str(form.get("key", "")), user=user_of(request))
+            await offload(lambda: ws.unaccept(key, user=user))
         except EditError as exc:
             raise HTTPException(status_code=404) from exc
         return RedirectResponse(safe_next(str(form.get("next", "")), f"/w/{wid}/fix"),
                                 status_code=303)
+
+    @app.post("/w/{wid}/close")
+    def close(wid: str) -> Response:
+        """Release the edit lock and drop the workspace from memory (the file stays)."""
+        ws = ws_or_404(wid)
+        release_lock(ws)
+        workspaces.remove(wid)
+        return RedirectResponse("/", status_code=303)
+
+    @app.post("/w/{wid}/share")
+    def share(wid: str) -> Response:
+        """Move a project from the user's private space to the team space."""
+        ws = ws_for_edit(wid)
+        old = ws.project_path
+        team = spaces.folder(TEAM, "")
+        if not (autosave and ws.space == PRIVATE and old is not None and team is not None):
+            raise HTTPException(status_code=404)
+        new = unique_path(team, old.stem)
+        with ws.lock:
+            save_project(ws, new)
+            locks.release(old, ws.id)
+            locks.acquire(new, ws.id, ws.owner_label)
+            ws.project_path, ws.project_stamp, ws.space = new, file_stamp(new), TEAM
+            old.unlink(missing_ok=True)
+        ws.notices.append(("ws.notice.shared", {"file": new.name}))
+        return RedirectResponse(f"/w/{wid}", status_code=303)
 
     @app.get("/w/{wid}/audit", response_class=HTMLResponse)
     def audit(request: Request, wid: str) -> HTMLResponse:
@@ -856,7 +1096,9 @@ def _download(data: bytes, filename: str, media_type: str) -> Response:
 
 
 def user_of(request: Request) -> str:
-    return clean_user(request.cookies.get("roi_user", "")) or DEFAULT_USER
+    """Name recorded in the audit trail: the signed-in user, else the self-declared name."""
+    return CURRENT_USER.get() or clean_user(request.cookies.get("roi_user", "")) \
+        or DEFAULT_USER
 
 
 def clean_user(name: str) -> str:

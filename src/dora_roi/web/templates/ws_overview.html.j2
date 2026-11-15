@@ -14,6 +14,9 @@
   {% elif counts.warning %}<a class="btn primary" href="/w/{{ ws.id }}/fix">{{ t("ws.next.review", n=counts.warning) }}</a>
   {% else %}<a class="btn primary" href="/w/{{ ws.id }}/analyse">{{ t("ws.next.analyse") }}</a>{% endif %}
 </p>
+{% if signed_in %}
+<p class="small muted">{{ t("user.signed_in", user=signed_in) }}</p>
+{% else %}
 <form method="post" action="/user" class="row user-form">
   <label for="user-name">{{ t("user.label") }}</label>
   <input id="user-name" name="name" value="{{ user if user != 'local user' else '' }}" maxlength="80" autocomplete="name" aria-describedby="user-help">
@@ -21,6 +24,14 @@
   <button class="btn" type="submit">{{ t("user.save") }}</button>
   <span id="user-help" class="small muted">{{ t("user.help") }}</span>
 </form>
+{% endif %}
+{% if ws.project_path or ws.read_only %}
+<div class="row">
+  {% if can_share %}<form method="post" action="/w/{{ ws.id }}/share"><button class="btn" type="submit">{{ t("ws.share") }}</button></form>{% endif %}
+  <form method="post" action="/w/{{ ws.id }}/close"><button class="btn" type="submit" aria-describedby="close-help">{{ t("ws.close") }}</button></form>
+  <span id="close-help" class="small muted">{{ t("ws.close.help") }}</span>
+</div>
+{% endif %}
 {% if notes %}
 <section class="card" aria-labelledby="h-notes"><h2 id="h-notes">{{ t("wiz.notes") }}</h2><ul>{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul></section>
 {% endif %}

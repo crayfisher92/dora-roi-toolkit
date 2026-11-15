@@ -2,6 +2,7 @@
 
 * :class:`SecurityHeadersMiddleware` – CSP, anti-framing, no-sniff, no referrer, isolation.
 * :class:`SameOriginMiddleware` – rejects state-changing requests from other origins (CSRF).
+* :class:`BodySizeLimitMiddleware` – refuses oversized request bodies before reading them.
 * :func:`safe_next` – only same-site relative redirect targets.
 """
 
@@ -15,6 +16,7 @@ from urllib.parse import urlsplit
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse, Response
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 #: Workbench pages: no inline script, everything from our own origin.
 APP_CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
@@ -74,6 +76,64 @@ def _same_origin(request: Request) -> bool:
     origin = _origin_of(request.headers.get("origin")) or _origin_of(
         request.headers.get("referer"))
     return origin is None or origin == host
+
+
+TOO_LARGE = b"Request too large."
+
+
+class BodySizeLimitMiddleware:
+    """Refuse request bodies above ``max_bytes`` before they are read (HTTP 413).
+
+    A declared ``Content-Length`` above the limit is rejected at once, without reading the
+    body. Bodies without one (chunked uploads) are counted while they stream in; once past the
+    limit the application sees the end of the body, nothing more is read from the client, and
+    whatever the application answers (typically a parse error) is replaced by a 413 that keeps
+    its security headers. Pure ASGI, so nothing is buffered first.
+    """
+
+    def __init__(self, app: ASGIApp, max_bytes: int) -> None:
+        self.app = app
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        declared = dict(scope.get("headers") or []).get(b"content-length", b"")
+        if declared.isdigit() and int(declared) > self.max_bytes:
+            response = PlainTextResponse(TOO_LARGE.decode(), status_code=413,
+                                         headers={"Connection": "close"})
+            await response(scope, receive, send)
+            return
+        received = 0
+        exceeded = False
+
+        async def limited_receive() -> Message:
+            nonlocal received, exceeded
+            if exceeded:
+                return {"type": "http.disconnect"}
+            message = await receive()
+            if message["type"] == "http.request":
+                received += len(message.get("body", b""))
+                if received > self.max_bytes:
+                    exceeded = True
+                    return {"type": "http.request", "body": b"", "more_body": False}
+            return message
+
+        async def guarded_send(message: Message) -> None:
+            if not exceeded:
+                await send(message)
+            elif message["type"] == "http.response.start":
+                skip = {b"content-length", b"content-type", b"connection"}
+                headers = [(k, v) for k, v in message.get("headers", []) if k.lower() not in skip]
+                headers += [(b"content-type", b"text/plain; charset=utf-8"),
+                            (b"content-length", str(len(TOO_LARGE)).encode()),
+                            (b"connection", b"close")]
+                await send({"type": "http.response.start", "status": 413, "headers": headers})
+                await send({"type": "http.response.body", "body": TOO_LARGE})
+            # the application's own body is dropped
+
+        await self.app(scope, limited_receive, guarded_send)
 
 
 _BAD_REDIRECT = re.compile(r"[\\\x00-\x1f]")

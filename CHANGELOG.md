@@ -8,6 +8,36 @@ format; they are listed under **Changed** with migration notes.
 
 ## [Unreleased]
 
+Team use of the workbench ([`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md)) and the
+reconciliation of the register with the official EBA material for reporting framework 4.0.
+
+### Added – team use of the workbench
+
+- **Sign-in through an SSO proxy** (`ROI_AUTH_HEADER`, `ROI_TRUSTED_PROXIES`, `roi serve
+  --auth-header/--trusted-proxy`): the user comes from the proxy's header, accepted only from
+  the proxy's address (401 without a sign-in, 403 around the proxy); workspaces belong to the
+  user across browsers and the audit trail records the signed-in user. Example deployment
+  with oauth2-proxy and Microsoft Entra ID in `deploy/team/`.
+- **Private and team project spaces** in the projects folder (`users/<user>/`, `team/`),
+  *Move to team space* and *Close and release* on the overview.
+- **Edit locks:** one editor per project file; others get a read-only view; idle locks can be
+  taken over after `ROI_LOCK_MINUTES` (30). Autosave never overwrites a file that changed on
+  disk since it was read – it writes a conflict copy and tells the user.
+- **Per-user memory share** (`ROI_MAX_USER_WORKSPACES`, `ROI_MAX_USER_ROWS`) on top of the
+  global budget; `ROI_MAX_WORKSPACES` makes the global count configurable.
+- **No blocking:** parsing, validation, project loading and saving run in worker threads
+  (`ROI_MAX_PARALLEL_JOBS`, 4).
+- **Request-size limit:** bodies above 26 MB are refused before they are read.
+
+### Fixed
+
+- The "validation incomplete" banner of a workspace was rendered inside the page title and
+  never shown.
+- The Docker image now has a `/data` folder owned by the app user, so a projects volume is
+  writable.
+
+### Reconciliation with the official EBA material
+
 Reconciliation of the register data model, code lists and xBRL-CSV export with the official
 EBA material for reporting framework 4.0 (`reference/eba/`, see
 [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md#reconciliation-status)).

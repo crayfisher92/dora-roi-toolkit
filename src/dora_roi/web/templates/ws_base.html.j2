@@ -1,11 +1,6 @@
 {% extends "base.html.j2" %}
 {% from "_macros.html.j2" import readiness_badge %}
-{% block title %}{% block page_title %}{% endblock %} · {{ ws.name }} · {{ t("app.name") }}{% if ws.report.rule_failures %}
-<div class="inner"><div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
-  <div>{{ t("ready.incomplete", n=ws.report.rule_failures | length) }}
-  <span class="small mono">{{ ws.report.rule_failures | map(attribute="rule_id") | join(", ") }}</span></div></div></div>
-{% endif %}
-{% endblock %}
+{% block title %}{% block page_title %}{% endblock %} · {{ ws.name }} · {{ t("app.name") }}{% endblock %}
 {% block subheader %}
 <div class="ws-header">
   <div class="inner">
@@ -48,4 +43,15 @@
     </ul>
   </nav>
 </div>
+{% if ws.report.rule_failures %}
+<div class="inner"><div class="banner fail" role="alert"><span class="icon" aria-hidden="true">✕</span>
+  <div>{{ t("ready.incomplete", n=ws.report.rule_failures | length) }}
+  <span class="small mono">{{ ws.report.rule_failures | map(attribute="rule_id") | join(", ") }}</span></div></div></div>
+{% endif %}
+{% if ws.read_only %}
+<div class="inner"><div class="banner warn" role="status" data-readonly><span class="icon" aria-hidden="true">!</span><div>{{ t("ws.readonly", user=ws.read_only) }}</div></div></div>
+{% endif %}
+{% for key, params in ws.notices %}
+<div class="inner"><div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t(key, **params) }}</div></div></div>
+{% endfor %}
 {% endblock %}

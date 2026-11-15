@@ -27,7 +27,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /wheels /wheels
 RUN pip install /wheels/*.whl && rm -rf /wheels \
-    && useradd --create-home --uid 10001 roi
+    && useradd --create-home --uid 10001 roi \
+    && mkdir /data && chown roi:roi /data
+# /data: projects folder for ROI_PROJECTS_DIR (named volumes inherit this owner)
 USER roi
 WORKDIR /home/roi
 EXPOSE 8000

@@ -213,12 +213,19 @@ Details, the JSON report schema and how to add a rule: [`docs/ARCHITECTURE.md`](
 | Environment variable | Default | Effect |
 |---|---|---|
 | `ROI_PROJECTS_DIR` | – | Folder for autosaved project files (same as `roi serve --projects`) |
+| `ROI_AUTH_HEADER` | – | Team mode: header with the user signed in by the SSO proxy, e.g. `X-Forwarded-Email` ([`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md)) |
+| `ROI_TRUSTED_PROXIES` | `127.0.0.1,::1` | Addresses of the SSO proxy; the identity header is ignored from anywhere else |
+| `ROI_LOCK_MINUTES` | `30` | Inactivity after which a project's edit lock may be taken over |
+| `ROI_MAX_USER_WORKSPACES` / `ROI_MAX_USER_ROWS` | `10` / `200000` | Per-user share of the workspaces and rows held in memory |
+| `ROI_MAX_PARALLEL_JOBS` | `4` | Imports, project loads and edits processed at the same time |
 | `ROI_MAX_UNCOMPRESSED_MB` | `200` | Maximum uncompressed size of an uploaded workbook / zip / project file |
 | `ROI_MAX_ROWS_PER_TABLE` | `100000` | Maximum rows per template on import |
 | `ROI_MAX_STORE_ROWS` | `500000` | Rows the workbench keeps in memory across all workspaces (≈ 2 KB per row); least recently used workspaces are evicted first |
 | `ROI_MAX_PDF_JOBS` | `2` | PDF reports rendered at the same time; further requests wait up to 60 s, then get 503 |
 
-Uploads are limited to 25 MB. A register with 10 000 contracts imports in about 3 seconds
+Uploads are limited to 25 MB; larger request bodies are refused before they are read. For a
+team, run the workbench behind oauth2-proxy with Microsoft Entra ID – see
+[`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md) and [`deploy/team/`](deploy/team/). A register with 10 000 contracts imports in about 3 seconds
 ([`docs/PERFORMANCE.md`](docs/PERFORMANCE.md)).
 
 ## Documentation
@@ -231,6 +238,7 @@ Uploads are limited to 25 MB. A register with 10 000 contracts imports in about 
 | [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md) | Regulatory details that must be verified |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Engineering decisions and their rationale |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Modules, data flow, report schema, extension guide |
+| [`docs/TEAM_DEPLOYMENT.md`](docs/TEAM_DEPLOYMENT.md) | Running the workbench for a team: SSO with oauth2-proxy and Entra ID, private and team project spaces, edit locks, limits |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model (STRIDE), security controls and residual risks; disclosure policy in [`SECURITY.md`](SECURITY.md) |
 | [`docs/UX.md`](docs/UX.md) | Personas, jobs to be done, screen flow, accessibility principles |
 | [`docs/DEMO.md`](docs/DEMO.md) | 5-minute client demo with the Alpenrand sample |

@@ -37,16 +37,18 @@
   </section>
 </div>
 
-{% if projects is not none %}
-<h2>{{ t("home.projects") }}</h2>
-{% if projects %}
+{% if project_spaces is not none %}
+{% for space, items in project_spaces %}
+<h2>{{ t("home.projects." ~ space) if team_mode else t("home.projects") }}</h2>
+{% if items %}
 <div class="table-wrap"><table>
   <thead><tr><th scope="col">{{ t("col.workspace") }}</th><th scope="col">{{ t("home.project.saved") }}</th><th scope="col"><span class="visually-hidden">{{ t("home.project.button") }}</span></th></tr></thead>
-  <tbody>{% for path, meta in projects %}
-  <tr><td>{{ meta.name }}<div class="small muted mono">{{ path.name }}</div></td><td class="small">{{ meta.saved[:16] | replace("T", " ") }} UTC</td>
-    <td><form method="post" action="/projects/open" data-busy="{{ t('busy.import') }}"><input type="hidden" name="file" value="{{ path.name }}"><button class="btn" type="submit">{{ t("home.project.button") }}</button></form></td></tr>
+  <tbody>{% for path, meta, holder in items %}
+  <tr><td>{{ meta.name }}<div class="small muted mono">{{ path.name }}</div>{% if holder %}<div class="small">{{ t("home.project.locked", user=holder) }}</div>{% endif %}</td><td class="small">{{ meta.saved[:16] | replace("T", " ") }} UTC</td>
+    <td><form method="post" action="/projects/open" data-busy="{{ t('busy.import') }}"><input type="hidden" name="space" value="{{ space }}"><input type="hidden" name="file" value="{{ path.name }}"><button class="btn" type="submit">{{ t("home.project.readonly") if holder else t("home.project.button") }}</button></form></td></tr>
   {% endfor %}</tbody></table></div>
-{% else %}<p class="muted">{{ t("home.projects.none") }}</p>{% endif %}
+{% else %}<p class="muted">{{ t("home.projects.team.none") if space == "team" else t("home.projects.none") }}</p>{% endif %}
+{% endfor %}
 {% endif %}
 
 <h2>{{ t("home.recent") }}</h2>

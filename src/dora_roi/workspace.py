@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import threading
+import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -42,6 +43,10 @@ DEFAULT_USER = "local user"
 
 class EditError(ValueError):
     """Raised for an edit that does not address an existing template/row/column."""
+
+
+class ReadOnlyError(EditError):
+    """Raised for a change to a workspace opened read-only (someone else holds the lock)."""
 
 
 def _now() -> datetime:
@@ -124,10 +129,22 @@ class Workspace:
         self.import_notes: list[str] | None = None
         #: Browser session that owns the workspace in the web app (``""`` elsewhere).
         self.owner: str = ""
+        #: Name of the owner as shown to others (e.g. who holds a project's edit lock).
+        self.owner_label: str = ""
         #: Called after every change (used for autosaving project files).
         self.on_change: Callable[[Workspace], None] | None = None
         #: Where the workspace is autosaved, if anywhere.
         self.project_path: Path | None = None
+        #: Modification time and size of ``project_path`` when last read or written.
+        self.project_stamp: tuple[int, int] | None = None
+        #: Project space in the web app (``private`` or ``team``).
+        self.space: str = "private"
+        #: Set when someone else holds the edit lock: every change is refused.
+        self.read_only: str | None = None
+        #: Messages for the user, as ``(i18n key, parameters)``.
+        self.notices: list[tuple[str, dict[str, str]]] = []
+        #: ``time.monotonic()`` of the last request (edit locks expire after inactivity).
+        self.last_active = time.monotonic()
         self.lock = threading.RLock()
         self._derived: _Derived | None = None
         self._analysis: ConcentrationAnalysis | None = None
@@ -271,10 +288,15 @@ class Workspace:
         self.changes.append(change)
         return change
 
+    def _check_writable(self) -> None:
+        if self.read_only is not None:
+            raise ReadOnlyError(f"read-only: {self.read_only} is editing this project")
+
     def edit(self, template: str, row: int, column: str, value: RawValue,
              user: str = DEFAULT_USER) -> Change | None:
         """Set one cell and re-validate. Returns ``None`` when nothing changed."""
         with self.lock:
+            self._check_writable()
             self._check_column(template, column)
             change = self._set(template, row, column, value, user)
             if change is not None:
@@ -286,6 +308,7 @@ class Workspace:
                      rows: list[int] | None = None, user: str = DEFAULT_USER) -> int:
         """Replace every occurrence of ``old`` in a column (optionally only in ``rows``)."""
         with self.lock:
+            self._check_writable()
             self._check_column(template, column)
             count = 0
             wanted = set(rows) if rows is not None else None
@@ -307,6 +330,7 @@ class Workspace:
     def add_row(self, template: str, values: dict[str, RawValue] | None = None,
                 user: str = DEFAULT_USER) -> int:
         with self.lock:
+            self._check_writable()
             table = self.table(template)
             number = max((r.row or 0 for r in table.rows), default=3) + 1
             row = RawRow(number, dict(values or {}))
@@ -319,6 +343,7 @@ class Workspace:
 
     def delete_row(self, template: str, row: int, user: str = DEFAULT_USER) -> None:
         with self.lock:
+            self._check_writable()
             table = self.table(template)
             target = self.row(template, row)
             index = table.rows.index(target)
@@ -337,6 +362,7 @@ class Workspace:
         if not reason.strip():
             raise EditError("a justification is required")
         with self.lock:
+            self._check_writable()
             key = finding_key(finding)
             acc = Acceptance(key, finding.rule_id, reason.strip(), user, _now())
             self.acceptances[key] = acc
@@ -349,6 +375,7 @@ class Workspace:
 
     def unaccept(self, key: str, user: str = DEFAULT_USER) -> None:
         with self.lock:
+            self._check_writable()
             acc = self.acceptances.pop(key, None)
             if acc is None:
                 raise EditError("no such accepted finding")

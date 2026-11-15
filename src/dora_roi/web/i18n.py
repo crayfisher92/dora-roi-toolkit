@@ -52,6 +52,11 @@ MESSAGES: dict[str, dict[str, str]] = {
         "home.project.saved": "Last saved",
         "home.projects": "Saved projects",
         "home.projects.none": "No saved projects in the projects folder yet.",
+        "home.projects.private": "My projects",
+        "home.projects.team": "Team projects",
+        "home.projects.team.none": "No projects in the team space yet.",
+        "home.project.locked": "Being edited by {user}",
+        "home.project.readonly": "Open read-only",
         "ex.project": "Project file",
         "ex.project.text": "Everything in this workspace – data, audit trail, versions and "
                            "accepted findings – in one file you can reopen later or hand over.",
@@ -118,6 +123,19 @@ MESSAGES: dict[str, dict[str, str]] = {
         "user.label": "Your name (for the audit trail)",
         "user.save": "Save name",
         "user.help": "Stored in a cookie in this browser only.",
+        "user.signed_in": "Signed in as {user}. Your changes are recorded under this name.",
+        "ws.readonly": "Read-only: {user} is editing this project. Changes are disabled until "
+                       "they close it; open it again later.",
+        "ws.notice.conflict": "The project file was changed elsewhere after you opened it. "
+                              "Your version was saved as {file} so that nothing is "
+                              "overwritten.",
+        "ws.notice.lock_lost": "Your edit lock expired after a period of inactivity and {user} "
+                               "is now editing this project, so this view is read-only.",
+        "ws.notice.shared": "Moved to the team space as {file}. Colleagues can now open it; "
+                            "only one person edits at a time.",
+        "ws.close": "Close and release",
+        "ws.close.help": "Releases the edit lock so a colleague can edit the project.",
+        "ws.share": "Move to team space",
         "ws.score": "Data-quality score",
         "ws.score.help": "Share of records without findings (records with only warnings count "
                          "half). Submission needs zero errors.",
@@ -354,6 +372,11 @@ MESSAGES: dict[str, dict[str, str]] = {
         "home.project.saved": "Zuletzt gespeichert",
         "home.projects": "Gespeicherte Projekte",
         "home.projects.none": "Noch keine Projekte im Projektordner.",
+        "home.projects.private": "Meine Projekte",
+        "home.projects.team": "Team-Projekte",
+        "home.projects.team.none": "Noch keine Projekte im Team-Bereich.",
+        "home.project.locked": "Wird bearbeitet von {user}",
+        "home.project.readonly": "Schreibgeschützt öffnen",
         "ex.project": "Projektdatei",
         "ex.project.text": "Alles aus diesem Arbeitsbereich – Daten, Prüfpfad, Versionen und "
                            "akzeptierte Befunde – in einer Datei zum späteren Öffnen oder zur "
@@ -424,6 +447,23 @@ MESSAGES: dict[str, dict[str, str]] = {
         "user.label": "Ihr Name (für den Prüfpfad)",
         "user.save": "Namen speichern",
         "user.help": "Wird nur in einem Cookie dieses Browsers gespeichert.",
+        "user.signed_in": "Angemeldet als {user}. Ihre Änderungen werden unter diesem Namen "
+                          "erfasst.",
+        "ws.readonly": "Schreibgeschützt: {user} bearbeitet dieses Projekt. Änderungen sind "
+                       "gesperrt, bis das Projekt geschlossen wird; öffnen Sie es später "
+                       "erneut.",
+        "ws.notice.conflict": "Die Projektdatei wurde nach dem Öffnen anderweitig geändert. Ihre "
+                              "Version wurde als {file} gespeichert, damit nichts "
+                              "überschrieben wird.",
+        "ws.notice.lock_lost": "Ihre Bearbeitungssperre ist nach längerer Inaktivität "
+                               "abgelaufen und {user} bearbeitet das Projekt jetzt; diese "
+                               "Ansicht ist schreibgeschützt.",
+        "ws.notice.shared": "In den Team-Bereich verschoben als {file}. Kolleginnen und Kollegen "
+                            "können es nun öffnen; es bearbeitet immer nur eine Person.",
+        "ws.close": "Schließen und freigeben",
+        "ws.close.help": "Gibt die Bearbeitungssperre frei, damit andere das Projekt "
+                         "bearbeiten können.",
+        "ws.share": "In den Team-Bereich verschieben",
         "ws.score": "Datenqualitätswert",
         "ws.score.help": "Anteil der Datensätze ohne Befund (Datensätze nur mit Warnungen zählen "
                          "halb). Für die Einreichung dürfen keine Fehler vorliegen.",
