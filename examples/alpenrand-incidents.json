@@ -1,6 +1,6 @@
 {
   "schema": "dora-roi-toolkit/incident-log/v1",
-  "toolkit_version": "0.1.0",
+  "toolkit_version": "0.2.0-rc.1",
   "timezone": "Europe/Berlin",
   "incidents": {
     "INC-2026-014": {
@@ -9,9 +9,9 @@
       "description": "Storage controller failure in the provider's Frankfurt region; the core-banking and payment-hub workloads of Alpenrand Bank (Europe) and Alpenrand Banque Privée are unavailable, failover to the secondary region is in progress.",
       "status": "open",
       "owner": "ICT Risk – Incident Management (sample)",
-      "occurred_at": "2026-11-15T05:06:00Z",
-      "detected_at": "2026-11-15T05:26:00Z",
-      "classified_at": "2026-11-15T08:56:00Z",
+      "occurred_at": "2026-11-15T07:10:00Z",
+      "detected_at": "2026-11-15T07:30:00Z",
+      "classified_at": "2026-11-15T11:00:00Z",
       "entity_leis": [
         "3912RO6DCAXX71K9W972",
         "6354ZX2X914MZGYMMB68"
@@ -50,13 +50,13 @@
       "authority_reference": "",
       "history": [
         {
-          "at": "2026-11-15T05:26:00Z",
+          "at": "2026-11-15T07:30:00Z",
           "by": "ICT Risk – Incident Management (sample)",
           "action": "created",
           "note": "Detected by monitoring; provider status page confirms regional incident."
         },
         {
-          "at": "2026-11-15T08:56:00Z",
+          "at": "2026-11-15T11:00:00Z",
           "by": "ICT Risk – Incident Management (sample)",
           "action": "classified",
           "note": "Classified as major: critical services, clients, downtime, geographical spread, reputation and economic impact."

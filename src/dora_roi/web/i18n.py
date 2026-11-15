@@ -114,6 +114,13 @@ MESSAGES: dict[str, dict[str, str]] = {
         "audit.kind.accept": "Finding accepted",
         "audit.kind.unaccept": "Acceptance withdrawn",
         "audit.kind.export": "Exported",
+        "audit.kind.gleif": "LEIs checked with GLEIF",
+        "gleif.button": "Check LEIs with GLEIF",
+        "gleif.note": "Sends only the LEIs (public identifiers) to the GLEIF Global LEI Index; "
+                      "findings GLEIF-001 to GLEIF-004 appear below.",
+        "gleif.last": "Last check: {at}.",
+        "gleif.done": "{n} LEI(s) checked with GLEIF.",
+        "gleif.error": "GLEIF could not be reached. Nothing was changed – try again later.",
         "ex.findings.xlsx": "Excel (to assign owners)",
         "fix.accept": "Accept with justification",
         "fix.accept.reason": "Justification",
@@ -125,6 +132,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "user.label": "Your name (for the audit trail)",
         "user.save": "Save name",
         "user.help": "Stored in a cookie in this browser only.",
+        "nav.user": "Signed in: {user}",
+        "nav.sign_out": "Sign out",
         "user.signed_in": "Signed in as {user}. Your changes are recorded under this name.",
         "ws.readonly": "Read-only: {user} is editing this project. Changes are disabled until "
                        "they close it; open it again later.",
@@ -437,6 +446,14 @@ MESSAGES: dict[str, dict[str, str]] = {
         "audit.kind.accept": "Befund akzeptiert",
         "audit.kind.unaccept": "Akzeptanz zurückgenommen",
         "audit.kind.export": "Exportiert",
+        "audit.kind.gleif": "LEIs bei GLEIF geprüft",
+        "gleif.button": "LEIs bei GLEIF prüfen",
+        "gleif.note": "Übermittelt nur die LEIs (öffentliche Kennungen) an den GLEIF-Index; "
+                      "die Befunde GLEIF-001 bis GLEIF-004 erscheinen unten.",
+        "gleif.last": "Letzte Prüfung: {at}.",
+        "gleif.done": "{n} LEI(s) bei GLEIF geprüft.",
+        "gleif.error": "GLEIF war nicht erreichbar. Es wurde nichts geändert – später erneut "
+                       "versuchen.",
         "ex.findings.xlsx": "Excel (zur Zuweisung)",
         "fix.accept": "Mit Begründung akzeptieren",
         "fix.accept.reason": "Begründung",
@@ -449,6 +466,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "user.label": "Ihr Name (für den Prüfpfad)",
         "user.save": "Namen speichern",
         "user.help": "Wird nur in einem Cookie dieses Browsers gespeichert.",
+        "nav.user": "Angemeldet: {user}",
+        "nav.sign_out": "Abmelden",
         "user.signed_in": "Angemeldet als {user}. Ihre Änderungen werden unter diesem Namen "
                           "erfasst.",
         "ws.readonly": "Schreibgeschützt: {user} bearbeitet dieses Projekt. Änderungen sind "

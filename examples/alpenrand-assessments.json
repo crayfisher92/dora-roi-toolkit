@@ -1,6 +1,6 @@
 {
   "schema": "dora-roi-toolkit/contract-assessments/v1",
-  "toolkit_version": "0.1.0",
+  "toolkit_version": "0.2.0-rc.1",
   "assessments": {
     "MSA-DE-0001": {
       "contract_ref": "MSA-DE-0001",

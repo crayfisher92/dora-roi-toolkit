@@ -286,3 +286,24 @@ def test_cli_serve_team_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     assert auth.header == HEADER and auth.is_trusted("172.28.0.10")
     bad = CliRunner().invoke(main, ["serve", "--trusted-proxy", "nope"])
     assert bad.exit_code != 0
+
+
+def test_cookies_are_secure_behind_the_tls_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Security self-test finding: the proxy terminates TLS, so the app sees http – cookies
+    must still carry the Secure flag in team mode (or with ROI_SECURE_COOKIES=1)."""
+    anna = as_user(team_app(), "anna@example.com")
+    cookies = anna.get("/?lang=de").headers.get_list("set-cookie")
+    assert cookies and all("secure" in c.lower() and "httponly" in c.lower() for c in cookies)
+    monkeypatch.delenv("ROI_SECURE_COOKIES", raising=False)
+    local = TestClient(create_app()).get("/?lang=de").headers.get_list("set-cookie")
+    assert local and not any("secure" in c.lower() for c in local)  # plain http on localhost
+    monkeypatch.setenv("ROI_SECURE_COOKIES", "1")
+    forced = TestClient(create_app()).get("/?lang=de").headers.get_list("set-cookie")
+    assert forced and all("secure" in c.lower() for c in forced)
+
+
+def test_header_shows_user_and_sign_out() -> None:
+    anna = as_user(team_app(), "anna@example.com")
+    page = anna.get("/").text
+    assert "data-user" in page and "anna@example.com" in page and "/oauth2/sign_out" in page
+    assert "data-user" not in TestClient(create_app()).get("/").text  # local mode: no sign-in

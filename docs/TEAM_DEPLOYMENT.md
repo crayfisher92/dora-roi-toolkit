@@ -45,6 +45,8 @@ These apply in both modes:
 | `ROI_MAX_USER_WORKSPACES` | `10` | Workspaces per user |
 | `ROI_MAX_USER_ROWS` | `200000` | Rows per user |
 | `ROI_MAX_PARALLEL_JOBS` | `4` | Imports, project loads and edits processed at the same time |
+| `ROI_GLEIF` | *(unset: off)* | `1` shows *Check LEIs with GLEIF* on the Fix page; the server then needs outbound HTTPS to `api.gleif.org` (proxy via `HTTPS_PROXY`). Sends only LEIs |
+| `ROI_SECURE_COOKIES` | *(unset)* | `1` marks cookies `Secure` in local mode too, when the workbench is served over HTTPS by a proxy; always on in team mode |
 
 Raise `ROI_MAX_WORKSPACES` and `ROI_MAX_STORE_ROWS` with the team size and the container's
 memory. A workspace evicted from memory is not lost if it lives in the projects folder: it
@@ -57,15 +59,22 @@ was autosaved after every change.
    - Create a client secret.
    - Note the tenant ID, client ID and secret.
    - To limit access to a group, add a `groups` claim to the ID token and use `OAUTH2_PROXY_ALLOWED_GROUPS` with the group's object ID.
+   - oauth2-proxy uses its `entra-id` provider with PKCE and the scopes `openid email profile`.
+     The workbench identifies users by e-mail; for accounts without a mailbox set
+     `OAUTH2_PROXY_OIDC_EMAIL_CLAIM=preferred_username` (the UPN).
 2. **Fill in** `deploy/team/.env` from `.env.example`. Generate the cookie secret with
    `python -c "import secrets,base64;print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"`.
 3. **Start** with `docker compose --env-file .env up -d` in `deploy/team/`.
 4. **Put TLS in front** of port 4180 (company load balancer, ingress or reverse proxy). Without TLS the
    sign-in cookie and the register data travel in clear text.
-5. **Check:**
+5. **Check** with the sign-in test protocol [`ENTRA_SIGNIN_TEST.md`](ENTRA_SIGNIN_TEST.md)
+   (automated self-test plus 13 manual steps, about 45 minutes). In short:
    - `https://<your-host>/` asks for the Entra sign-in.
-   - After signing in, the workspace overview says *Signed in as …*.
+   - After signing in, the header shows *Signed in: …* with a *Sign out* link.
    - Calling the workbench container directly is refused with `403`.
+
+The same oauth2-proxy settings are tested on every pull request against a mock Entra ID
+(`compose.ci-mock.yml`, [`SECURITY_TESTING.md`](SECURITY_TESTING.md)).
 
 ## Why the header can be trusted
 

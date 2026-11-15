@@ -6,7 +6,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 
 > The references express *which obligation a rule helps evidence*; they are the authors' interpretation (see [ASSUMPTIONS.md](ASSUMPTIONS.md), in particular A-VAL-* and A-REG-01). The column *EBA check* names the official EBA checks a rule implements; the [last section](#coverage-of-the-official-eba-checks) lists every official check and how the toolkit covers it.
 
-**65 rules.** Severity: *error* blocks a clean submission, *warning* needs review, *info* is for awareness.
+**69 rules.** Severity: *error* blocks a clean submission, *warning* needs review, *info* is for awareness.
 
 ## Import checks (IMP)
 
@@ -36,6 +36,10 @@ This document links every validation rule of the toolkit to the provision of Reg
 | `FLD-013` | error | **Provider code inconsistent with its code type** – When the type of code is LEI the identification code must be a valid LEI; when it is EUID it must start with an ISO country code followed by the register identifier. Applies to provider, ultimate parent, recipient and additional codes. | B_02.02, B_03.02, B_05.01, B_05.02, B_07.01 | ISO 17442; ITS Art. – identification | `v8821_m`, `VR_71`, `VR_72`, `VR_77`, `VR_78` |
 | `FLD-014` | error | **Conditionally mandatory value missing** – Columns the ITS makes mandatory under a condition: total assets of financial entities and their currency (B_01.02 c0110, c0100); notice periods, governing law, country of provision, storage of data and level of reliance of ICT services supporting critical or important functions (B_02.02 c0100-c0140, c0180); total annual expense of direct ICT third-party service providers and its currency (B_05.01 c0100, c0090). | B_01.02, B_02.02, B_05.01 | DORA Art. 28(3); ITS Annex I; ITS Annex II | `v8803_m`, `v8804_m`, `v8824_m` |
 | `FLD-015` | error | **Value not in the EBA taxonomy list** – Closed lists of the EBA data point model that are narrower than the ISO standards: the licensed activity (B_06.01 c0020) must be an activity of the EBA list (ITS Annex IV) and currencies must be members of the DPM currency list, otherwise the authority rejects the value (EBA technical check 503). | B_01.02, B_02.01, B_05.01, B_06.01 | ITS Annex IV; EBA reporting | `503` |
+| `GLEIF-001` | warning | **LEI not found in the Global LEI Index** – Online check (opt-in): the LEI has valid check digits but no record in the GLEIF Global LEI Index – it may be mistyped or never have been issued. | B_01.01, B_01.02, B_05.01 | ISO 17442; GLEIF Global LEI Index (reference data) | — |
+| `GLEIF-002` | warning | **LEI not in good standing** – Online check (opt-in): the LEI registration is lapsed, retired, annulled, a duplicate or otherwise not issued, or the legal entity is inactive (e.g. merged); renew the LEI or report the successor entity's LEI. | B_01.01, B_01.02, B_05.01 | ISO 17442; GLEIF Global LEI Index (reference data) | — |
+| `GLEIF-003` | info | **Name differs from the GLEIF record** – Online check (opt-in): the name in the register matches neither the GLEIF legal name nor any of its other names (comparison ignores case, accents and punctuation). | B_01.01, B_01.02, B_05.01 | ISO 17442; GLEIF Global LEI Index (reference data) | — |
+| `GLEIF-004` | info | **Country differs from the GLEIF record** – Online check (opt-in): the country of an entity differs from its GLEIF legal address, or the headquarters country of a provider from its GLEIF headquarters address. | B_01.01, B_01.02, B_05.01 | ISO 17442; GLEIF Global LEI Index (reference data) | — |
 
 ## Cross-template referential integrity (XRF)
 
@@ -117,6 +121,7 @@ This document links every validation rule of the toolkit to the provision of Reg
 | ITS Art. – identification | Entities identified by LEI; providers by LEI or EUID. |
 | ITS Art. – consistency | Information across templates must be consistent and linked through the contractual arrangement reference number and identification codes. |
 | ISO 17442 | Legal Entity Identifier format and MOD 97-10 check digits. |
+| GLEIF Global LEI Index (reference data) | Public LEI reference data of the Global Legal Entity Identifier Foundation (api.gleif.org); used only by the opt-in online check. |
 | ISO 3166-1 | Country codes (alpha-2). |
 | ISO 4217 | Currency codes. |
 | ISO 8601 | Date format YYYY-MM-DD. |
@@ -141,7 +146,8 @@ This document links every validation rule of the toolkit to the provision of Reg
 - **ITS Annex IV**: `FLD-015`
 - **ITS Art. – identification**: `FLD-002`, `FLD-013`, `XRF-002`
 - **ITS Art. – consistency**: `FLD-010`, `XRF-001`, `XRF-002`, `XRF-003`, `XRF-004`, `XRF-005`, `XRF-006`, `XRF-007`, `XRF-008`, `XRF-009`, `XRF-010`, `XRF-011`, `XRF-012`, `XRF-013`, `XRF-014`
-- **ISO 17442**: `FLD-002`, `FLD-013`
+- **ISO 17442**: `FLD-002`, `FLD-013`, `GLEIF-001`, `GLEIF-002`, `GLEIF-003`, `GLEIF-004`
+- **GLEIF Global LEI Index (reference data)**: `GLEIF-001`, `GLEIF-002`, `GLEIF-003`, `GLEIF-004`
 - **ISO 3166-1**: `FLD-005`
 - **ISO 4217**: `FLD-006`
 - **ISO 8601**: `FLD-003`

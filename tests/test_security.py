@@ -116,10 +116,17 @@ def test_serve_disables_access_log(monkeypatch: object) -> None:
 
 
 def test_no_outbound_network_code() -> None:
+    """Only the opt-in GLEIF check (``--online`` / ``ROI_GLEIF=1``) may open a connection."""
     root = Path(__file__).resolve().parent.parent / "src" / "dora_roi"
     forbidden = ("import requests", "import httpx", "urllib.request", "http.client",
                  "smtplib", "ftplib", "urlopen(")
+    allowed = {root / "gleif.py"}
     for path in root.rglob("*.py"):
+        if path in allowed:
+            continue
         text = path.read_text(encoding="utf-8")
         for token in forbidden:
             assert token not in text, f"{path.name} uses {token}"
+    gleif = (root / "gleif.py").read_text(encoding="utf-8")
+    assert 'GLEIF_API = "https://api.gleif.org/api/v1/lei-records"' in gleif
+    assert gleif.count("urlopen(") == 1  # a single, HTTPS-only call site

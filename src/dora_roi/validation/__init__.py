@@ -1,11 +1,13 @@
 """Validation engine for the register of information.
 
-Importing this package registers every rule (field, referential, supply-chain and business).
+Importing this package registers every rule (field, referential, supply-chain, business and the
+optional online LEI check).
 """
 
 from dora_roi.validation import (  # noqa: F401  (imported for rule registration)
     business_rules,
     field_rules,
+    gleif_rules,
     referential_rules,
     supply_chain_rules,
 )

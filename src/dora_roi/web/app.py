@@ -17,6 +17,7 @@ spaces and locks, worker pool); the routes live in :mod:`dora_roi.web.routes` (`
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -57,8 +58,11 @@ def create_app(capacity: int | None = None, projects_dir: str | Path | None = No
     get a private and a team project space.
     """
     auth = auth if auth is not None else AuthConfig.from_env()
+    # no interactive API docs: they publish the whole route surface and Swagger UI would load
+    # scripts from a CDN (found by the security self-test, docs/SECURITY_TESTING.md)
     app = FastAPI(title="DORA RoI Workbench", version=__version__,
-                  description="Prepare, fix and analyse a DORA register of information.")
+                  description="Prepare, fix and analyse a DORA register of information.",
+                  docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.add_middleware(SameOriginMiddleware)
     app.add_middleware(IdentityMiddleware, config=auth)
@@ -71,6 +75,8 @@ def create_app(capacity: int | None = None, projects_dir: str | Path | None = No
     app.state.workspaces = ctx.workspaces
     app.state.wizards = ctx.wizards
     app.state.auth = auth
+    app.state.secure_cookies = auth.enabled or os.environ.get(
+        "ROI_SECURE_COOKIES", "").strip().lower() in ("1", "true", "yes", "on")
     app.state.projects_dir = ctx.folder if ctx.autosave else None
     app.state.locks = ctx.locks
     for router in ROUTERS:

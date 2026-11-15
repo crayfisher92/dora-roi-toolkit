@@ -21,6 +21,7 @@ from starlette.concurrency import run_in_threadpool
 from dora_roi import __version__
 from dora_roi.contracts.provisions import clause_label
 from dora_roi.explain import explain, rule_title
+from dora_roi.gleif import GleifClient
 from dora_roi.inventory import (
     EntityInfo,
     InventorySheet,
@@ -33,6 +34,7 @@ from dora_roi.validation import RULES, finding_key
 from dora_roi.web.auth import CURRENT_USER, AuthConfig, current_owner
 from dora_roi.web.helpers import user_of
 from dora_roi.web.i18n import LANGUAGES, pick_language, translator
+from dora_roi.web.security import cookie_secure
 from dora_roi.web.spaces import (
     PRIVATE,
     ProjectLocks,
@@ -120,6 +122,12 @@ class WebContext:
             self.folder.mkdir(parents=True, exist_ok=True)
         self.spaces = ProjectSpaces(self.folder, team_mode=auth.enabled)
         self.locks = ProjectLocks(alive=self.workspaces.contains, last_active=self.last_active)
+        #: Online LEI check (``ROI_GLEIF=1``); off by default – the workbench then makes no
+        #: outbound connection at all.
+        self.gleif: GleifClient | None = (
+            GleifClient() if os.environ.get("ROI_GLEIF", "").strip().lower() in
+            ("1", "true", "yes", "on") else None)
+        self.env.globals["gleif_enabled"] = lambda: self.gleif is not None
 
     # ------------------------------------------------------------------ infrastructure
 
@@ -161,7 +169,8 @@ class WebContext:
             signed_in=CURRENT_USER.get(), **ctx)
         response = HTMLResponse(html, status_code=status)
         if request.query_params.get("lang") in LANGUAGES:
-            response.set_cookie("lang", lang, max_age=31536000, samesite="lax")
+            response.set_cookie("lang", lang, max_age=31536000, samesite="lax", httponly=True,
+                                secure=cookie_secure(request))
         return response
 
     def ws_page(self, request: Request, ws: Workspace, page_template: str, step: str,

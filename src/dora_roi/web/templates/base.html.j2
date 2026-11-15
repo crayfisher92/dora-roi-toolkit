@@ -24,6 +24,9 @@
                {% if code == lang %}aria-current="true"{% endif %}>{{ code | upper }}</a></li>
         {% endfor %}
       </ul>
+      {% if signed_in %}
+      <p class="user small" data-user>{{ t("nav.user", user=signed_in) }} · <a href="/oauth2/sign_out">{{ t("nav.sign_out") }}</a></p>
+      {% endif %}
       <div class="theme" role="group" aria-label="{{ t('nav.theme') }}" hidden>
         <button type="button" data-theme-set="system">{{ t("theme.system") }}</button>
         <button type="button" data-theme-set="light">{{ t("theme.light") }}</button>

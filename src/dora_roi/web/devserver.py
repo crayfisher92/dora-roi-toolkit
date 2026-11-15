@@ -25,7 +25,7 @@ class BackgroundServer:
     def __init__(self, port: int | None = None) -> None:
         self.port = port or free_port()
         config = uvicorn.Config(create_app(), host="127.0.0.1", port=self.port,
-                                log_level="warning", lifespan="off")
+                                log_level="warning", lifespan="off", server_header=False)
         self.server = uvicorn.Server(config)
         self.thread = threading.Thread(target=self.server.run, daemon=True)
 
