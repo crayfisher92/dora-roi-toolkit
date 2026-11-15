@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contract remediation plan (DORA Art. 30) · Alpenrand Group</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --surface-2: #f3f2ee;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #6f6d68;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --ord-1: #86b6ef;
+  --ord-2: #3987e5;
+  --ord-3: #1c5cab;
+  --ord-4: #0d366b;
+  --series-muted: #c3c2b7;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --accent-ink: #1c5cab;
+  --good-ink: #006300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --surface-2: #232321;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #a3a29b;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --ord-1: #184f95;
+    --ord-2: #2a78d6;
+    --ord-3: #5598e7;
+    --ord-4: #9ec5f4;
+    --series-muted: #4a4a46;
+    --accent-ink: #86b6ef;
+    --good-ink: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --surface-2: #232321;
+  --text-primary: #f0efec;
+  --text-secondary: #c3c2b7;
+  --text-muted: #a3a29b;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --ord-1: #184f95;
+  --ord-2: #2a78d6;
+  --ord-3: #5598e7;
+  --ord-4: #9ec5f4;
+  --series-muted: #4a4a46;
+  --accent-ink: #86b6ef;
+  --good-ink: #0ca30c;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text-primary);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+header.doc { margin-bottom: 24px; }
+header.doc .eyebrow { color: var(--text-muted); font-size: 13px; text-transform: uppercase;
+  letter-spacing: .06em; margin: 0 0 4px; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; font-weight: 650; }
+h2 { font-size: 20px; margin: 40px 0 12px; font-weight: 620; }
+h3 { font-size: 16px; margin: 24px 0 8px; font-weight: 600; }
+p { margin: 0 0 12px; }
+.meta { color: var(--text-secondary); font-size: 14px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; }
+.grid { display: grid; gap: 16px; }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.tile .label { color: var(--text-secondary); font-size: 13px; }
+.tile .value { font-size: 30px; font-weight: 650; line-height: 1.15; margin-top: 4px; }
+.tile .sub { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+.banner { display: flex; gap: 12px; align-items: flex-start; border-radius: 10px; padding: 14px 18px;
+  border: 1px solid var(--border); background: var(--surface-1); margin: 16px 0; }
+.banner .icon { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+.banner.fail .icon { background: var(--status-critical); }
+.banner.pass .icon { background: var(--status-good); }
+.banner.warn .icon { background: var(--status-warning); color: #0b0b0b; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+  padding: 2px 8px 2px 6px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--text-primary); white-space: nowrap; }
+.badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.badge.error::before { background: var(--status-critical); }
+.badge.warning::before { background: var(--status-warning); }
+.badge.info::before { background: var(--series-muted); }
+.badge.error::after { content: ""; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface-1); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--grid);
+  vertical-align: top; }
+th { color: var(--text-secondary); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0; }
+tr:last-child td { border-bottom: none; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.mono { white-space: nowrap; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px; }
+.muted { color: var(--text-muted); }
+.small { font-size: 13px; }
+details { margin: 8px 0; }
+details > summary { cursor: pointer; color: var(--text-secondary); font-size: 14px; }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--text-secondary); font-size: 12px; }
+.chart .value-label { fill: var(--text-primary); font-variant-numeric: tabular-nums; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .baseline { stroke: var(--axis); stroke-width: 1; }
+.chart .bar { fill: var(--series-1); }
+.chart .bar.alt { fill: var(--series-2); }
+.chart .bar.muted { fill: var(--series-muted); }
+.chart .hit:hover + .bar, .chart .bar:hover { opacity: .8; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px;
+  color: var(--text-secondary); margin: 4px 0 8px; }
+.legend .key { display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  margin-right: 6px; vertical-align: -1px; }
+.seg-bar { display: flex; gap: 2px; height: 22px; border-radius: 6px; overflow: hidden;
+  margin: 8px 0; }
+.seg-bar > span { display: block; height: 100%; min-width: 2px; }
+.callouts li { margin-bottom: 8px; }
+footer { margin-top: 48px; color: var(--text-muted); font-size: 12.5px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+.filter-row input, .filter-row select { font: inherit; font-size: 14px; padding: 6px 10px;
+  border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-primary); }
+@media print {
+  body { background: #fff; }
+  .card, .table-wrap { break-inside: avoid; }
+  .filter-row { display: none; }
+}/* Shared styles of the programme reports (remediation plan, incident summary, readiness). */
+.section-lead { color: var(--text-secondary); max-width: 80ch; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 650;
+  padding: 2px 9px 2px 7px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); white-space: nowrap; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--series-muted); }
+.pill.high::before, .pill.red::before, .pill.missing::before, .pill.gaps::before,
+.pill.major::before, .pill.overdue::before { background: var(--status-critical); }
+.pill.medium::before, .pill.amber::before, .pill.partial::before, .pill.incomplete::before,
+.pill.provisional::before, .pill.due::before { background: var(--status-warning); }
+.pill.low::before, .pill.green::before, .pill.present::before, .pill.compliant::before,
+.pill.not_major::before, .pill.done::before { background: var(--status-good); }
+.rag { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px; }
+.rag .card { border-left-width: 6px; }
+.rag .red { border-left-color: var(--status-critical); }
+.rag .amber { border-left-color: var(--status-warning); }
+.rag .green { border-left-color: var(--status-good); }
+.rag .grey { border-left-color: var(--series-muted); }
+.rag h3 { margin: 0 0 4px; font-size: 15px; }
+.rag .metric { font-size: 24px; font-weight: 650; }
+.actions-list { padding-left: 20px; }
+.actions-list li { margin-bottom: 6px; }
+td.wrap, th.wrap { min-width: 220px; }
+.evidence { color: var(--text-secondary); font-size: 12.5px; }
+.toc { columns: 2; font-size: 14px; }
+@page { size: A4; margin: 16mm 14mm; }
+@media print {
+  :root, :root[data-theme="dark"] { color-scheme: light; }
+  body { font-size: 11.5px; }
+  main { max-width: none; padding: 0; }
+  h2 { break-after: avoid; page-break-after: avoid; }
+  tr, .card, .tile { break-inside: avoid; page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  th { position: static; }
+  .table-wrap { overflow: visible; border: none; }
+  a { color: inherit; text-decoration: none; }
+  .no-print { display: none !important; }
+  .page-break { break-before: page; page-break-before: always; }
+}
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.incident-detail { margin-top: 16px; }
+.incident-detail h2 { margin-top: 0; }</style>
+</head>
+<body>
+<main>
+<header class="doc">
+  <p class="eyebrow">DORA · Regulation (EU) 2022/2554 · Art. 30</p>
+  <h1>Contract remediation plan (DORA Art. 30) – Alpenrand Group</h1>
+  <p class="meta">Prepared 05 Nov 2026</p>
+  <p class="section-lead">Gaps found when the contractual arrangements of the register were assessed against the key contractual provisions of DORA Art. 30, prioritised by the criticality of the functions they support.</p>
+</header>
+
+<section class="grid tiles" aria-label="DORA Art. 30 contract gap analysis">
+  <div class="card tile"><div class="label">Arrangements in the register</div><div class="value">120</div>
+    <div class="sub">90 critical or important</div></div>
+  <div class="card tile"><div class="label">Assessed</div><div class="value">17</div>
+    <div class="sub">16% of arrangements supporting critical functions assessed</div></div>
+  <div class="card tile"><div class="label">With gaps</div><div class="value">14</div>
+    <div class="sub">Gaps (missing · partial): 22 · 22</div></div>
+  <div class="card tile"><div class="label">Remediation actions</div><div class="value">35</div>
+    <div class="sub"><span class="pill high">18 high</span> <span class="pill medium">15 medium</span> <span class="pill low">2 low</span></div></div>
+</section>
+
+<h2 id="actions">Remediation actions</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Remediation actions"><table>
+  <caption class="visually-hidden">Remediation actions</caption>
+  <thead><tr><th scope="col">#</th><th scope="col">Priority</th><th scope="col">ICT third-party service provider · Arrangement</th>
+    <th scope="col" class="wrap">Provision</th><th scope="col" class="wrap">Finding</th>
+    <th scope="col" class="wrap">Recommended action</th><th scope="col">Target date</th><th scope="col">Contract end</th></tr></thead>
+  <tbody>
+  <tr>
+    <td class="num">1</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Cirrus Platforms Ireland Ltd</strong><br><span class="mono">MSA-DE-0010</span>
+<br><span class="small">◆ F-DE-09 IT security operations and identity management</span><br><span class="small muted">also relied on by CO-LU-0011</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No TLPT clause; penetration testing by customers is prohibited without the provider&#39;s consent (clause 8.7).</div></td>
+    <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">22 Jan 2029</td>
+  </tr>
+  <tr>
+    <td class="num">2</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No TLPT participation clause.</div></td>
+    <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">23 Aug 2030</td>
+  </tr>
+  <tr>
+    <td class="num">3</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No exit or transition provisions; licence ends at termination.</div></td>
+    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">23 Aug 2030</td>
+  </tr>
+  <tr>
+    <td class="num">4</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Ledgerline Systems GmbH</strong><br><span class="mono">AR-DE-0026</span>
+<br><span class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</span></td>
+    <td><span class="mono small">DORA Art. 30(2)(a)</span><br>Subcontracting: whether permitted and under which conditions</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">Silent on subcontracting although the service is hosted by Nimbus Cloud Services EMEA.</div></td>
+    <td>Add a subcontracting clause: permitted or not; if permitted, prior notification or approval, the right to object, flow-down of the provider&#39;s obligations, monitoring of the chain and termination if conditions are breached.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">5</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Ledgerline Systems GmbH</strong><br><span class="mono">AR-DE-0026</span>
+<br><span class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No TLPT clause.</div></td>
+    <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">6</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Ledgerline Systems GmbH</strong><br><span class="mono">AR-DE-0026</span>
+<br><span class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No audit or access rights; only an annual ISAE 3402 report.</div></td>
+    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">7</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
+<br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No TLPT clause (only the provider&#39;s own penetration tests, 5.2).</div></td>
+    <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">11 Oct 2027</td>
+  </tr>
+  <tr>
+    <td class="num">8</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
+<br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No transition period – the provider may stop at termination.</div></td>
+    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">11 Oct 2027</td>
+  </tr>
+  <tr>
+    <td class="num">9</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Wealthbridge Software Ltd</strong><br><span class="mono">AR-LU-0049</span>
+<br><span class="small">◆ F-LU-02 Portfolio management and investment advice</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">Explicitly no audit rights (&#39;the customer relies on the provider&#39;s SOC 1 report&#39;).</div></td>
+    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">10</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(2)(i)</span><br>Participation in ICT security awareness and resilience training</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No reference to security awareness or resilience training.</div></td>
+    <td>Add a clause on the provider&#39;s participation in security awareness programmes and operational resilience training.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">23 Aug 2030</td>
+  </tr>
+  <tr>
+    <td class="num">11</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(ii)</span><br>Right to agree alternative assurance levels</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
+    <td>Add the option of alternative assurance (pooled audits, independent certifications or reports) where other clients&#39; rights are affected.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">23 Aug 2030</td>
+  </tr>
+  <tr>
+    <td class="num">12</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(f)(ii)</span><br>Exit strategy: migration to another provider or in-house</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No migration assistance; source code escrow only.</div></td>
+    <td>Add migration assistance obligations (data, know-how transfer, cooperation with the successor provider, re-insourcing support).</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">23 Aug 2030</td>
+  </tr>
+  <tr>
+    <td class="num">13</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Ledgerline Systems GmbH</strong><br><span class="mono">AR-DE-0026</span>
+<br><span class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</span></td>
+    <td><span class="mono small">DORA Art. 30(2)(b)</span><br>Advance notice before changing locations</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No obligation to notify location changes.</div></td>
+    <td>Add an obligation to notify location changes in advance, with a minimum notice period and the right to object or terminate.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">14</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Ledgerline Systems GmbH</strong><br><span class="mono">AR-DE-0026</span>
+<br><span class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(iii)</span><br>Full cooperation during on-site inspections and audits</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No cooperation obligation for inspections.</div></td>
+    <td>Add a cooperation duty for on-site inspections and audits, naming the Lead Overseer.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">15</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Ledgerline Systems GmbH</strong><br><span class="mono">AR-DE-0026</span>
+<br><span class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(iv)</span><br>Scope, procedures and frequency of inspections and audits</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
+    <td>Define audit scope, procedure (notice, conduct, reporting) and frequency in an audit schedule.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">16</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
+<br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(ii)</span><br>Right to agree alternative assurance levels</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
+    <td>Add the option of alternative assurance (pooled audits, independent certifications or reports) where other clients&#39; rights are affected.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">11 Oct 2027</td>
+  </tr>
+  <tr>
+    <td class="num">17</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
+<br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(iii)</span><br>Full cooperation during on-site inspections and audits</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No cooperation obligation for inspections.</div></td>
+    <td>Add a cooperation duty for on-site inspections and audits, naming the Lead Overseer.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">11 Oct 2027</td>
+  </tr>
+  <tr>
+    <td class="num">18</td>
+    <td><span class="pill high">High</span></td>
+    <td><strong>Wealthbridge Software Ltd</strong><br><span class="mono">AR-LU-0049</span>
+<br><span class="small">◆ F-LU-02 Portfolio management and investment advice</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(iii)</span><br>Full cooperation during on-site inspections and audits</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No cooperation obligation for inspections.</div></td>
+    <td>Add a cooperation duty for on-site inspections and audits, naming the Lead Overseer.</td>
+    <td class="num">03 Feb 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">19</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Alpenrand Services AG</strong><br><span class="mono">AR-DE-0014</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(2)(h)</span><br>Termination rights and minimum notice periods</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 9</span><div class="evidence">Ordinary termination only; Art. 28(7) termination circumstances not provided for.</div></td>
+    <td>Add termination rights for the Art. 28(7) circumstances (breach of law or contract, impaired performance, ICT risk weaknesses, impeded supervision) and minimum notice periods for both parties.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">20</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Alpenrand Services AG</strong><br><span class="mono">AR-LU-0016</span>
+<br><span class="small">◆ F-LU-01 Core banking and custody accounts</span></td>
+    <td><span class="mono small">DORA Art. 30(2)(h)</span><br>Termination rights and minimum notice periods</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 9</span><div class="evidence">Ordinary termination only; Art. 28(7) termination circumstances not provided for.</div></td>
+    <td>Add termination rights for the Art. 28(7) circumstances (breach of law or contract, impaired performance, ICT risk weaknesses, impeded supervision) and minimum notice periods for both parties.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">17 May 2028</td>
+  </tr>
+  <tr>
+    <td class="num">21</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Cirrus Platforms Ireland Ltd</strong><br><span class="mono">MSA-DE-0010</span>
+<br><span class="small">◆ F-DE-09 IT security operations and identity management</span><br><span class="small muted">also relied on by CO-LU-0011, CO-AT-0012</span></td>
+    <td><span class="mono small">DORA Art. 30(2)(a)</span><br>Subcontracting: whether permitted and under which conditions</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 6.3</span><div class="evidence">General authorisation of sub-processors with a public list; no conditions for services supporting critical functions and no right to object.</div></td>
+    <td>Add a subcontracting clause: permitted or not; if permitted, prior notification or approval, the right to object, flow-down of the provider&#39;s obligations, monitoring of the chain and termination if conditions are breached.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">22 Jan 2029</td>
+  </tr>
+  <tr>
+    <td class="num">22</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
+<br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 12</span><div class="evidence">Audit by the bank only, once a year, 30 days&#39; notice; no rights for the competent authority; no on-site copies.</div></td>
+    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">11 Oct 2027</td>
+  </tr>
+  <tr>
+    <td class="num">23</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Nimbus Cloud Services EMEA Ltd</strong><br><span class="mono">MSA-DE-0001</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management; F-DE-01 Payment processing (SEPA, instant, cross-border); F-DE-07 Digital and mobile banking channels</span><br><span class="small muted">also relied on by CO-AT-0003, CO-LU-0002</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(d)</span><br>Participation and full cooperation in threat-led penetration testing (TLPT)</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Addendum 7</span><div class="evidence">Participation only in pooled TLPT, at the provider&#39;s discretion and with 6 months&#39; notice.</div></td>
+    <td>Add a TLPT clause: participation in the entity&#39;s (or pooled) TLPT, scoping, live production testing, confidentiality and remediation of findings.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">03 Sep 2026</td>
+  </tr>
+  <tr>
+    <td class="num">24</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Nimbus Cloud Services EMEA Ltd</strong><br><span class="mono">MSA-DE-0001</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management; F-DE-01 Payment processing (SEPA, instant, cross-border); F-DE-07 Digital and mobile banking channels</span><br><span class="small muted">also relied on by CO-AT-0003, CO-LU-0002</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(i)</span><br>Unrestricted rights of access, inspection and audit</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Addendum 4.1</span><div class="evidence">Audit rights for the bank and the competent authority, but on-site access only to &#39;shared-responsibility&#39; documentation; no right to take copies.</div></td>
+    <td>Negotiate an audit addendum granting unrestricted access, inspection and audit rights to the entity, its appointed auditors and the competent authority, incl. on-site copies.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">03 Sep 2026</td>
+  </tr>
+  <tr>
+    <td class="num">25</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Nimbus Cloud Services EMEA Ltd</strong><br><span class="mono">MSA-DE-0001</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management; F-DE-01 Payment processing (SEPA, instant, cross-border); F-DE-07 Digital and mobile banking channels</span><br><span class="small muted">also relied on by CO-AT-0003, CO-LU-0002</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 22.4</span><div class="evidence">Transition period of 90 days only – too short for the core-banking hosting migration (exit plan assumes 18 months).</div></td>
+    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">03 Sep 2026</td>
+  </tr>
+  <tr>
+    <td class="num">26</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Wealthbridge Software Ltd</strong><br><span class="mono">AR-LU-0049</span>
+<br><span class="small">◆ F-LU-02 Portfolio management and investment advice</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(f)(i)</span><br>Exit strategy: mandatory adequate transition period</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 20</span><div class="evidence">Transition period of 6 months, at the provider&#39;s then-current rates.</div></td>
+    <td>Add an exit clause with a mandatory transition period (e.g. 12–24 months) during which the provider continues the service at agreed terms.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">open-ended</td>
+  </tr>
+  <tr>
+    <td class="num">27</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(2)(f)</span><br>Assistance in ICT incidents at no additional or a pre-agreed cost</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 10.2</span><div class="evidence">Incident support billed on time and material at rates &#39;applicable at the time&#39;.</div></td>
+    <td>Add an incident-assistance clause with response obligations and either no additional charge or a pre-agreed rate card.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">23 Aug 2030</td>
+  </tr>
+  <tr>
+    <td class="num">28</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Helix Core Banking AG</strong><br><span class="mono">AR-DE-0022</span>
+<br><span class="small">◆ F-DE-02 Core banking and account management</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(b)</span><br>Notice periods and reporting obligations, incl. material developments</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 8</span><div class="evidence">Quarterly reports; no obligation to notify material developments.</div></td>
+    <td>Add regular reporting duties and an obligation to notify material developments (financial distress, change of control, major incidents) within a fixed time.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">23 Aug 2030</td>
+  </tr>
+  <tr>
+    <td class="num">29</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
+<br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(e)(iv)</span><br>Scope, procedures and frequency of inspections and audits</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 12.1</span><div class="evidence">Frequency defined; scope and procedure not defined.</div></td>
+    <td>Define audit scope, procedure (notice, conduct, reporting) and frequency in an audit schedule.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">11 Oct 2027</td>
+  </tr>
+  <tr>
+    <td class="num">30</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>Mobilio Digital Banking GmbH</strong><br><span class="mono">AR-DE-0057</span>
+<br><span class="small">◆ F-DE-07 Digital and mobile banking channels</span></td>
+    <td><span class="mono small">DORA Art. 30(3)(f)(ii)</span><br>Exit strategy: migration to another provider or in-house</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 14.2</span><div class="evidence">Migration cooperation only at then-current rates; no obligation to continue the service during migration.</div></td>
+    <td>Add migration assistance obligations (data, know-how transfer, cooperation with the successor provider, re-insourcing support).</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">11 Oct 2027</td>
+  </tr>
+  <tr>
+    <td class="num">31</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>CustomerSphere Inc.</strong><br><span class="mono">AR-DE-0061</span>
+</td>
+    <td><span class="mono small">DORA Art. 30(2)(g)</span><br>Full cooperation with competent and resolution authorities</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">No cooperation with authorities beyond legal compulsion.</div></td>
+    <td>Add an authority-cooperation clause naming competent and resolution authorities and persons appointed by them.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">31 Mar 2028</td>
+  </tr>
+  <tr>
+    <td class="num">32</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>PeopleLedger SE</strong><br><span class="mono">AR-DE-0064</span>
+</td>
+    <td><span class="mono small">DORA Art. 30(2)(b)</span><br>Advance notice before changing locations</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">Locations may be changed by the provider without notice.</div></td>
+    <td>Add an obligation to notify location changes in advance, with a minimum notice period and the right to object or terminate.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">31 Oct 2025</td>
+  </tr>
+  <tr>
+    <td class="num">33</td>
+    <td><span class="pill medium">Medium</span></td>
+    <td><strong>PeopleLedger SE</strong><br><span class="mono">AR-DE-0064</span>
+</td>
+    <td><span class="mono small">DORA Art. 30(2)(i)</span><br>Participation in ICT security awareness and resilience training</td>
+    <td><span class="pill missing">Missing</span><div class="evidence">Not addressed.</div></td>
+    <td>Add a clause on the provider&#39;s participation in security awareness programmes and operational resilience training.</td>
+    <td class="num">04 May 2027</td>
+    <td class="num">31 Oct 2025</td>
+  </tr>
+  <tr>
+    <td class="num">34</td>
+    <td><span class="pill low">Low</span></td>
+    <td><strong>CustomerSphere Inc.</strong><br><span class="mono">AR-DE-0061</span>
+</td>
+    <td><span class="mono small">DORA Art. 30(2)(d)</span><br>Access, recovery and return of data on insolvency, resolution or termination</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 12.4</span><div class="evidence">Data export only within 30 days after termination; insolvency and resolution not covered.</div></td>
+    <td>Add a data return and deletion clause: formats, timelines, assistance, and its survival of insolvency, resolution and termination.</td>
+    <td class="num">05 Nov 2027</td>
+    <td class="num">31 Mar 2028</td>
+  </tr>
+  <tr>
+    <td class="num">35</td>
+    <td><span class="pill low">Low</span></td>
+    <td><strong>CustomerSphere Inc.</strong><br><span class="mono">AR-DE-0061</span>
+</td>
+    <td><span class="mono small">DORA Art. 30(2)(b)</span><br>Locations of service provision and of data processing and storage</td>
+    <td><span class="pill partial">Partial</span> <span class="small">Clause 7</span><div class="evidence">Data &#39;in the EU or the US&#39; – no specific countries.</div></td>
+    <td>Annex a list of service and data locations (countries or regions, incl. storage) for the provider and its subcontractors.</td>
+    <td class="num">05 Nov 2027</td>
+    <td class="num">31 Mar 2028</td>
+  </tr>
+  </tbody></table></div>
+
+<div class="grid two">
+<section aria-labelledby="h-prov">
+<h2 id="h-prov">Gaps by provision</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-prov"><table>
+  <thead><tr><th scope="col">Provision</th><th scope="col" class="num">Missing</th><th scope="col" class="num">Partial</th></tr></thead>
+  <tbody><tr><td><span class="mono small">DORA Art. 30(2)(a)</span> Subcontracting: whether permitted and under which conditions</td><td class="num">1</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Locations of service provision and of data processing and storage</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(b)</span> Advance notice before changing locations</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(d)</span> Access, recovery and return of data on insolvency, resolution or termination</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(f)</span> Assistance in ICT incidents at no additional or a pre-agreed cost</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(g)</span> Full cooperation with competent and resolution authorities</td><td class="num">1</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(h)</span> Termination rights and minimum notice periods</td><td class="num">0</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(2)(i)</span> Participation in ICT security awareness and resilience training</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(b)</span> Notice periods and reporting obligations, incl. material developments</td><td class="num">0</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(d)</span> Participation and full cooperation in threat-led penetration testing (TLPT)</td><td class="num">4</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(i)</span> Unrestricted rights of access, inspection and audit</td><td class="num">2</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(ii)</span> Right to agree alternative assurance levels</td><td class="num">2</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(iii)</span> Full cooperation during on-site inspections and audits</td><td class="num">3</td><td class="num">0</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(e)(iv)</span> Scope, procedures and frequency of inspections and audits</td><td class="num">1</td><td class="num">1</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(f)(i)</span> Exit strategy: mandatory adequate transition period</td><td class="num">2</td><td class="num">2</td></tr><tr><td><span class="mono small">DORA Art. 30(3)(f)(ii)</span> Exit strategy: migration to another provider or in-house</td><td class="num">1</td><td class="num">1</td></tr></tbody>
+</table></div>
+</section>
+<section aria-labelledby="h-pv">
+<h2 id="h-pv">Providers, by criticality of the functions they support</h2>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="h-pv"><table>
+  <thead><tr><th scope="col">ICT third-party service provider</th><th scope="col" class="num">Critical functions</th>
+    <th scope="col" class="num">Assessed</th><th scope="col">Status</th></tr></thead>
+  <tbody><tr><td>Nimbus Cloud Services EMEA Ltd</td><td class="num">13</td>
+    <td class="num">3/6</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">0 · 9</span></td></tr><tr><td>Alpine Telecom AG</td><td class="num">7</td>
+    <td class="num">0/9</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Alpenrand Services AG</td><td class="num">6</td>
+    <td class="num">2/8</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">0 · 2</span></td></tr><tr><td>Meridian Technology Consulting GmbH</td><td class="num">5</td>
+    <td class="num">0/3</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Aurum Market Data S.A.</td><td class="num">4</td>
+    <td class="num">0/4</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Codeforge Solutions Sp. z o.o.</td><td class="num">4</td>
+    <td class="num">0/3</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>FinConnect Service Bureau S.A.</td><td class="num">4</td>
+    <td class="num">0/3</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Rheinpark Datacenter GmbH</td><td class="num">4</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Cipherwall Identity Ltd</td><td class="num">3</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>EuroLink Carrier S.p.A.</td><td class="num">3</td>
+    <td class="num">0/5</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Luxhost Data Centres S.A.</td><td class="num">3</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Netwave Infrastructure GmbH</td><td class="num">3</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Quantra Analytics AG</td><td class="num">3</td>
+    <td class="num">0/3</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Vaultline Backup Services Ltd</td><td class="num">3</td>
+    <td class="num">0/3</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Ledgerline Systems GmbH</td><td class="num">2</td>
+    <td class="num">1/4</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">6 · 0</span></td></tr><tr><td>Helix Core Banking AG</td><td class="num">2</td>
+    <td class="num">1/4</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">5 · 2</span></td></tr><tr><td>Cirrus Platforms Ireland Ltd</td><td class="num">2</td>
+    <td class="num">3/3</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">2 · 3</span></td></tr><tr><td>Wealthbridge Software Ltd</td><td class="num">2</td>
+    <td class="num">1/5</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">2 · 1</span></td></tr><tr><td>Bastion Cyber Defence B.V.</td><td class="num">2</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Danubia IT Services Kft.</td><td class="num">2</td>
+    <td class="num">0/7</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Kronos Payments B.V.</td><td class="num">2</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Logscope Inc.</td><td class="num">2</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Nearshore Dev Labs SRL</td><td class="num">2</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>RegFlow Reporting S.A.</td><td class="num">2</td>
+    <td class="num">0/3</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Sentinel Screening GmbH</td><td class="num">2</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Stratus Compute Europe S.à r.l.</td><td class="num">2</td>
+    <td class="num">0/3</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Veritas KYC Solutions Ltd</td><td class="num">2</td>
+    <td class="num">0/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Mobilio Digital Banking GmbH</td><td class="num">1</td>
+    <td class="num">1/1</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">4 · 3</span></td></tr><tr><td>Fundcalc Administration Services S.A.</td><td class="num">1</td>
+    <td class="num">1/1</td>
+    <td><span class="pill incomplete">Assessment incomplete</span></td></tr><tr><td>Athena Kyber Systems Μονοπρόσωπη Α.Ε.</td><td class="num">1</td>
+    <td class="num">0/1</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>CardStream Processing S.A.</td><td class="num">1</td>
+    <td class="num">1/2</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Creditum Data GmbH</td><td class="num">1</td>
+    <td class="num">0/1</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Custodia Securities Platform S.p.A.</td><td class="num">1</td>
+    <td class="num">0/1</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Nimbus Cloud Inc.</td><td class="num">1</td>
+    <td class="num">0/1</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Tradeport Systems Ltd</td><td class="num">1</td>
+    <td class="num">0/1</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>Vertex Hardware Distribution AG</td><td class="num">1</td>
+    <td class="num">0/4</td>
+    <td><span class="pill not_assessed">Not assessed</span></td></tr><tr><td>TreasuryOne SaaS GmbH</td><td class="num">1</td>
+    <td class="num">1/1</td>
+    <td><span class="pill compliant">Compliant</span></td></tr><tr><td>PeopleLedger SE</td><td class="num">0</td>
+    <td class="num">1/1</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">2 · 0</span></td></tr><tr><td>CustomerSphere Inc.</td><td class="num">0</td>
+    <td class="num">1/3</td>
+    <td><span class="pill gaps">Gaps</span> <span class="small">1 · 2</span></td></tr></tbody>
+</table></div>
+</section>
+</div>
+
+<h2 id="to-assess">Arrangements still to assess</h2>
+<p class="section-lead">Arrangements without a complete assessment, those supporting critical or important functions first.</p>
+<div class="table-wrap" tabindex="0" role="region" aria-labelledby="to-assess"><table>
+  <thead><tr><th scope="col">Arrangement</th><th scope="col">ICT third-party service provider</th><th scope="col">Status</th><th scope="col">Critical functions</th></tr></thead>
+  <tbody><tr><td class="mono">AR-AT-0048</td><td>Fundcalc Administration Services S.A.</td>
+    <td><span class="pill incomplete">Assessment incomplete</span> <span class="small">10 provision(s) not assessed</span></td>
+    <td class="small">◆ F-AT-02 Fund accounting and NAV calculation</td></tr><tr><td class="mono">AR-AT-0018</td><td>Alpenrand Services AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-02 Fund accounting and NAV calculation</td></tr><tr><td class="mono">AR-AT-0042</td><td>Aurum Market Data S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-01 Portfolio management of UCITS funds</td></tr><tr><td class="mono">AR-AT-0043</td><td>Aurum Market Data S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-03 Order management and trade execution<br>◆ F-AT-04 Investment risk management</td></tr><tr><td class="mono">AR-AT-0046</td><td>Quantra Analytics AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-04 Investment risk management</td></tr><tr><td class="mono">AR-AT-0047</td><td>Tradeport Systems Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-03 Order management and trade execution</td></tr><tr><td class="mono">AR-AT-0051</td><td>Wealthbridge Software Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-01 Portfolio management of UCITS funds</td></tr><tr><td class="mono">AR-AT-0089</td><td>EuroLink Carrier S.p.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-03 Order management and trade execution</td></tr><tr><td class="mono">AR-AT-0102</td><td>Vertex Hardware Distribution AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-03 Order management and trade execution</td></tr><tr><td class="mono">AR-AT-0111</td><td>Wealthbridge Software Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-01 Portfolio management of UCITS funds</td></tr><tr><td class="mono">AR-AT-0116</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-01 Portfolio management of UCITS funds</td></tr><tr><td class="mono">AR-AT-0117</td><td>Codeforge Solutions Sp. z o.o.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-03 Order management and trade execution</td></tr><tr><td class="mono">AR-AT-0118</td><td>Codeforge Solutions Sp. z o.o.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-01 Portfolio management of UCITS funds</td></tr><tr><td class="mono">AR-DE-0013</td><td>Nimbus Cloud Inc.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-09 IT security operations and identity management</td></tr><tr><td class="mono">AR-DE-0015</td><td>Alpenrand Services AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</td></tr><tr><td class="mono">AR-DE-0024</td><td>Helix Core Banking AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-02 Core banking and account management</td></tr><tr><td class="mono">AR-DE-0028</td><td>Kronos Payments B.V.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</td></tr><tr><td class="mono">AR-DE-0031</td><td>FinConnect Service Bureau S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)<br>◆ F-DE-04 Treasury and liquidity management</td></tr><tr><td class="mono">AR-DE-0034</td><td>Veritas KYC Solutions Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-05 AML/KYC and sanctions screening</td></tr><tr><td class="mono">AR-DE-0036</td><td>Sentinel Screening GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-05 AML/KYC and sanctions screening</td></tr><tr><td class="mono">AR-DE-0038</td><td>Creditum Data GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-03 Lending and credit decisioning</td></tr><tr><td class="mono">AR-DE-0044</td><td>Quantra Analytics AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-04 Treasury and liquidity management</td></tr><tr><td class="mono">AR-DE-0045</td><td>Quantra Analytics AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-03 Lending and credit decisioning</td></tr><tr><td class="mono">AR-DE-0054</td><td>RegFlow Reporting S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-06 Regulatory and statutory reporting</td></tr><tr><td class="mono">AR-DE-0058</td><td>Codeforge Solutions Sp. z o.o.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-07 Digital and mobile banking channels<br>◆ F-DE-03 Lending and credit decisioning</td></tr><tr><td class="mono">AR-DE-0066</td><td>Logscope Inc.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-09 IT security operations and identity management</td></tr><tr><td class="mono">AR-DE-0068</td><td>Vaultline Backup Services Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-02 Core banking and account management</td></tr><tr><td class="mono">AR-DE-0071</td><td>Bastion Cyber Defence B.V.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-09 IT security operations and identity management</td></tr><tr><td class="mono">AR-DE-0073</td><td>Cipherwall Identity Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-09 IT security operations and identity management<br>◆ F-DE-07 Digital and mobile banking channels</td></tr><tr><td class="mono">AR-DE-0075</td><td>Athena Kyber Systems Μονοπρόσωπη Α.Ε.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-09 IT security operations and identity management</td></tr><tr><td class="mono">AR-DE-0076</td><td>Rheinpark Datacenter GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-02 Core banking and account management<br>◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</td></tr><tr><td class="mono">AR-DE-0077</td><td>Rheinpark Datacenter GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-08 Card issuing and processing<br>◆ F-DE-04 Treasury and liquidity management</td></tr><tr><td class="mono">AR-DE-0080</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</td></tr><tr><td class="mono">AR-DE-0081</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-02 Core banking and account management</td></tr><tr><td class="mono">AR-DE-0085</td><td>EuroLink Carrier S.p.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</td></tr><tr><td class="mono">AR-DE-0090</td><td>Netwave Infrastructure GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-02 Core banking and account management</td></tr><tr><td class="mono">AR-DE-0091</td><td>Netwave Infrastructure GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)<br>◆ F-DE-07 Digital and mobile banking channels</td></tr><tr><td class="mono">AR-DE-0097</td><td>Danubia IT Services Kft.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-02 Core banking and account management</td></tr><tr><td class="mono">AR-DE-0098</td><td>Danubia IT Services Kft.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-03 Lending and credit decisioning</td></tr><tr><td class="mono">AR-DE-0105</td><td>Meridian Technology Consulting GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-06 Regulatory and statutory reporting</td></tr><tr><td class="mono">AR-DE-0106</td><td>Meridian Technology Consulting GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-03 Lending and credit decisioning<br>◆ F-DE-04 Treasury and liquidity management</td></tr><tr><td class="mono">AR-DE-0107</td><td>Meridian Technology Consulting GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-07 Digital and mobile banking channels<br>◆ F-DE-02 Core banking and account management</td></tr><tr><td class="mono">AR-DE-0108</td><td>Ledgerline Systems GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-01 Payment processing (SEPA, instant, cross-border)</td></tr><tr><td class="mono">AR-DE-0112</td><td>CardStream Processing S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-08 Card issuing and processing</td></tr><tr><td class="mono">AR-DE-0113</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-07 Digital and mobile banking channels</td></tr><tr><td class="mono">AR-LU-0017</td><td>Alpenrand Services AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-03 Payment processing<br>◆ F-LU-05 Custody and securities settlement</td></tr><tr><td class="mono">AR-LU-0023</td><td>Helix Core Banking AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-01 Core banking and custody accounts</td></tr><tr><td class="mono">AR-LU-0025</td><td>Helix Core Banking AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-01 Core banking and custody accounts</td></tr><tr><td class="mono">AR-LU-0027</td><td>Ledgerline Systems GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-03 Payment processing</td></tr><tr><td class="mono">AR-LU-0029</td><td>Kronos Payments B.V.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-03 Payment processing</td></tr><tr><td class="mono">AR-LU-0032</td><td>FinConnect Service Bureau S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-03 Payment processing</td></tr><tr><td class="mono">AR-LU-0033</td><td>FinConnect Service Bureau S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-05 Custody and securities settlement</td></tr><tr><td class="mono">AR-LU-0035</td><td>Veritas KYC Solutions Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-04 Client onboarding, KYC and AML</td></tr><tr><td class="mono">AR-LU-0037</td><td>Sentinel Screening GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-04 Client onboarding, KYC and AML</td></tr><tr><td class="mono">AR-LU-0041</td><td>Aurum Market Data S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-02 Portfolio management and investment advice</td></tr><tr><td class="mono">AR-LU-0052</td><td>Custodia Securities Platform S.p.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-05 Custody and securities settlement</td></tr><tr><td class="mono">AR-LU-0055</td><td>RegFlow Reporting S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-06 Regulatory reporting</td></tr><tr><td class="mono">AR-LU-0059</td><td>Nearshore Dev Labs SRL</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-02 Portfolio management and investment advice</td></tr><tr><td class="mono">AR-LU-0060</td><td>Nearshore Dev Labs SRL</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-01 Core banking and custody accounts</td></tr><tr><td class="mono">AR-LU-0067</td><td>Logscope Inc.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-10 IT security operations</td></tr><tr><td class="mono">AR-LU-0069</td><td>Vaultline Backup Services Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-01 Core banking and custody accounts</td></tr><tr><td class="mono">AR-LU-0070</td><td>Vaultline Backup Services Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-05 Custody and securities settlement</td></tr><tr><td class="mono">AR-LU-0072</td><td>Bastion Cyber Defence B.V.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-10 IT security operations</td></tr><tr><td class="mono">AR-LU-0074</td><td>Cipherwall Identity Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-10 IT security operations</td></tr><tr><td class="mono">AR-LU-0078</td><td>Luxhost Data Centres S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-01 Core banking and custody accounts</td></tr><tr><td class="mono">AR-LU-0079</td><td>Luxhost Data Centres S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-05 Custody and securities settlement<br>◆ F-LU-03 Payment processing</td></tr><tr><td class="mono">AR-LU-0082</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-03 Payment processing</td></tr><tr><td class="mono">AR-LU-0083</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-01 Core banking and custody accounts</td></tr><tr><td class="mono">AR-LU-0087</td><td>EuroLink Carrier S.p.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-03 Payment processing</td></tr><tr><td class="mono">AR-LU-0109</td><td>Ledgerline Systems GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-03 Payment processing</td></tr><tr><td class="mono">AR-LU-0110</td><td>Wealthbridge Software Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-02 Portfolio management and investment advice</td></tr><tr><td class="mono">AR-LU-0115</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-02 Portfolio management and investment advice</td></tr><tr><td class="mono">CO-AT-0006</td><td>Nimbus Cloud Services EMEA Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-AT-03 Order management and trade execution</td></tr><tr><td class="mono">CO-LU-0005</td><td>Nimbus Cloud Services EMEA Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-04 Client onboarding, KYC and AML</td></tr><tr><td class="mono">CO-LU-0008</td><td>Stratus Compute Europe S.à r.l.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-LU-06 Regulatory reporting</td></tr><tr><td class="mono">MSA-DE-0004</td><td>Nimbus Cloud Services EMEA Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-03 Lending and credit decisioning<br>◆ F-DE-05 AML/KYC and sanctions screening<br>◆ F-DE-04 Treasury and liquidity management</td></tr><tr><td class="mono">MSA-DE-0007</td><td>Stratus Compute Europe S.à r.l.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">◆ F-DE-06 Regulatory and statutory reporting</td></tr><tr><td class="mono">AR-AT-0021</td><td>Alpenrand Services AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-AT-0056</td><td>RegFlow Reporting S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-AT-0063</td><td>CustomerSphere Inc.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-AT-0084</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-AT-0096</td><td>Danubia IT Services Kft.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-AT-0101</td><td>Vertex Hardware Distribution AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0019</td><td>21381VQL0Y482P2BV900, Alpenrand Services AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0040</td><td>Aurum Market Data S.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0065</td><td>Archiva Records AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0086</td><td>EuroLink Carrier S.p.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0092</td><td>Danubia IT Services Kft.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0093</td><td>Danubia IT Services Kft.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0099</td><td>Vertex Hardware Distribution AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-0103</td><td>PrintLogic Output Services GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-DE-9001</td><td>8156YII8DXJIQ6LZZ583</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0020</td><td>Alpenrand Services AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0050</td><td>Wealthbridge Software Ltd</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0053</td><td>ClientView Reporting GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0062</td><td>CustomerSphere Inc.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0088</td><td>EuroLink Carrier S.p.A.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0094</td><td>Danubia IT Services Kft.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0095</td><td>Danubia IT Services Kft.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0100</td><td>Vertex Hardware Distribution AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0104</td><td>PrintLogic Output Services GmbH</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-0114</td><td>Alpine Telecom AG</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">AR-LU-9002</td><td>—</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr><tr><td class="mono">CO-AT-0009</td><td>Stratus Compute Europe S.à r.l.</td>
+    <td><span class="pill not_assessed">Not assessed</span></td>
+    <td class="small">—</td></tr></tbody>
+</table></div>
+
+
+<h2>Method and caveats</h2>
+<p class="section-lead">Status per provision: present, partial or missing, recorded by the assessor with the clause reference and evidence. Art. 30(3) applies when the register links the arrangement to a critical or important function (B_02.02 → B_06.01). Call-offs inherit unassessed items from their overarching arrangement (B_02.01 c0030); such gaps are fixed – and listed – once, in the overarching arrangement. Priority: missing clause on an arrangement supporting a critical function = high; partial clause on such an arrangement or missing clause elsewhere = medium; partial clause elsewhere = low. Target dates: high 90 days, medium 180 days, low 365 days from the plan date – align them with renewal dates where earlier.</p>
+<footer>Generated by the DORA RoI Toolkit. Not legal advice: the checklist, thresholds and mappings are the authors&#39; reading of the texts and are listed as assumptions in docs/ASSUMPTIONS.md. · dora-roi-toolkit 0.1.0</footer>
+</main>
+</body>
+</html>

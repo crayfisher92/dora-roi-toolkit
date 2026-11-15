@@ -19,6 +19,7 @@ from jinja2 import ChoiceLoader, Environment, PackageLoader, select_autoescape
 from starlette.concurrency import run_in_threadpool
 
 from dora_roi import __version__
+from dora_roi.contracts.provisions import clause_label
 from dora_roi.explain import explain, rule_title
 from dora_roi.inventory import (
     EntityInfo,
@@ -90,7 +91,8 @@ def _env() -> Environment:
     )
     env.globals.update(money=money, pct=pct, version=__version__, display=display,
                        country_name=country_name, templates=TEMPLATE_MODELS, RULES=RULES,
-                       languages=LANGUAGES, finding_key=finding_key)
+                       languages=LANGUAGES, finding_key=finding_key,
+                       clause_label=clause_label)
     return env
 
 

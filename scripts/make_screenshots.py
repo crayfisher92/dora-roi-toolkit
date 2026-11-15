@@ -32,7 +32,11 @@ def sample(page: Page, label: str) -> str:
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     with BackgroundServer() as base, sync_playwright() as p:
-        browser = p.chromium.launch()
+        try:
+            browser = p.chromium.launch()
+        except Exception:  # Playwright's own build missing: use a pre-installed Chromium
+            browser = p.chromium.launch(executable_path=os.environ.get(
+                "CHROMIUM_EXECUTABLE", "/opt/pw-browsers/chromium"))
         ctx = browser.new_context(viewport={"width": 1280, "height": 800}, device_scale_factor=2,
                                   base_url=base, color_scheme="light")
         page = ctx.new_page()
@@ -72,6 +76,29 @@ def main() -> int:
         ditem = dpage.locator("[data-finding]").filter(has=dpage.locator('input[value="UK"]'))
         dpage.evaluate("el => el.scrollIntoView({block: 'center'})", ditem.element_handle())
         dpage.screenshot(path=str(OUT / "09-fix-dark-de.png"))
+        # DORA programme screens
+        url = sample(page, "Sample with 25 deliberate errors")
+        page.goto(url + "/dashboard")
+        page.locator("main h2").first.scroll_into_view_if_needed()
+        page.evaluate("window.scrollTo(0, document.querySelector('main').offsetTop - 8)")
+        page.screenshot(path=str(OUT / "10-dashboard.png"))
+        page.goto(url + "/contracts?critical=1")
+        page.evaluate("window.scrollTo(0, document.querySelector('main').offsetTop - 8)")
+        page.screenshot(path=str(OUT / "11-contracts.png"))
+        page.goto(url + "/contract/AR-DE-0057")
+        page.get_by_role("button", name="Use the sample contract").click()
+        page.wait_for_selector("#draft-banner")
+        tlpt = page.locator("fieldset.provision").filter(has_text="threat-led penetration")
+        page.evaluate("el => el.scrollIntoView({block: 'start'})", tlpt.element_handle())
+        page.screenshot(path=str(OUT / "12-assessment.png"))
+        page.goto(url + "/incidents")
+        page.locator(".incident-table a").first.click()
+        page.wait_for_url(re.compile(r"/incidents/INC-"))
+        page.evaluate("window.scrollTo(0, document.querySelector('main').offsetTop - 8)")
+        page.screenshot(path=str(OUT / "13-incident.png"))
+        page.goto(url + "/finma")
+        page.evaluate("window.scrollTo(0, document.querySelector('main').offsetTop - 8)")
+        page.screenshot(path=str(OUT / "14-finma.png"))
         browser.close()
     for f in sorted(OUT.glob("*.png")):
         print(f"wrote {f.relative_to(OUT.parents[1])}")

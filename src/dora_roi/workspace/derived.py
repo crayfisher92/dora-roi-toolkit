@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from dora_roi.io.parse import parse_row
@@ -18,6 +18,9 @@ ParseKey = tuple[str, int | None, tuple[tuple[str, Any], ...]]
 class Derived:
     register: RegisterOfInformation
     report: ValidationReport
+    parse_findings: list[Finding] = field(default_factory=list)
+    #: Validation of the register restricted to the DORA scope (P-20), computed on demand.
+    dora_report: ValidationReport | None = None
 
 
 class Parser:

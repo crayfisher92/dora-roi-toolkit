@@ -1,0 +1,351 @@
+{
+  "schema": "dora-roi-toolkit/incident-log/v1",
+  "toolkit_version": "0.1.0",
+  "timezone": "Europe/Berlin",
+  "incidents": {
+    "INC-2026-014": {
+      "id": "INC-2026-014",
+      "title": "Nimbus EMEA region outage – core banking and payments unavailable",
+      "description": "Storage controller failure in the provider's Frankfurt region; the core-banking and payment-hub workloads of Alpenrand Bank (Europe) and Alpenrand Banque Privée are unavailable, failover to the secondary region is in progress.",
+      "status": "open",
+      "owner": "ICT Risk – Incident Management (sample)",
+      "occurred_at": "2026-11-04T23:35:00Z",
+      "detected_at": "2026-11-04T23:55:00Z",
+      "classified_at": "2026-11-05T03:25:00Z",
+      "entity_leis": [
+        "3912RO6DCAXX71K9W972",
+        "6354ZX2X914MZGYMMB68"
+      ],
+      "provider_codes": [
+        "5299XGE5RGK9SNVGG353"
+      ],
+      "contract_refs": [
+        "MSA-DE-0001",
+        "CO-LU-0002"
+      ],
+      "root_cause": "third_party_failure",
+      "recurrence_key": "nimbus-fra-storage",
+      "answers": {
+        "critical_services": true,
+        "malicious_access": false,
+        "clients_affected": 182000,
+        "clients_total": 1250000,
+        "relevant_clients": false,
+        "transactions_affected": 410000,
+        "transactions_daily": 1000000,
+        "media": true,
+        "complaints": true,
+        "regulatory_breach": false,
+        "client_loss": false,
+        "downtime_hours": 4.5,
+        "member_states": [
+          "DE",
+          "FR",
+          "IT",
+          "LU"
+        ],
+        "data_impact": false,
+        "economic_eur": "350000"
+      },
+      "authority_reference": "",
+      "history": [
+        {
+          "at": "2026-11-04T23:55:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "created",
+          "note": "Detected by monitoring; provider status page confirms regional incident."
+        },
+        {
+          "at": "2026-11-05T03:25:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "classified",
+          "note": "Classified as major: critical services, clients, downtime, geographical spread, reputation and economic impact."
+        }
+      ]
+    },
+    "INC-2025-009": {
+      "id": "INC-2025-009",
+      "title": "Phishing campaign against staff mailboxes – contained",
+      "description": "Credential-phishing e-mails to 340 staff; 3 users clicked, no credentials used (MFA). Mail filtering rules tightened with the provider.",
+      "status": "closed",
+      "owner": "ICT Risk – Incident Management (sample)",
+      "occurred_at": "2025-09-12T07:05:00Z",
+      "detected_at": "2025-09-12T07:40:00Z",
+      "classified_at": "2025-09-12T09:40:00Z",
+      "resolved_at": "2025-09-12T13:40:00Z",
+      "entity_leis": [
+        "3912RO6DCAXX71K9W972"
+      ],
+      "provider_codes": [
+        "2138GPWESH5EW5NH4M23"
+      ],
+      "contract_refs": [
+        "MSA-DE-0010"
+      ],
+      "root_cause": "malicious_action",
+      "recurrence_key": "",
+      "answers": {
+        "critical_services": false,
+        "malicious_access": false,
+        "clients_affected": 0,
+        "clients_total": 1250000,
+        "counterparts_affected": 0,
+        "counterparts_total": 420,
+        "relevant_clients": false,
+        "transactions_affected": 0,
+        "transactions_daily": 1000000,
+        "media": false,
+        "complaints": false,
+        "regulatory_breach": false,
+        "client_loss": false,
+        "downtime_hours": 0.0,
+        "member_states": [
+          "DE"
+        ],
+        "data_impact": false,
+        "economic_eur": "8000"
+      },
+      "authority_reference": "",
+      "history": [
+        {
+          "at": "2025-09-12T07:40:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "created",
+          "note": ""
+        },
+        {
+          "at": "2025-09-12T09:40:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "classified",
+          "note": "Not major: no critical services affected."
+        },
+        {
+          "at": "2025-09-12T13:40:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "resolved",
+          "note": ""
+        },
+        {
+          "at": "2025-09-15T07:40:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "closed",
+          "note": "Lessons learned documented."
+        }
+      ]
+    },
+    "INC-2025-011": {
+      "id": "INC-2025-011",
+      "title": "Regulatory reporting batch delayed (RegFlow)",
+      "description": "Nightly COREP/FINREP data preparation stopped after a failed schema update at the provider; rerun completed 9 hours later, before the submission deadline.",
+      "status": "closed",
+      "owner": "ICT Risk – Incident Management (sample)",
+      "occurred_at": "2025-10-30T22:15:00Z",
+      "detected_at": "2025-10-30T22:15:00Z",
+      "classified_at": "2025-10-31T01:15:00Z",
+      "resolved_at": "2025-10-31T07:15:00Z",
+      "entity_leis": [
+        "3912RO6DCAXX71K9W972"
+      ],
+      "provider_codes": [
+        "7245TLYA2OZHE7KGQP74"
+      ],
+      "contract_refs": [
+        "AR-DE-0054"
+      ],
+      "root_cause": "third_party_failure",
+      "recurrence_key": "",
+      "answers": {
+        "critical_services": true,
+        "malicious_access": false,
+        "clients_affected": 0,
+        "clients_total": 1250000,
+        "counterparts_affected": 0,
+        "counterparts_total": 420,
+        "relevant_clients": false,
+        "transactions_affected": 0,
+        "transactions_daily": 1000000,
+        "media": false,
+        "complaints": false,
+        "regulatory_breach": false,
+        "client_loss": false,
+        "downtime_hours": 0.0,
+        "member_states": [
+          "DE"
+        ],
+        "data_impact": false,
+        "economic_eur": "4500"
+      },
+      "authority_reference": "",
+      "history": [
+        {
+          "at": "2025-10-30T22:15:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "created",
+          "note": ""
+        },
+        {
+          "at": "2025-10-31T01:15:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "classified",
+          "note": "Not major: critical service, but no threshold met."
+        },
+        {
+          "at": "2025-10-31T07:15:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "resolved",
+          "note": ""
+        },
+        {
+          "at": "2025-11-01T22:15:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "closed",
+          "note": ""
+        }
+      ]
+    },
+    "INC-2025-006": {
+      "id": "INC-2025-006",
+      "title": "SEPA instant payments rejected – Kronos gateway certificate expired",
+      "description": "Instant credit transfers rejected by the Kronos gateway after an expired TLS certificate on the provider side; rotated manually.",
+      "status": "closed",
+      "owner": "ICT Risk – Incident Management (sample)",
+      "occurred_at": "2025-07-03T09:05:00Z",
+      "detected_at": "2025-07-03T09:05:00Z",
+      "classified_at": "2025-07-03T10:05:00Z",
+      "resolved_at": "2025-07-03T10:35:00Z",
+      "entity_leis": [
+        "3912RO6DCAXX71K9W972",
+        "6354ZX2X914MZGYMMB68"
+      ],
+      "provider_codes": [
+        "8156LBEAYPOJYI6KPY94"
+      ],
+      "contract_refs": [
+        "AR-DE-0028",
+        "AR-LU-0029"
+      ],
+      "root_cause": "third_party_failure",
+      "recurrence_key": "kronos-certificate-rotation",
+      "answers": {
+        "critical_services": true,
+        "malicious_access": false,
+        "clients_affected": 81000,
+        "clients_total": 1250000,
+        "counterparts_affected": 0,
+        "counterparts_total": 420,
+        "relevant_clients": false,
+        "transactions_affected": 52000,
+        "transactions_daily": 1000000,
+        "media": false,
+        "complaints": false,
+        "regulatory_breach": false,
+        "client_loss": false,
+        "downtime_hours": 1.5,
+        "member_states": [
+          "DE"
+        ],
+        "data_impact": false,
+        "economic_eur": "12000"
+      },
+      "authority_reference": "",
+      "history": [
+        {
+          "at": "2025-07-03T09:05:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "created",
+          "note": ""
+        },
+        {
+          "at": "2025-07-03T10:05:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "classified",
+          "note": "Not major on its own."
+        },
+        {
+          "at": "2025-07-03T10:35:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "resolved",
+          "note": ""
+        },
+        {
+          "at": "2025-07-08T09:05:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "closed",
+          "note": "Provider to automate rotation."
+        }
+      ]
+    },
+    "INC-2025-012": {
+      "id": "INC-2025-012",
+      "title": "SEPA instant payments rejected – Kronos gateway certificate expired",
+      "description": "Instant credit transfers rejected by the Kronos gateway after an expired TLS certificate on the provider side; rotated manually.",
+      "status": "closed",
+      "owner": "ICT Risk – Incident Management (sample)",
+      "occurred_at": "2025-11-18T14:30:00Z",
+      "detected_at": "2025-11-18T14:30:00Z",
+      "classified_at": "2025-11-18T15:30:00Z",
+      "resolved_at": "2025-11-18T15:45:00Z",
+      "entity_leis": [
+        "3912RO6DCAXX71K9W972",
+        "6354ZX2X914MZGYMMB68"
+      ],
+      "provider_codes": [
+        "8156LBEAYPOJYI6KPY94"
+      ],
+      "contract_refs": [
+        "AR-DE-0028",
+        "AR-LU-0029"
+      ],
+      "root_cause": "third_party_failure",
+      "recurrence_key": "kronos-certificate-rotation",
+      "answers": {
+        "critical_services": true,
+        "malicious_access": false,
+        "clients_affected": 64000,
+        "clients_total": 1250000,
+        "counterparts_affected": 0,
+        "counterparts_total": 420,
+        "relevant_clients": false,
+        "transactions_affected": 52000,
+        "transactions_daily": 1000000,
+        "media": false,
+        "complaints": false,
+        "regulatory_breach": false,
+        "client_loss": false,
+        "downtime_hours": 1.25,
+        "member_states": [
+          "DE"
+        ],
+        "data_impact": false,
+        "economic_eur": "12000"
+      },
+      "authority_reference": "",
+      "history": [
+        {
+          "at": "2025-11-18T14:30:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "created",
+          "note": ""
+        },
+        {
+          "at": "2025-11-18T15:30:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "classified",
+          "note": "Not major on its own."
+        },
+        {
+          "at": "2025-11-18T15:45:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "resolved",
+          "note": ""
+        },
+        {
+          "at": "2025-11-23T14:30:00Z",
+          "by": "ICT Risk – Incident Management (sample)",
+          "action": "closed",
+          "note": "Provider to automate rotation."
+        }
+      ]
+    }
+  }
+}

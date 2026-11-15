@@ -5,6 +5,13 @@
 <p><a href="/w/{{ ws.id }}/register/{{ template }}">← {{ t("reg.back") }}</a></p>
 <h2>{{ template }} · {{ t("reg.row") }} {{ raw_row.row }} <span class="muted">{{ model.TITLE }}</span></h2>
 {% if request.query_params.get("saved") %}<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("fix.saved", errors=counts.error, warnings=counts.warning) }}</div></div>{% endif %}
+{% if art30 %}
+<section class="card art30-panel" aria-labelledby="h-a30"><h3 id="h-a30">{{ t("c30.ui.row_panel") }}</h3>
+  <p><span class="pill {{ art30.status.value }}">{{ t("cs." ~ art30.status.value) }}</span>
+    {{ art30.present }}/{{ art30.items | length }} {{ t("st.present") | lower }} · {{ art30.missing }} {{ t("st.missing") | lower }} · {{ art30.partial }} {{ t("st.partial") | lower }}
+    · <a href="{{ contract_url(ws.id, art30.ref) }}">{{ t("c30.ui.open") if art30.assessed else t("c30.ui.assess") }} →</a></p>
+</section>
+{% endif %}
 {% if findings %}
 <section class="card" aria-labelledby="h-rf"><h3 id="h-rf">{{ t("reg.issues") }}</h3>
   <ul class="plain">{% for f in findings %}<li>{{ severity_badge(f.severity.value, t) }} <span class="mono small">{{ f.rule_id }}</span> {{ f.message }}<div class="small muted">{{ explain(f.rule_id) }}</div></li>{% endfor %}</ul>

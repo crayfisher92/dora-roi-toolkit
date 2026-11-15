@@ -36,8 +36,10 @@ router = APIRouter()
 
 @router.get("/w/{wid}/export", response_class=HTMLResponse)
 def export_page(ctx: Ctx, request: Request, wid: str) -> HTMLResponse:
-    return ctx.ws_page(request, ctx.ws_or_404(wid), "ws_export.html.j2", "export",
-                   pdf=pdf_available())
+    ws = ctx.ws_or_404(wid)
+    package_errors = len(ws.dora_report().errors) if ws.out_of_scope else None
+    return ctx.ws_page(request, ws, "ws_export.html.j2", "export", pdf=pdf_available(),
+                       package_errors=package_errors)
 
 @router.get("/w/{wid}/download/{kind}")
 def download(ctx: Ctx, request: Request, wid: str, kind: str) -> Response:
@@ -46,7 +48,12 @@ def download(ctx: Ctx, request: Request, wid: str, kind: str) -> Response:
         raise HTTPException(status_code=404)
     user = user_of(request)
     response = render_download(ws, kind, user, ctx.lang_of(request))
-    ws.record_export(EXPORT_LABELS[kind], user=user)  # audit trail: who exported what
+    if kind == "xbrl" and ws.out_of_scope:  # the package is the submission view (D-084)
+        ws.record_export(f"{EXPORT_LABELS[kind]} without {len(ws.out_of_scope)} "
+                         "entit(y/ies) outside the DORA scope", user=user,
+                         report=ws.dora_report())
+    else:
+        ws.record_export(EXPORT_LABELS[kind], user=user)  # audit trail: who exported what
     return response
 
 def render_download(ws: Workspace, kind: str, user: str, lang: str) -> Response:
@@ -67,8 +74,9 @@ def render_download(ws: Workspace, kind: str, user: str, lang: str) -> Response:
         return _download(buf.getvalue(), f"{stem}-csv.zip", "application/zip")
     if kind == "xbrl":
         options = XbrlCsvOptions()
-        pkg = package_name(ws.register, options)
-        files, _ = build_package_files(ws.register, options)
+        dora = ws.dora_register()  # entities outside the DORA scope are left out (P-15)
+        pkg = package_name(dora, options)
+        files, _ = build_package_files(dora, options)
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
             for rel, text in files.items():

@@ -1,0 +1,1785 @@
+{
+  "schema": "dora-roi-toolkit/contract-assessments/v1",
+  "toolkit_version": "0.1.0",
+  "assessments": {
+    "MSA-DE-0001": {
+      "contract_ref": "MSA-DE-0001",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-14",
+      "document": "Nimbus Cloud Services Agreement + DORA Addendum v2.pdf",
+      "notes": "Hyperscaler standard terms with the provider's financial-services DORA addendum. Call-offs CO-LU-0002 and CO-AT-0003 rely on these terms.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "partial",
+          "clause_ref": "Addendum 7",
+          "evidence": "Participation only in pooled TLPT, at the provider's discretion and with 6 months' notice."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "partial",
+          "clause_ref": "Addendum 4.1",
+          "evidence": "Audit rights for the bank and the competent authority, but on-site access only to 'shared-responsibility' documentation; no right to take copies."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 16.2",
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "present",
+          "clause_ref": "Clause 16.4",
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "partial",
+          "clause_ref": "Clause 22.4",
+          "evidence": "Transition period of 90 days only – too short for the core-banking hosting migration (exit plan assumes 18 months)."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-14T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "MSA-DE-0010": {
+      "contract_ref": "MSA-DE-0010",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-21",
+      "document": "Cirrus Online Services Terms (Oct 2024).pdf",
+      "notes": "SaaS terms for workplace, CRM and security operations tooling.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "partial",
+          "clause_ref": "Clause 6.3",
+          "evidence": "General authorisation of sub-processors with a public list; no conditions for services supporting critical functions and no right to object."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No TLPT clause; penetration testing by customers is prohibited without the provider's consent (clause 8.7)."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "present",
+          "clause_ref": "Clause 16.1",
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 16.2",
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "present",
+          "clause_ref": "Clause 16.4",
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "present",
+          "clause_ref": "Clause 19.1",
+          "evidence": "24-month transition period at contract terms."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-21T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0022": {
+      "contract_ref": "AR-DE-0022",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-09-30",
+      "document": "Helix Licence and Services Agreement 2016.pdf",
+      "notes": "Core-banking licence signed in 2016, amended 2019; not yet renegotiated for DORA.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "partial",
+          "clause_ref": "Clause 10.2",
+          "evidence": "Incident support billed on time and material at rates 'applicable at the time'."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No reference to security awareness or resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "partial",
+          "clause_ref": "Clause 8",
+          "evidence": "Quarterly reports; no obligation to notify material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No TLPT participation clause."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "present",
+          "clause_ref": "Clause 16.1",
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "Not addressed."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "present",
+          "clause_ref": "Clause 16.4",
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No exit or transition provisions; licence ends at termination."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No migration assistance; source code escrow only."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-09-30T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0026": {
+      "contract_ref": "AR-DE-0026",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-02",
+      "document": "Ledgerline SaaS Agreement 2021.docx",
+      "notes": "Payment hub SaaS hosted on Nimbus (rank 2) – the subcontracting is not covered by the contract.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "Silent on subcontracting although the service is hosted by Nimbus Cloud Services EMEA."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No obligation to notify location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No TLPT clause."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No audit or access rights; only an annual ISAE 3402 report."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "ISAE 3402 Type II report provided annually."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No cooperation obligation for inspections."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "Not addressed."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "present",
+          "clause_ref": "Clause 19.1",
+          "evidence": "24-month transition period at contract terms."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-02T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0057": {
+      "contract_ref": "AR-DE-0057",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-11-04",
+      "document": "Mobilio-Digital-Banking-Services-Agreement.docx",
+      "notes": "Assessed from the uploaded contract; keyword suggestions reviewed clause by clause.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "15.1",
+          "evidence": "Entire agreement incl. schedules and SLA; written amendments.",
+          "suggested_status": "present"
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "2.1",
+          "evidence": "Statement of Work in Schedule 1.",
+          "suggested_status": "present"
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "3",
+          "evidence": "Prior written consent; provider remains responsible.",
+          "suggested_status": "present"
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "4.1",
+          "evidence": "Austria/Germany; data in German data centres.",
+          "suggested_status": "present"
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "4.2",
+          "evidence": "Six months' advance notice.",
+          "suggested_status": "present"
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "5.1",
+          "evidence": "All four protection goals; GDPR DPA (Schedule 3).",
+          "suggested_status": "present"
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "14.1",
+          "evidence": "Return within 30 days, also on insolvency.",
+          "suggested_status": "present"
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "6",
+          "evidence": "SLA in Schedule 2, reviewed annually.",
+          "suggested_status": "present"
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "7.1",
+          "evidence": "Assistance at no additional cost.",
+          "suggested_status": "present"
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "10.1",
+          "evidence": "Cooperation with competent and resolution authorities.",
+          "suggested_status": "present"
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "13",
+          "evidence": "12 months' notice; Art. 28(7) circumstances listed.",
+          "suggested_status": "present"
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "11.1",
+          "evidence": "Participation where reasonably requested.",
+          "suggested_status": "present"
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "6",
+          "evidence": "99.9 %, 30-minute response time, service credits.",
+          "suggested_status": "present"
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "8",
+          "evidence": "Monthly reports; notification of material developments.",
+          "suggested_status": "present"
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "9",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001.",
+          "suggested_status": "present"
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No TLPT clause (only the provider's own penetration tests, 5.2).",
+          "suggested_status": "missing"
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "partial",
+          "clause_ref": "12",
+          "evidence": "Audit by the bank only, once a year, 30 days' notice; no rights for the competent authority; no on-site copies.",
+          "suggested_status": "partial"
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "Not addressed.",
+          "suggested_status": "missing"
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No cooperation obligation for inspections.",
+          "suggested_status": "missing"
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "partial",
+          "clause_ref": "12.1",
+          "evidence": "Frequency defined; scope and procedure not defined.",
+          "suggested_status": "present"
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No transition period – the provider may stop at termination.",
+          "suggested_status": "missing"
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "partial",
+          "clause_ref": "14.2",
+          "evidence": "Migration cooperation only at then-current rates; no obligation to continue the service during migration.",
+          "suggested_status": "present"
+        }
+      },
+      "history": [
+        {
+          "at": "2025-11-04T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0030": {
+      "contract_ref": "AR-DE-0030",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-09",
+      "document": "CardStream Processing Agreement 2024.pdf",
+      "notes": "Renegotiated in 2024 using the bank's DORA contract template.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "present",
+          "clause_ref": "Clause 16.3",
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "present",
+          "clause_ref": "Clause 16.1",
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 16.2",
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "present",
+          "clause_ref": "Clause 16.4",
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "present",
+          "clause_ref": "Clause 19.1",
+          "evidence": "24-month transition period at contract terms."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-09T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0039": {
+      "contract_ref": "AR-DE-0039",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-16",
+      "document": "TreasuryOne Subscription Agreement 2025.pdf",
+      "notes": "Signed in 2025 on the bank's DORA template.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "present",
+          "clause_ref": "Clause 16.3",
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "present",
+          "clause_ref": "Clause 16.1",
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 16.2",
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "present",
+          "clause_ref": "Clause 16.4",
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "present",
+          "clause_ref": "Clause 19.1",
+          "evidence": "24-month transition period at contract terms."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-16T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0014": {
+      "contract_ref": "AR-DE-0014",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-09-25",
+      "document": "Intra-group SLA Alpenrand Services 2023.docx",
+      "notes": "Intra-group shared-service agreement with the Swiss service company.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "partial",
+          "clause_ref": "Clause 9",
+          "evidence": "Ordinary termination only; Art. 28(7) termination circumstances not provided for."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "present",
+          "clause_ref": "Clause 16.3",
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "present",
+          "clause_ref": "Clause 16.1",
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 16.2",
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "present",
+          "clause_ref": "Clause 16.4",
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "present",
+          "clause_ref": "Clause 19.1",
+          "evidence": "24-month transition period at contract terms."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-09-25T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0064": {
+      "contract_ref": "AR-DE-0064",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-28",
+      "document": "PeopleLedger HR Cloud Terms.pdf",
+      "notes": "HR and payroll SaaS (not critical): Art. 30(2) review only.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "Locations may be changed by the provider without notice."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "Not addressed."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-28T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (12 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-DE-0061": {
+      "contract_ref": "AR-DE-0061",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-29",
+      "document": "CustomerSphere Master Subscription Agreement.pdf",
+      "notes": "CRM SaaS (not critical), US provider.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "partial",
+          "clause_ref": "Clause 7",
+          "evidence": "Data 'in the EU or the US' – no specific countries."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "partial",
+          "clause_ref": "Clause 12.4",
+          "evidence": "Data export only within 30 days after termination; insolvency and resolution not covered."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No cooperation with authorities beyond legal compulsion."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-29T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (12 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-LU-0049": {
+      "contract_ref": "AR-LU-0049",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-10-07",
+      "document": "Wealthbridge Platform Agreement (LU) 2020.pdf",
+      "notes": "Portfolio management platform of the Luxembourg private bank.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "present",
+          "clause_ref": "Clause 16.3",
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "Explicitly no audit rights ('the customer relies on the provider's SOC 1 report')."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 16.2",
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "missing",
+          "clause_ref": "",
+          "evidence": "No cooperation obligation for inspections."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "partial",
+          "clause_ref": "Clause 20",
+          "evidence": "Transition period of 6 months, at the provider's then-current rates."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-10-07T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-AT-0048": {
+      "contract_ref": "AR-AT-0048",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-11-03",
+      "document": "Fundcalc Administration Agreement 2022.pdf",
+      "notes": "Assessment in progress – Art. 30(3) review scheduled with the provider.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "present",
+          "clause_ref": "Clause 17",
+          "evidence": "Termination rights per Art. 28(7); 12 months' notice."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-11-03T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (12 provision(s) assessed)"
+        }
+      ]
+    },
+    "AR-LU-0016": {
+      "contract_ref": "AR-LU-0016",
+      "assessor": "GRC Advisory (sample)",
+      "assessed_on": "2025-09-26",
+      "document": "Intra-group SLA Alpenrand Services (LU) 2023.docx",
+      "notes": "Same template as AR-DE-0014.",
+      "inherit": true,
+      "items": {
+        "30.1": {
+          "provision_id": "30.1",
+          "status": "present",
+          "clause_ref": "Clause 1 / entire agreement",
+          "evidence": "Single agreement incl. schedules and SLA."
+        },
+        "30.2.a.1": {
+          "provision_id": "30.2.a.1",
+          "status": "present",
+          "clause_ref": "Schedule 1",
+          "evidence": "Statement of work lists the services."
+        },
+        "30.2.a.2": {
+          "provision_id": "30.2.a.2",
+          "status": "present",
+          "clause_ref": "Clause 9",
+          "evidence": "Prior written consent for subcontracting; flow-down of terms."
+        },
+        "30.2.b.1": {
+          "provision_id": "30.2.b.1",
+          "status": "present",
+          "clause_ref": "Schedule 5",
+          "evidence": "Service and data locations listed."
+        },
+        "30.2.b.2": {
+          "provision_id": "30.2.b.2",
+          "status": "present",
+          "clause_ref": "Clause 9.4",
+          "evidence": "Six months' advance notice of location changes."
+        },
+        "30.2.c": {
+          "provision_id": "30.2.c",
+          "status": "present",
+          "clause_ref": "Clause 11",
+          "evidence": "Confidentiality, integrity, availability, authenticity; DPA."
+        },
+        "30.2.d": {
+          "provision_id": "30.2.d",
+          "status": "present",
+          "clause_ref": "Clause 18.3",
+          "evidence": "Data return in machine-readable format, also on insolvency."
+        },
+        "30.2.e": {
+          "provision_id": "30.2.e",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "SLA with annual review."
+        },
+        "30.2.f": {
+          "provision_id": "30.2.f",
+          "status": "present",
+          "clause_ref": "Clause 12.2",
+          "evidence": "Incident assistance included in the fees."
+        },
+        "30.2.g": {
+          "provision_id": "30.2.g",
+          "status": "present",
+          "clause_ref": "Clause 15",
+          "evidence": "Cooperation with competent and resolution authorities."
+        },
+        "30.2.h": {
+          "provision_id": "30.2.h",
+          "status": "partial",
+          "clause_ref": "Clause 9",
+          "evidence": "Ordinary termination only; Art. 28(7) termination circumstances not provided for."
+        },
+        "30.2.i": {
+          "provision_id": "30.2.i",
+          "status": "present",
+          "clause_ref": "Clause 13.4",
+          "evidence": "Participation in awareness and resilience training."
+        },
+        "30.3.a": {
+          "provision_id": "30.3.a",
+          "status": "present",
+          "clause_ref": "Schedule 2",
+          "evidence": "99.9 % availability, response/resolution times, service credits."
+        },
+        "30.3.b": {
+          "provision_id": "30.3.b",
+          "status": "present",
+          "clause_ref": "Clause 14",
+          "evidence": "Monthly reporting; notification of material developments."
+        },
+        "30.3.c": {
+          "provision_id": "30.3.c",
+          "status": "present",
+          "clause_ref": "Clause 12.5",
+          "evidence": "BCP/DR tested annually; ISO/IEC 27001 controls."
+        },
+        "30.3.d": {
+          "provision_id": "30.3.d",
+          "status": "present",
+          "clause_ref": "Clause 16.3",
+          "evidence": "Participation in the bank's TLPT, incl. pooled TLPT."
+        },
+        "30.3.e.i": {
+          "provision_id": "30.3.e.i",
+          "status": "present",
+          "clause_ref": "Clause 16.1",
+          "evidence": "Unrestricted access, inspection and audit rights incl. the competent authority."
+        },
+        "30.3.e.ii": {
+          "provision_id": "30.3.e.ii",
+          "status": "present",
+          "clause_ref": "Clause 16.2",
+          "evidence": "Pooled audits / SOC 2 Type II as alternative assurance."
+        },
+        "30.3.e.iii": {
+          "provision_id": "30.3.e.iii",
+          "status": "present",
+          "clause_ref": "Clause 16.4",
+          "evidence": "Full cooperation in on-site inspections incl. Lead Overseer."
+        },
+        "30.3.e.iv": {
+          "provision_id": "30.3.e.iv",
+          "status": "present",
+          "clause_ref": "Clause 16.5",
+          "evidence": "Audit plan with scope, procedure and frequency."
+        },
+        "30.3.f.i": {
+          "provision_id": "30.3.f.i",
+          "status": "present",
+          "clause_ref": "Clause 19.1",
+          "evidence": "24-month transition period at contract terms."
+        },
+        "30.3.f.ii": {
+          "provision_id": "30.3.f.ii",
+          "status": "present",
+          "clause_ref": "Clause 19.2",
+          "evidence": "Migration assistance to a successor or in-house."
+        }
+      },
+      "history": [
+        {
+          "at": "2025-09-26T16:00:00Z",
+          "by": "GRC Advisory (sample)",
+          "summary": "Assessment created (22 provision(s) assessed)"
+        }
+      ]
+    }
+  }
+}

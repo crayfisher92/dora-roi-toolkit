@@ -1,0 +1,29 @@
+{% extends "ws_base.html.j2" %}
+{% block page_title %}{{ t("rd.name") }}{% endblock %}
+{% block content %}
+<h2>{{ t("rd.title") }}</h2>
+<p class="lead">{{ t("rd.lead") }}</p>
+<section class="card overall-card rag-{{ rd.overall.value }}" aria-labelledby="h-overall">
+  <h3 id="h-overall">{{ t("rd.overall") }}: <span class="pill {{ rd.overall.value }}">{{ t("rag." ~ rd.overall.value) }}</span></h3>
+  <p>{{ t("rd.overall." ~ rd.overall.value) }}</p>
+  <p class="row"><a class="btn primary" href="/w/{{ ws.id }}/readiness.html" target="_blank" rel="noopener">{{ t("rd.report.open") }}</a>
+    {% if pdf %}<a class="btn" href="/w/{{ ws.id }}/readiness.pdf">PDF</a>{% else %}<span class="small muted">{{ t("rd.report.print") }}</span>{% endif %}</p>
+</section>
+<section class="rag dashboard-rag" aria-label="{{ t('rd.name') }}">
+  {% for p in rd.pillars %}
+  <div class="card {{ p.rag.value }}">
+    <h3><a href="/w/{{ ws.id }}{{ p.link }}">{{ t("rd.pillar." ~ p.key) }}</a></h3>
+    <p><span class="pill {{ p.rag.value }}">{{ t("rag." ~ p.rag.value) }}</span> <span class="small muted">{{ p.article }}</span></p>
+    <p><span class="metric">{{ p.metric }}</span> <span class="small muted">{{ p.metric_label }}</span></p>
+    <ul class="plain small">{% for line in p.lines %}<li>{{ line }}</li>{% endfor %}</ul>
+  </div>
+  {% endfor %}
+</section>
+<section aria-labelledby="h-actions">
+  <h3 id="h-actions">{{ t("rd.actions") }}</h3>
+  {% if rd.actions %}
+  <ol class="actions-list">{% for a in rd.actions %}<li><span class="pill {{ a.priority }}">{{ t("prio." ~ a.priority) }}</span>
+    {% if a.link %}<a href="/w/{{ ws.id }}{{ a.link }}">{{ a.text }}</a>{% else %}{{ a.text }}{% endif %} <span class="small muted">({{ t("rd.pillar." ~ a.pillar) }})</span></li>{% endfor %}</ol>
+  {% else %}<p class="muted">{{ t("rd.no_actions") }}</p>{% endif %}
+</section>
+{% endblock %}

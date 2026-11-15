@@ -20,6 +20,7 @@ from dora_roi.io.loader import UnsupportedInputError, load_raw
 from dora_roi.project import SUFFIX as PROJECT_SUFFIX
 from dora_roi.project import ProjectError, load_project
 from dora_roi.sample import generate_previous_year, generate_sample, register_to_raw
+from dora_roi.sample.programme import load_sample_programme
 from dora_roi.web.auth import CURRENT_USER, current_owner
 from dora_roi.web.context import (
     ROI_SUFFIXES,
@@ -150,14 +151,16 @@ def sample(ctx: Ctx, request: Request, variant: Annotated[str, Form()] = "dirty"
                            kind="sample")
         new_ws = Workspace("Alpenrand 2025", register_to_raw(cur.source_register),
                            kind="sample")
+        load_sample_programme(new_ws)
         ctx.own(old_ws, request)
         ctx.own(new_ws, request)
         return RedirectResponse(f"/w/{new_ws.id}/compare?other={old_ws.id}", status_code=303)
     clean = variant == "clean"
     result = generate_sample(inject_errors=not clean)
     name = "Alpenrand (clean)" if clean else "Alpenrand (25 injected errors)"
-    return ctx.add_workspace(Workspace(name, register_to_raw(result.source_register),
-                                   kind="sample"), request)
+    ws = Workspace(name, register_to_raw(result.source_register), kind="sample")
+    load_sample_programme(ws)
+    return ctx.add_workspace(ws, request)
 
 @router.post("/user")
 async def set_user(ctx: Ctx, request: Request) -> Response:
