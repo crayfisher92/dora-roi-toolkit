@@ -8,6 +8,12 @@ format; they are listed under **Changed** with migration notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Release workflow: the GitHub release job downloads only the wheel/sdist and the release
+  notes (it failed on unrelated CI artifacts for v0.2.0-rc.1), and the install line in the
+  release notes names the actual wheel file.
+
 ## [0.2.0-rc.1] - 2026-11-15
 
 Release candidate for the pilot ([`docs/PILOT.md`](docs/PILOT.md)): team use of the
