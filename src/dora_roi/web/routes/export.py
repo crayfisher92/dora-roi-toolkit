@@ -13,7 +13,14 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from dora_roi.audit import audit_csv
 from dora_roi.io.csv_folder import register_to_csv_texts
 from dora_roi.io.excel import write_raw_workbook
-from dora_roi.io.xbrl_csv import XbrlCsvOptions, build_package_files, package_name
+from dora_roi.io.xbrl_csv import (
+    BEST_EFFORT_NOTICE,
+    ExportBlockedError,
+    XbrlCsvOptions,
+    blocking_issues,
+    build_package_files,
+    package_name,
+)
 from dora_roi.project import SUFFIX as PROJECT_SUFFIX
 from dora_roi.project import save_project
 from dora_roi.reporting import render_html, render_json, render_markdown
@@ -34,12 +41,24 @@ from dora_roi.workspace import Workspace
 router = APIRouter()
 
 
+def package_preflight(ws: Workspace) -> tuple[list[str], list[str]]:
+    """Blocking issues and warnings of the xBRL-CSV package, as the download would build it."""
+    dora = ws.dora_register()
+    blocking = blocking_issues(dora)
+    _, warnings = build_package_files(dora, XbrlCsvOptions(allow_incomplete=True))
+    shown = [w for w in warnings if w != BEST_EFFORT_NOTICE and not w.startswith("DRAFT")
+             and not w.startswith("baseCurrency set to")]
+    return blocking, shown
+
+
 @router.get("/w/{wid}/export", response_class=HTMLResponse)
 def export_page(ctx: Ctx, request: Request, wid: str) -> HTMLResponse:
     ws = ctx.ws_or_404(wid)
     package_errors = len(ws.dora_report().errors) if ws.out_of_scope else None
+    blocking, package_warnings = package_preflight(ws)
     return ctx.ws_page(request, ws, "ws_export.html.j2", "export", pdf=pdf_available(),
-                       package_errors=package_errors)
+                       package_errors=package_errors, package_blocking=blocking,
+                       package_warnings=package_warnings)
 
 @router.get("/w/{wid}/download/{kind}")
 def download(ctx: Ctx, request: Request, wid: str, kind: str) -> Response:
@@ -75,8 +94,11 @@ def render_download(ws: Workspace, kind: str, user: str, lang: str) -> Response:
     if kind == "xbrl":
         options = XbrlCsvOptions()
         dora = ws.dora_register()  # entities outside the DORA scope are left out (P-15)
+        try:
+            files, _ = build_package_files(dora, options)
+        except ExportBlockedError as exc:  # no package with invented LEI, date or currency
+            raise HTTPException(status_code=409, detail="; ".join(exc.issues)) from exc
         pkg = package_name(dora, options)
-        files, _ = build_package_files(dora, options)
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
             for rel, text in files.items():

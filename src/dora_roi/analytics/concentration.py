@@ -37,6 +37,9 @@ from dora_roi.model import (
 from dora_roi.model.refdata import country_name, region_of
 from dora_roi.model.types import INDEFINITE_END_DATE
 
+#: Regions that are third countries in the DORA view (Art. 29(2): outside the EU/EEA).
+THIRD_COUNTRY_REGIONS = frozenset({"Third country", "Switzerland"})
+
 
 @dataclass(frozen=True)
 class AnalyticsConfig:
@@ -54,6 +57,12 @@ class AnalyticsConfig:
     expiry_horizon_days: int = 365
     #: Subcontracting depth (max rank) considered deep.
     deep_chain_rank: int = 3
+    #: Spend share of third-country provider groups (DORA view) that is flagged.
+    third_country_share_threshold: float = 0.2
+    #: Below this share of critical arrangements with a known cost, data gaps are HIGH.
+    min_spend_coverage: float = 0.8
+    #: Exit-plan coverage of critical services below which the finding is HIGH.
+    exit_plan_high_below: float = 0.9
     reference_date: date | None = None
 
 
@@ -111,10 +120,47 @@ class FunctionDependency(BaseModel):
     providers: list[str] = Field(default_factory=list)
     provider_groups: list[str] = Field(default_factory=list)
     single_provider: bool = False
+    #: no ICT service in B_02.02 supports it - cannot be assessed, never "diversified"
+    no_service: bool = False
     hard_to_substitute: bool = False
     exit_plan_coverage: float = 1.0
     max_chain_rank: int = 0
     data_regions: list[str] = Field(default_factory=list)
+
+
+class DataGaps(BaseModel):
+    """What the metrics could not see. Unknown data never counts as harmless: these numbers are
+    shown next to the figures and raise a key message (A-AN-06)."""
+
+    #: arrangements with at least one direct provider (the basis of the spend metrics)
+    arrangements: int = 0
+    without_cost: int = 0
+    other_currency: int = 0
+    critical_arrangements: int = 0
+    critical_without_cost: int = 0
+    critical_services: int = 0
+    critical_services_substitutability_unknown: int = 0
+    critical_functions_without_service: int = 0
+    providers_unknown_hq: int = 0
+    #: contract lifecycle, shown in the contracts pillar and on the renewals page (D-078)
+    critical_notice_unknown: int = 0
+
+    @property
+    def spend_coverage(self) -> float:
+        """Share of arrangements whose annual cost is in the spend metrics."""
+        covered = self.arrangements - self.without_cost - self.other_currency
+        return covered / self.arrangements if self.arrangements else 1.0
+
+    @property
+    def critical_spend_coverage(self) -> float:
+        covered = self.critical_arrangements - self.critical_without_cost
+        return covered / self.critical_arrangements if self.critical_arrangements else 1.0
+
+    @property
+    def any(self) -> bool:
+        return bool(self.without_cost or self.other_currency
+                    or self.critical_services_substitutability_unknown
+                    or self.critical_functions_without_service or self.providers_unknown_hq)
 
 
 class Share(BaseModel):
@@ -151,6 +197,7 @@ class ConcentrationAnalysis(BaseModel):
     totals: dict[str, int | float | str] = Field(default_factory=dict)
     total_spend: Decimal = Decimal(0)
     excluded_spend: dict[str, Decimal] = Field(default_factory=dict)
+    data_gaps: DataGaps = Field(default_factory=DataGaps)
     hhi: float = 0.0
     hhi_band: str = "n/a"
     top1_share: float = 0.0
@@ -243,6 +290,11 @@ class _Index:
 # --------------------------------------------------------------------------- analysis
 
 
+def service_key(s: ContractSpecific) -> tuple[object, ...]:
+    """Identity of an ICT service in B_02.02, independent of its location rows."""
+    return (s.contract_ref, s.entity_lei, s.provider_code, s.function_id, s.service_type)
+
+
 def analyse(register: RegisterOfInformation,
             config: AnalyticsConfig | None = None) -> ConcentrationAnalysis:
     """Compute concentration-risk metrics for ``register``."""
@@ -251,6 +303,10 @@ def analyse(register: RegisterOfInformation,
     ref = cfg.reference_date or register.reference_date or date.today()
     currency = register.reporting_currency
     services = [s for s in register.b_02_02 if s.provider_code]
+    # B_02.02 has one row per combination of service, provision, storage and processing
+    # country: every count of *services* uses one row per distinct service, location
+    # metrics count each (service, location) pair once
+    distinct = list({service_key(s): s for s in reversed(services)}.values())[::-1]
 
     # ---- spend attribution per provider
     direct: dict[str, set[str]] = defaultdict(set)  # contract -> providers
@@ -259,12 +315,18 @@ def analyse(register: RegisterOfInformation,
             direct[s.contract_ref].add(s.provider_code or "")
     spend_by_provider: dict[str, Decimal] = defaultdict(Decimal)
     excluded: dict[str, Decimal] = defaultdict(Decimal)
+    gaps = DataGaps(arrangements=len(direct))
+    uncosted: set[str] = set()
     for ref_no, contract_providers in direct.items():
         c = idx.contracts.get(ref_no)
         if c is None or c.annual_cost is None:
+            gaps.without_cost += 1
+            uncosted.add(ref_no)
             continue
         if currency is not None and c.currency not in (None, currency):
             excluded[c.currency or "?"] += c.annual_cost
+            gaps.other_currency += 1
+            uncosted.add(ref_no)
             continue
         portion = c.annual_cost / len(contract_providers)
         for pcode in contract_providers:
@@ -290,7 +352,7 @@ def analyse(register: RegisterOfInformation,
     functions_of: dict[str, set[tuple[str, str]]] = defaultdict(set)
     critical_of: dict[str, set[tuple[str, str]]] = defaultdict(set)
     types_of: dict[str, set[str]] = defaultdict(set)
-    for s in services:
+    for s in distinct:
         code = s.provider_code or ""
         e = exposure(code)
         if s.contract_ref:
@@ -380,12 +442,17 @@ def analyse(register: RegisterOfInformation,
         defaultdict(list)
     for s in services:
         services_by_function[(s.function_id, s.entity_lei)].append(s)
+    distinct_by_function: dict[tuple[str | None, str | None], list[ContractSpecific]] = \
+        defaultdict(list)
+    for s in distinct:
+        distinct_by_function[(s.function_id, s.entity_lei)].append(s)
     group_spend = {g.group_name: g.spend for g in group_list}
     for (fid, lei) in sorted(idx.critical_keys):
         fn = idx.functions[(fid, lei)]
         svc = services_by_function.get((fid, lei), [])
+        unique_svc = distinct_by_function.get((fid, lei), [])
         provs = sorted({s.provider_code or "" for s in svc})
-        assessments = [idx.assessment(s) for s in svc]
+        assessments = [idx.assessment(s) for s in unique_svc]
         with_exit = sum(1 for a in assessments if a is not None and a.exit_plan is True)
         regions = sorted({region_of(s.data_location_storage) for s in svc
                           if s.data_storage and s.data_location_storage})
@@ -398,9 +465,10 @@ def analyse(register: RegisterOfInformation,
             provider_groups=sorted({idx.provider_name(idx.group_of(p)) for p in provs},
                                    key=lambda name: (-group_spend.get(name, 0), name)),
             single_provider=len({idx.group_of(p) for p in provs}) == 1,
+            no_service=not unique_svc,
             hard_to_substitute=any(a is not None and a.substitutability is not None
                                    and a.substitutability.is_hard for a in assessments),
-            exit_plan_coverage=_share(with_exit, len(svc)) if svc else 0.0,
+            exit_plan_coverage=_share(with_exit, len(unique_svc)) if unique_svc else 0.0,
             max_chain_rank=max((chain_rank.get(s.contract_ref or "", 0) for s in svc), default=0),
             data_regions=regions,
         ))
@@ -425,18 +493,20 @@ def analyse(register: RegisterOfInformation,
         reg_key = region_of(g.hq_country)
         group_region_count[reg_key] += 1
         group_region_spend[reg_key] += g.spend
-    service_country = Counter(s.service_country for s in services if s.service_country)
-    data_loc = Counter(s.data_location_storage for s in services
-                       if s.data_storage and s.data_location_storage and idx.is_critical(s))
+    service_country = Counter(c for _, c in {(service_key(s), s.service_country)
+                                             for s in services if s.service_country})
+    data_loc = Counter(c for _, c in {(service_key(s), s.data_location_storage)
+                                      for s in services if s.data_storage
+                                      and s.data_location_storage and idx.is_critical(s)})
     country_labels = {c: country_name(c) for c in
                       set(country_count) | set(service_country) | set(data_loc)}
     country_labels["Unknown"] = "Unknown"
 
     # ---- service types
-    type_count = Counter(s.service_type.value for s in services if s.service_type)
+    type_count = Counter(s.service_type.value for s in distinct if s.service_type)
     type_spend: dict[str, Decimal] = defaultdict(Decimal)
-    rows_per_contract = Counter(s.contract_ref for s in services if s.service_type)
-    for s in services:
+    rows_per_contract = Counter(s.contract_ref for s in distinct if s.service_type)
+    for s in distinct:
         if not (s.service_type and s.contract_ref):
             continue
         c = idx.contracts.get(s.contract_ref)
@@ -466,7 +536,7 @@ def analyse(register: RegisterOfInformation,
 
     # ---- substitutability for critical services
     subst: Counter[str] = Counter()
-    for s in services:
+    for s in distinct:
         if idx.is_critical(s):
             a = idx.assessment(s)
             subst[a.substitutability.value if a and a.substitutability else "NOT_ASSESSED"] += 1
@@ -494,7 +564,15 @@ def analyse(register: RegisterOfInformation,
             item.functions.append(label)
     expiring_list = sorted(expiring.values(), key=lambda x: x.days_left)
 
-    critical_services = [s for s in services if idx.is_critical(s)]
+    critical_services = [s for s in distinct if idx.is_critical(s)]
+    gaps.critical_arrangements = len(critical_contracts & set(direct))
+    gaps.critical_without_cost = len(critical_contracts & uncosted)
+    gaps.critical_services = len(critical_services)
+    gaps.critical_services_substitutability_unknown = sum(
+        1 for s in critical_services
+        if (a := idx.assessment(s)) is None or a.substitutability is None)
+    gaps.critical_functions_without_service = sum(1 for f in fdeps if f.no_service)
+    gaps.providers_unknown_hq = sum(1 for e in providers if not e.hq_country)
     with_exit = sum(1 for s in critical_services
                     if (a := idx.assessment(s)) is not None and a.exit_plan is True)
     cloud = sum(n for k, n in type_count.items() if k in ("S17", "S18", "S19"))
@@ -509,7 +587,8 @@ def analyse(register: RegisterOfInformation,
             "direct_providers": len(direct_codes),
             "provider_groups": len(group_list),
             "contracts": len(register.b_02_01),
-            "services": len(services),
+            "services": len(distinct),
+            "service_rows": len(services),
             "functions": len(register.b_06_01),
             "critical_functions": len(idx.critical_keys),
             "critical_services": len(critical_services),
@@ -520,6 +599,7 @@ def analyse(register: RegisterOfInformation,
         },
         total_spend=total_spend,
         excluded_spend=dict(excluded),
+        data_gaps=gaps,
         hhi=hhi_value,
         hhi_band=_band(hhi_value, cfg) if group_list else "n/a",
         top1_share=sum(shares[:1]),
@@ -544,9 +624,12 @@ def analyse(register: RegisterOfInformation,
     )
     from dora_roi.analytics.renewals import NoticeStatus, notice_schedule
 
+    schedule = notice_schedule(register, ref)
     analysis.notice_due_critical = sum(
-        1 for i in notice_schedule(register, ref)
+        1 for i in schedule
         if i.critical and i.status in (NoticeStatus.PASSED, NoticeStatus.DUE_90))
+    analysis.data_gaps.critical_notice_unknown = sum(
+        1 for i in schedule if i.critical and i.status is NoticeStatus.UNKNOWN)
     analysis.key_findings = key_findings(analysis, cfg)
     return analysis
 
@@ -595,19 +678,19 @@ def key_findings(a: ConcentrationAnalysis, cfg: AnalyticsConfig) -> list[KeyFind
     if total_cs and coverage < 1:
         missing = total_cs - int(a.totals.get("critical_services_with_exit_plan", 0))
         out.append(KeyFinding(
-            level=Level.HIGH if coverage < 0.9 else Level.MEDIUM,
+            level=Level.HIGH if coverage < cfg.exit_plan_high_below else Level.MEDIUM,
             title=f"Exit plans cover {_pct(coverage)} of ICT services supporting critical "
             "functions",
             detail=f"{missing} service(s) lack a documented exit plan or assessment (DORA "
             "Art. 28(8))."))
-    third = next((r for r in a.group_regions if r.key == "Third country"), None)
-    if third and third.share >= 0.2:
-        direct = next((r for r in a.hq_regions if r.key == "Third country"), None)
-        direct_share = direct.share if direct else 0.0
+    # DORA view: Switzerland is a third country (Art. 29(2)); the FINMA view keeps it apart
+    third_share = sum(r.share for r in a.group_regions if r.key in THIRD_COUNTRY_REGIONS)
+    if third_share >= cfg.third_country_share_threshold:
+        direct_share = sum(r.share for r in a.hq_regions if r.key in THIRD_COUNTRY_REGIONS)
         out.append(KeyFinding(
             level=Level.MEDIUM,
-            title=f"{_pct(third.share)} of spend goes to provider groups headquartered outside "
-            "the EEA and Switzerland",
+            title=f"{_pct(third_share)} of spend goes to provider groups headquartered in third "
+            "countries (outside the EU/EEA, Switzerland included)",
             detail=f"{_pct(direct_share)} is contracted directly with third-country entities; "
             "the rest via EU/EEA subsidiaries of third-country groups. Consider third-country "
             "legal, data-transfer and supervisory-access risks."))
@@ -642,6 +725,30 @@ def key_findings(a: ConcentrationAnalysis, cfg: AnalyticsConfig) -> list[KeyFind
             f"expire within {cfg.expiry_horizon_days} days",
             detail=f"Earliest: {soon.contract_ref} with {soon.provider} on {soon.end_date} "
             f"({soon.days_left} days)."))
+    g = a.data_gaps
+    if g.any:
+        currency = a.reporting_currency or "the reporting currency"
+        parts = []
+        if g.without_cost or g.other_currency:
+            parts.append(f"{g.without_cost + g.other_currency} of {g.arrangements} arrangements "
+                         f"have no annual cost in {currency} ({g.critical_without_cost} "
+                         "supporting critical functions)")
+        if g.critical_services_substitutability_unknown:
+            parts.append("substitutability is not assessed for "
+                         f"{g.critical_services_substitutability_unknown} of "
+                         f"{g.critical_services} critical services")
+        if g.critical_functions_without_service:
+            parts.append(f"{g.critical_functions_without_service} critical function(s) have no "
+                         "ICT service in B_02.02")
+        if g.providers_unknown_hq:
+            parts.append(f"{g.providers_unknown_hq} provider(s) have no headquarters country")
+        detail = "; ".join(parts)
+        out.append(KeyFinding(
+            level=(Level.HIGH if g.critical_spend_coverage < cfg.min_spend_coverage
+                   else Level.MEDIUM),
+            title=f"Data gaps: the spend figures cover {_pct(g.spend_coverage)} of arrangements",
+            detail=detail[:1].upper() + detail[1:] + ". Unknown values are not treated as "
+            "harmless - concentration may be higher than shown."))
     if not out:
         out.append(KeyFinding(level=Level.LOW, title="No material concentration detected",
                               detail="None of the configured thresholds was exceeded."))

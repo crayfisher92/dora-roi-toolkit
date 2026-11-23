@@ -105,7 +105,9 @@ Still to do:
 | A-AN-02 | Concentration is measured on the **ultimate parent** of each provider (B_05.01 c0110), so that subsidiaries of the same hyperscaler are aggregated. |
 | A-AN-03 | HHI bands (1 500 / 2 500) are borrowed from competition analysis and used as a communication heuristic; DORA sets no numeric concentration threshold. |
 | A-AN-04 | The "hidden concentration" metric counts the arrangements in whose B_05.02 chain a provider appears at rank ≥ 2. |
-| A-AN-05 | Thresholds for key messages (single group ≥ 25 % of spend, ≥ 5 critical functions per group, ≥ 20 % spend with third-country groups, chain rank ≥ 3, expiry within 365 days) are configurable defaults (`AnalyticsConfig`). |
+| A-AN-05 | Thresholds for key messages (single group ≥ 25 % of spend, ≥ 5 critical functions per group, ≥ 20 % spend with third-country groups – Switzerland included, Art. 29(2) –, exit-plan coverage < 90 % = high, chain rank ≥ 3, expiry within 365 days, < 80 % of critical arrangements with a known cost = high data gap) are configurable defaults (`AnalyticsConfig`). The readiness concentration pillar uses the same thresholds. |
+| A-AN-06 | **Unknown is not harmless.** Arrangements without an annual cost or in another currency, critical services without a substitutability assessment, critical functions without any ICT service and providers without a headquarters country are counted as *data gaps*, shown with the figures and raise a key message (amber; red when fewer than 80 % of critical arrangements have a known cost). Amounts in other currencies are still not converted. An arrangement ending within a year without a notice period is *notice period unknown*, not "notice can be given on the last day". |
+| A-AN-07 | A **service** is a distinct (contract, entity, provider, function, service type) in B_02.02, whose rows are one per combination of service, provision, storage and processing country (A-TPL-04). Service counts, exit-plan coverage, substitutability and service-type shares count services; location metrics count each (service, country) pair once. |
 
 ## DORA Art. 30 contract checklist
 

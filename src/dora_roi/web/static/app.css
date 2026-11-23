@@ -227,6 +227,7 @@ main { padding-top: 24px; }
 .ren-due_90::before { background: var(--status-serious); }
 .ren-due_365::before { background: var(--status-warning); }
 .ren-later::before { background: var(--series-muted); }
+.ren-unknown::before { background: var(--status-serious); }
 .ok-mark { color: var(--ok-ink); font-weight: 600; }
 .no-mark { color: var(--danger); }
 .project-open { border-top: 1px solid var(--grid); padding-top: 12px; margin-top: 4px; }

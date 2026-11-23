@@ -4,6 +4,10 @@ For each arrangement with a fixed end date after the reference date, the notice 
 ``end date − notice period of the financial entity`` (B_02.02 c0080 and c0100). Missing this
 date usually means the arrangement renews or continues, so the planned exit (DORA Art. 28(8))
 or renegotiation slips by a full term.
+
+Without a recorded notice period the deadline is unknown: it lies somewhere before the end date.
+Such an arrangement ending within a year is reported as *notice period unknown*, never as if
+notice could still be given on the last day.
 """
 
 from __future__ import annotations
@@ -21,6 +25,7 @@ class NoticeStatus(StrEnum):
     DUE_90 = "due_90"
     DUE_365 = "due_365"
     LATER = "later"
+    UNKNOWN = "unknown"  # no notice period recorded, end date within a year
 
 
 @dataclass
@@ -38,6 +43,8 @@ class NoticeItem:
 
     @property
     def status(self) -> NoticeStatus:
+        if self.notice_days is None and self.days_to_deadline <= 365:
+            return NoticeStatus.UNKNOWN
         if self.days_to_deadline < 0:
             return NoticeStatus.PASSED
         if self.days_to_deadline <= 90:
@@ -62,7 +69,7 @@ def notice_schedule(register: RegisterOfInformation, reference_date: date | None
             continue
         p = providers.get(s.provider_code or "")
         notice = s.notice_period_entity
-        deadline = s.end_date - timedelta(days=notice or 0)
+        deadline = s.end_date - timedelta(days=notice or 0)  # unknown notice: see UNKNOWN
         item = items.get(s.contract_ref)
         if item is None or deadline < item.deadline:
             prev = item
