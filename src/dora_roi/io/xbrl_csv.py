@@ -124,6 +124,9 @@ class XbrlCsvOptions:
     created_at: datetime | None = None
     #: Override of the package (zip) base name.
     package_name: str | None = None
+    #: Build a draft even without LEI, reference date or reporting currency (placeholders
+    #: are used and reported as warnings); such a package cannot be submitted.
+    allow_incomplete: bool = False
 
     def __post_init__(self) -> None:
         if self.reporting_level not in REPORTING_LEVELS:
@@ -138,6 +141,30 @@ class XbrlCsvOptions:
         for name, values in self.code_map.items():
             base.setdefault(name, {}).update(values)
         return base
+
+
+class ExportBlockedError(ValueError):
+    """The register lacks what every package needs; see :func:`blocking_issues`."""
+
+    def __init__(self, issues: list[str]) -> None:
+        super().__init__("; ".join(issues))
+        self.issues = issues
+
+
+def blocking_issues(register: RegisterOfInformation) -> list[str]:
+    """What makes a package unusable: without these the toolkit would have to invent the
+    entityID, the refPeriod or the baseCurrency of the submission."""
+    m = register.maintainer
+    issues = []
+    if m is None or not m.lei:
+        issues.append("B_01.01 has no valid LEI of the entity maintaining the register "
+                      "(entityID and package name)")
+    if register.reference_date is None:
+        issues.append("B_01.01 has no reporting date (refPeriod and package name)")
+    if register.reporting_currency is None:
+        issues.append("the entity maintaining the register has no reporting currency in "
+                      "B_01.02 (baseCurrency of all amounts)")
+    return issues
 
 
 @dataclass
@@ -286,6 +313,9 @@ def build_package_files(
 ) -> tuple[dict[str, str], list[str]]:
     """Return ``{relative path inside 'reports/' or 'META-INF/': text}`` and warnings."""
     options = options or XbrlCsvOptions()
+    blocking = blocking_issues(register)
+    if blocking and not options.allow_incomplete:
+        raise ExportBlockedError(blocking)
     mapper = _ValueMapper(options.effective_code_map())
     tables = register_to_csv_texts(register, value_mapper=mapper, include_empty=True,
                                    row_filler=_fill_conventions)
@@ -294,6 +324,9 @@ def build_package_files(
     ref = register.reference_date
     currency = register.reporting_currency or "EUR"
     warnings = [BEST_EFFORT_NOTICE]
+    warnings += [f"DRAFT – cannot be submitted: {issue}" for issue in blocking]
+    if register.reporting_currency is None:
+        warnings.append("baseCurrency set to the placeholder EUR")
     if m is None or m.lei is None:
         warnings.append("B_01.01 has no valid LEI; entityID and package name use a placeholder")
     if ref is None:

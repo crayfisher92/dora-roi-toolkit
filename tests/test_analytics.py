@@ -134,7 +134,8 @@ def test_concentrated_register() -> None:
     assert a.data_locations_critical[0].key == "US"
     kinds = " ".join(k.title for k in a.key_findings)
     for fragment in ("accounts for", "support 3 or more", "Exit plans cover",
-                     "outside the EEA", "rank 3", "Hidden concentration", "expire within"):
+                     "third countries", "rank 3", "Hidden concentration", "expire within",
+                     "Data gaps"):
         assert fragment in kinds, fragment
     assert a.substitutability_critical[0].key == "MEDIUM" or a.substitutability_critical
     assert {s.key for s in a.substitutability_critical} >= {"HIGHLY_COMPLEX", "NOT_ASSESSED"}

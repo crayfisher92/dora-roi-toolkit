@@ -20,6 +20,7 @@ from dora_roi.io.loader import InputFormat, UnsupportedInputError, detect_format
 from dora_roi.io.parse import parse_raw
 from dora_roi.io.tables import column_hint, template_code_for
 from dora_roi.io.xbrl_csv import (
+    ExportBlockedError,
     XbrlCsvOptions,
     _reverse_mapper,
     build_package_files,
@@ -306,10 +307,14 @@ def test_xbrl_unzipped_and_explicit_zip(tmp_path: Path) -> None:
     assert raw.tables["B_02.02"].rows[0].values["c0120"] == "DE"
 
 
-def test_xbrl_empty_register_placeholders() -> None:
-    files, warnings = build_package_files(RegisterOfInformation())
+def test_xbrl_empty_register_is_blocked_unless_draft() -> None:
+    with pytest.raises(ExportBlockedError) as exc:
+        build_package_files(RegisterOfInformation())
+    assert len(exc.value.issues) == 3  # LEI, reporting date, reporting currency
+    files, warnings = build_package_files(RegisterOfInformation(),
+                                          XbrlCsvOptions(allow_incomplete=True))
     assert "entityID,rs:UNKNOWNLEI.CON" in files["reports/parameters.csv"]
-    assert any("no valid LEI" in w for w in warnings)
+    assert sum(w.startswith("DRAFT") for w in warnings) == 3
     assert any("no reporting date" in w for w in warnings)
     name = package_name(RegisterOfInformation(), XbrlCsvOptions(package_name="X"))
     assert name == "X"

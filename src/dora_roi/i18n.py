@@ -514,6 +514,14 @@ CATALOGUE: dict[str, dict[str, str]] = {
                               "date.",
         "rd.conc.multi": "{n} provider group(s) support {k} or more critical functions "
                          "(incl. subcontracting).",
+        "rd.conc.gaps": "Data gaps: the spend figures cover {coverage} of arrangements.",
+        "rd.act.conc_gaps": "Complete the data behind the concentration figures: {cost} "
+                            "arrangement(s) without annual cost in the reporting currency, "
+                            "{subst} critical service(s) without substitutability assessment, "
+                            "{hq} provider(s) without headquarters country.",
+        "rd.act.c30_notice_unknown": "Record the notice period of {n} arrangement(s) supporting "
+                                     "critical functions that end within a year – their notice "
+                                     "deadline may already have passed.",
         "rd.conc.third": "{share} of spend with groups headquartered in third countries "
                          "(outside the EU/EEA, Switzerland included; cf. Art. 29(2)).",
         "rd.act.conc_multi": "Assess substitution and exit for the {n} provider group(s) "
@@ -1152,6 +1160,14 @@ CATALOGUE: dict[str, dict[str, str]] = {
                               "eskalieren.",
         "rd.conc.multi": "{n} Dienstleistergruppe(n) unterstützen {k} oder mehr kritische "
                          "Funktionen (inkl. Unterauftragsvergabe).",
+        "rd.conc.gaps": "Datenlücken: Die Kostenzahlen decken {coverage} der Vereinbarungen ab.",
+        "rd.act.conc_gaps": "Daten hinter den Konzentrationszahlen ergänzen: {cost} "
+                            "Vereinbarung(en) ohne Jahreskosten in der Berichtswährung, {subst} "
+                            "kritische Leistung(en) ohne Beurteilung der Ersetzbarkeit, {hq} "
+                            "Dienstleister ohne Sitzland.",
+        "rd.act.c30_notice_unknown": "Kündigungsfrist von {n} Vereinbarung(en) für kritische "
+                                     "Funktionen erfassen, die innerhalb eines Jahres enden – "
+                                     "ihr Kündigungsstichtag kann schon verstrichen sein.",
         "rd.conc.third": "{share} der Kosten bei Gruppen mit Sitz in Drittländern (außerhalb "
                          "von EU/EWR, Schweiz eingeschlossen; vgl. Art. 29 Abs. 2).",
         "rd.act.conc_multi": "Ersetzbarkeit und Ausstieg für die {n} Dienstleistergruppe(n) mit "

@@ -9,7 +9,11 @@ Each *pillar* gets a traffic light (D-070):
 * **Incidents** (Art. 17–19) – red with an overdue report or a recurring series meeting the
   major criteria; amber with an open major incident with pending reports or an undetermined
   classification;
-* **Concentration** (Art. 28/29) – red/amber with a high/medium-level key message.
+* **Concentration** (Art. 28/29) – the thresholds of the concentration key messages
+  (``AnalyticsConfig``): red with a dominant provider group, groups supporting many critical
+  functions, a hard-to-substitute single-provider dependency, low exit-plan coverage or
+  cost data missing for many critical arrangements; amber with any other key-message
+  condition, including data gaps (unknown data is never green).
 
 Green otherwise; grey when there is nothing to assess (empty register, no incidents
 recorded). The overall status is the worst DORA pillar; the FINMA pillar is informational.
@@ -24,6 +28,7 @@ from typing import Any
 
 from dora_roi import __version__
 from dora_roi.analytics import AnalyticsConfig, ConcentrationAnalysis
+from dora_roi.analytics.concentration import THIRD_COUNTRY_REGIONS
 from dora_roi.analytics.renewals import NoticeItem, NoticeStatus, notice_schedule
 from dora_roi.contracts.analysis import Portfolio, Priority, RemediationPlan, gaps_by_provision
 from dora_roi.finma import FinmaView
@@ -161,6 +166,10 @@ def _contracts_pillar(t: Any, lang: str, pf: Portfolio, plan: RemediationPlan,
         lines.append(t("rd.c30.notice", n=len(due)))
         actions.append(Action("medium", "contracts", t("rd.act.c30_notice", n=len(due)),
                               "/renewals"))
+    unknown = [n for n in notices if n.critical and n.status is NoticeStatus.UNKNOWN]
+    if unknown:  # the deadline lies somewhere before the end date: it may already be missed
+        actions.append(Action("medium", "contracts", t("rd.act.c30_notice_unknown",
+                                                       n=len(unknown)), "/renewals"))
     if analysis.expiring_critical:
         actions.append(Action("medium", "contracts", t(
             "rd.act.c30_expiring", n=len(analysis.expiring_critical)), "/renewals"))
@@ -237,13 +246,16 @@ def _concentration_pillar(t: Any, a: ConcentrationAnalysis, cfg: AnalyticsConfig
     hard_single = [f for f in single if f.hard_to_substitute]
     coverage = float(a.totals.get("exit_plan_coverage", 1.0))
     # DORA view: Switzerland is a third country (Art. 29(2)); the FINMA view keeps it apart
-    third = sum(r.share for r in a.group_regions if r.key in ("Third country", "Switzerland"))
+    third = sum(r.share for r in a.group_regions if r.key in THIRD_COUNTRY_REGIONS)
     hidden = [s for s in a.subcontractors if s.critical_chains >= 2]
     top = a.groups[0] if a.groups else None
+    gaps = a.data_gaps
     red = [bool(top and top.spend_share >= cfg.single_group_share_threshold),
-           bool(a.multi_cif_groups), bool(hard_single), coverage < 0.9]
-    amber = [a.hhi >= cfg.hhi_moderate, bool(single), coverage < 1, third >= 0.2,
-             bool(hidden), a.max_chain_rank >= cfg.deep_chain_rank]
+           bool(a.multi_cif_groups), bool(hard_single), coverage < cfg.exit_plan_high_below,
+           gaps.critical_spend_coverage < cfg.min_spend_coverage]
+    amber = [a.hhi >= cfg.hhi_moderate, bool(single), coverage < 1,
+             third >= cfg.third_country_share_threshold, bool(hidden),
+             a.max_chain_rank >= cfg.deep_chain_rank, gaps.any]
     rag = Rag.RED if any(red) else Rag.AMBER if any(amber) else Rag.GREEN
     band = t("rd.band." + a.hhi_band.replace(" ", "_"))
     lines = [t("rd.conc.top", share=pct(a.top1_share), band=band, hhi=f"{a.hhi:,.0f}"),
@@ -252,7 +264,7 @@ def _concentration_pillar(t: Any, a: ConcentrationAnalysis, cfg: AnalyticsConfig
     if a.multi_cif_groups:
         lines.append(t("rd.conc.multi", n=len(a.multi_cif_groups), k=cfg.multi_cif_threshold))
         names = ", ".join(g.group_name for g in a.multi_cif_groups[:3])
-        actions.append(Action("medium", "concentration", t(
+        actions.append(Action("high", "concentration", t(
             "rd.act.conc_multi", n=len(a.multi_cif_groups), k=cfg.multi_cif_threshold,
             names=names), "/analyse"))
     if top and top.spend_share >= cfg.single_group_share_threshold:
@@ -264,10 +276,17 @@ def _concentration_pillar(t: Any, a: ConcentrationAnalysis, cfg: AnalyticsConfig
     if coverage < 1:
         missing = int(a.totals.get("critical_services", 0)) - int(
             a.totals.get("critical_services_with_exit_plan", 0))
-        actions.append(Action("high" if coverage < 0.9 else "medium", "concentration",
-                              t("rd.act.conc_exit", n=missing), "/analyse"))
-    if third >= 0.2:
+        actions.append(Action("high" if coverage < cfg.exit_plan_high_below else "medium",
+                              "concentration", t("rd.act.conc_exit", n=missing), "/analyse"))
+    if third >= cfg.third_country_share_threshold:
         lines.append(t("rd.conc.third", share=pct(third)))
+    if gaps.any:
+        lines.append(t("rd.conc.gaps", coverage=pct(gaps.spend_coverage)))
+        actions.append(Action(
+            "high" if gaps.critical_spend_coverage < cfg.min_spend_coverage else "medium",
+            "concentration", t("rd.act.conc_gaps", cost=gaps.without_cost + gaps.other_currency,
+                               subst=gaps.critical_services_substitutability_unknown,
+                               hq=gaps.providers_unknown_hq), "/analyse"))
     return Pillar("concentration", rag, pct(a.top1_share), t("rd.conc.metric"), lines,
                   "/analyse", "DORA Art. 28–29")
 

@@ -6,7 +6,10 @@
 {% if counts.error %}<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t("ex.blocked", n=counts.error) }} <a href="/w/{{ ws.id }}/fix">{{ t("ws.next.fix", n=counts.error) }}</a></div></div>{% endif %}
 {% if ws.out_of_scope %}<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t("scope.export_note", n=ws.out_of_scope | length) }} {% if package_errors is not none %}{{ t("scope.package_errors", n=package_errors) }}{% endif %} <a href="/w/{{ ws.id }}/finma#h-scope">{{ t("scope.manage") }}</a></div></div>{% endif %}
 <div class="grid entry">
-  <section class="card entry-card"><h3>{{ t("ex.xbrl") }}</h3><p class="muted">{{ t("ex.xbrl.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/xbrl">{{ t("ex.download") }} (.zip)</a></section>
+  <section class="card entry-card"><h3>{{ t("ex.xbrl") }}</h3><p class="muted">{{ t("ex.xbrl.text") }}</p>{% if package_blocking %}
+    <div class="banner fail" role="alert" data-package-blocked><span class="icon" aria-hidden="true">✕</span><div>{{ t("ex.xbrl.blocked") }}<ul>{% for issue in package_blocking %}<li>{{ issue }}</li>{% endfor %}</ul></div></div>
+    {% else %}<a class="btn primary" href="/w/{{ ws.id }}/download/xbrl">{{ t("ex.download") }} (.zip)</a>{% endif %}
+    {% if package_warnings %}<details class="small" data-package-warnings><summary>{{ t("ex.xbrl.warnings", n=package_warnings | length) }}</summary><ul>{% for w in package_warnings %}<li>{{ w }}</li>{% endfor %}</ul></details>{% endif %}</section>
   <section class="card entry-card"><h3>{{ t("ex.excel") }}</h3><p class="muted">{{ t("ex.excel.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/xlsx">{{ t("ex.download") }} (.xlsx)</a></section>
   <section class="card entry-card"><h3>{{ t("ex.project") }}</h3><p class="muted">{{ t("ex.project.text") }}</p><a class="btn primary" href="/w/{{ ws.id }}/download/project">{{ t("ex.download") }} (.roiproj)</a>
     {% if ws.session.project_path %}<p class="small muted">{{ t("ex.project.autosaved", file=ws.session.project_path.name) }}</p>{% endif %}</section>

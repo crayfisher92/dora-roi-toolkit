@@ -1,7 +1,7 @@
 {
   "schema": "dora-roi-toolkit/validation-report/v1",
   "toolkit_version": "0.2.0-rc.1",
-  "generated_at": "2026-11-15T12:30:34.190730+00:00",
+  "generated_at": "2026-11-23T14:28:18.584261+00:00",
   "source": "alpenrand-sample.xlsx",
   "reference_date": "2025-12-31",
   "maintainer": {

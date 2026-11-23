@@ -97,6 +97,7 @@ MESSAGES: dict[str, dict[str, str]] = {
         "ren.s.due_90": "Due in {n} days",
         "ren.s.due_365": "Within a year ({n} days)",
         "ren.s.later": "In {n} days",
+        "ren.s.unknown": "Notice period unknown – contract ends in {n} days",
         "ready.incomplete": "Validation incomplete: {n} rule(s) could not run. Do not submit.",
         "ws.audit": "Audit trail",
         "audit.title": "Audit trail",
@@ -115,6 +116,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "audit.kind.unaccept": "Acceptance withdrawn",
         "audit.kind.export": "Exported",
         "audit.kind.gleif": "LEIs checked with GLEIF",
+        "ex.xbrl.blocked": "The package cannot be built yet – it would need invented values:",
+        "ex.xbrl.warnings": "{n} note(s) on the package",
         "gleif.button": "Check LEIs with GLEIF",
         "gleif.note": "Sends only the LEIs (public identifiers) to the GLEIF Global LEI Index; "
                       "findings GLEIF-001 to GLEIF-004 appear below.",
@@ -427,6 +430,7 @@ MESSAGES: dict[str, dict[str, str]] = {
         "ren.s.due_90": "Fällig in {n} Tagen",
         "ren.s.due_365": "Innerhalb eines Jahres ({n} Tage)",
         "ren.s.later": "In {n} Tagen",
+        "ren.s.unknown": "Kündigungsfrist unbekannt – Vertrag endet in {n} Tagen",
         "ready.incomplete": "Prüfung unvollständig: {n} Regel(n) konnten nicht ausgeführt werden. "
                             "Nicht einreichen.",
         "ws.audit": "Prüfpfad",
@@ -447,6 +451,9 @@ MESSAGES: dict[str, dict[str, str]] = {
         "audit.kind.unaccept": "Akzeptanz zurückgenommen",
         "audit.kind.export": "Exportiert",
         "audit.kind.gleif": "LEIs bei GLEIF geprüft",
+        "ex.xbrl.blocked": "Das Paket kann noch nicht erstellt werden – es bräuchte erfundene "
+                           "Werte:",
+        "ex.xbrl.warnings": "{n} Hinweis(e) zum Paket",
         "gleif.button": "LEIs bei GLEIF prüfen",
         "gleif.note": "Übermittelt nur die LEIs (öffentliche Kennungen) an den GLEIF-Index; "
                       "die Befunde GLEIF-001 bis GLEIF-004 erscheinen unten.",

@@ -8,7 +8,36 @@ format; they are listed under **Changed** with migration notes.
 
 ## [Unreleased]
 
+Results that can be trusted – fixes from an independent review of the analytics and data
+model.
+
 ### Fixed
+
+- **Concentration metrics counted B_02.02 rows, not services.** A service provided from
+  several countries was counted once per country in the exit-plan coverage, the
+  substitutability breakdown, the service-type shares and the providers' "critical services
+  without exit plan" – the exit-plan coverage behind a red light could be wrong. Services
+  are now deduplicated (D-090); location metrics count each (service, country) pair once.
+- An arrangement ending within a year without a notice period was treated as if notice could
+  be given on the last day; it is now *notice period unknown* on the renewals page and a
+  contracts action in the readiness report.
+- The concentration key message on third-country groups now counts Switzerland, as the
+  readiness pillar already did (DORA Art. 29(2)).
+
+### Changed
+
+- **Data gaps are shown with the figures** (A-AN-06): arrangements without cost or in another
+  currency, critical services without substitutability assessment, critical functions with
+  no ICT service, providers without headquarters country. They raise a key message and turn
+  the concentration light amber (red when fewer than 80 % of critical arrangements have a
+  known cost) – unknown data is no longer green.
+- The readiness concentration pillar uses the thresholds of the key messages
+  (`AnalyticsConfig`); groups supporting many critical functions are a high-priority action,
+  as in the key messages.
+- **The xBRL-CSV export refuses to invent the LEI, the reporting date or the reporting
+  currency** (D-092): CLI exit status 2 with the reasons, `--allow-incomplete` for a draft
+  marked as not submittable; the workbench export page lists the blocking issues and all
+  package warnings (they were discarded before).
 
 - Release workflow: the GitHub release job downloads only the wheel/sdist and the release
   notes (it failed on unrelated CI artifacts for v0.2.0-rc.1), and the install line in the

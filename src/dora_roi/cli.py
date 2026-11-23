@@ -220,9 +220,13 @@ def report(input_path: Path, output: Path, client_name: str | None, prepared_by:
 @click.option("--exclude-entity", "exclude", multiple=True, metavar="LEI",
               help="xbrl-csv: leave an entity outside the DORA scope (e.g. the Swiss bank of "
               "a group) and what only concerns it out of the package (repeatable).")
+@click.option("--allow-incomplete", is_flag=True,
+              help="xbrl-csv: write a draft even without LEI, reporting date or reporting "
+              "currency (placeholders; the package cannot be submitted).")
 @code_map_opt
 def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: bool, level: str,
-           entry_point: str | None, exclude: tuple[str, ...], code_map: Path | None) -> None:
+           entry_point: str | None, exclude: tuple[str, ...], allow_incomplete: bool,
+           code_map: Path | None) -> None:
     """Export a register (xBRL-CSV package is BEST-EFFORT, see docs/ASSUMPTIONS.md)."""
     from dora_roi.io.csv_folder import write_csv_folder
     from dora_roi.io.excel import write_workbook
@@ -259,10 +263,20 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
     if fmt == "csv":
         click.echo(f"Wrote {write_csv_folder(register, output)}", err=True)
         return
-    options = XbrlCsvOptions(reporting_level=level, code_map=cmap or {})
+    from dora_roi.io.xbrl_csv import ExportBlockedError
+
+    options = XbrlCsvOptions(reporting_level=level, code_map=cmap or {},
+                             allow_incomplete=allow_incomplete)
     if entry_point:
         options.entry_point = entry_point
-    result = export_xbrl_csv(register, output, options, unzipped=unzipped)
+    try:
+        result = export_xbrl_csv(register, output, options, unzipped=unzipped)
+    except ExportBlockedError as exc:
+        for issue in exc.issues:
+            click.echo(f"✗ {issue}", err=True)
+        click.echo("Export refused: the package would carry placeholders. Fix the register, "
+                   "or use --allow-incomplete for a draft that cannot be submitted.", err=True)
+        sys.exit(EXIT_USAGE)
     for w in result.warnings:
         click.echo(f"! {w}", err=True)
     click.echo(f"Wrote {result.path}", err=True)
