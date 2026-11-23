@@ -37,7 +37,10 @@ def base_url() -> Iterator[str]:
         yield url
 
 
-@pytest.fixture(scope="session")
+# Package scope, not session: between calls the sync API leaves its event loop marked as
+# running in the main thread, so asyncio.run()/anyio.run() fail in any test that runs later
+# while Playwright is still open. Leaving tests/e2e closes it.
+@pytest.fixture(scope="package")
 def browser() -> Iterator[Any]:
     try:
         from playwright.sync_api import sync_playwright

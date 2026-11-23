@@ -10,6 +10,7 @@ from pathlib import Path
 import anyio
 import httpx
 import pytest
+from anyio.from_thread import start_blocking_portal
 from click.testing import CliRunner
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -268,7 +269,10 @@ def test_slow_import_does_not_block_other_requests(monkeypatch: pytest.MonkeyPat
                 tg.start_soon(upload)
                 tg.start_soon(health)
 
-    anyio.run(run)
+    # A fresh event loop in a thread of its own: unaffected by whatever loop an earlier test
+    # left set or marked as running in the main thread.
+    with start_blocking_portal() as portal:
+        portal.call(run)
     assert timings["health"] < timings["import"] - 0.5
 
 
