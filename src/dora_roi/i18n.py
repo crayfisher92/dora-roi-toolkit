@@ -102,6 +102,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.rem.overdue": "overdue",
         "c30.rem.proposed": "proposed",
         "c30.rem.late": "proposed date passed",
+        "c30.rem.past_target": "Past target date",
         "c30.rem.late_n": "{n} past the proposed target date (no date agreed).",
         "c30.ui.ex.title": "Approve a time-bound exception",
         "c30.ui.ex.help": "DORA's contract provisions are mandatory: an exception does not make "
@@ -129,6 +130,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.applies_to": "also relied on by {refs}",
         "c30.scope.all": "Art. 30(2)",
         "c30.scope.critical": "Art. 30(2) + 30(3)",
+        "c30.scope.unknown": "Criticality not assessed – Art. 30(2) + 30(3) to assess",
         "c30.provision": "Provision",
         "c30.finding": "Finding",
         "c30.clause": "Clause",
@@ -219,6 +221,12 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.ui.p3": "Art. 30(3) – ICT services supporting critical or important functions",
         "c30.ui.key": "key provision",
         "c30.ui.clause_placeholder": "e.g. Clause 14.2",
+        "c30.ui.criticality_unknown": "The register does not say whether this arrangement "
+                                      "supports a critical or important function: no function "
+                                      "is linked in B_02.02, or its criticality in B_06.01 "
+                                      "(c0050) is empty or not assessed. Until it is assessed, "
+                                      "the Art. 30(3) items stay on the checklist to assess.",
+        "c30.ui.assess_criticality": "Assess the functions (B_06.01)",
         "c30.ui.no_30_3": "Art. 30(3) does not apply: the register links this arrangement to no "
                           "critical or important function.",
         "c30.ui.save": "Save assessment",
@@ -259,6 +267,11 @@ CATALOGUE: dict[str, dict[str, str]] = {
                                "incident. Not applicable to microenterprises and entities under "
                                "DORA Art. 16(1) (RTS Art. 8(2)).",
         "inc.recurring.not_major": "Together they do not meet the major criteria.",
+        "inc.recurring.exempt": "All incidents of this series concern entities for which the "
+                                "recurring-incident rule was declared not to apply (RTS "
+                                "2024/1772 Art. 8(2)) – shown for information, not to be "
+                                "reported as one major incident.",
+        "inc.recurring.exempt_short": "exempt, RTS Art. 8(2)",
         "inc.recurring.window": "Window {start} – {end}",
         "inc.st.open": "Open",
         "inc.st.resolved": "Resolved",
@@ -360,6 +373,15 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.tz_note": "Times in {tz}.",
         "inc.ui.import": "Import an incident log",
         "inc.ui.timezone": "Time zone",
+        "inc.ui.exempt_title": "Recurring-incident rule (RTS 2024/1772 Art. 8(2))",
+        "inc.ui.exempt_lead": "The aggregation of recurring incidents does not apply to "
+                              "microenterprises and to entities under DORA Art. 16(1). Tick "
+                              "the entities this applies to; the toolkit does not check it – "
+                              "record the basis in your incident management policy. A series "
+                              "is exempt only if all its incidents concern ticked entities.",
+        "inc.ui.exempt_legend": "Rule does not apply to",
+        "inc.ui.exempt_save": "Save",
+        "inc.ui.exempt_saved": "Saved.",
         "inc.ui.apply": "Apply",
         "inc.ui.back": "All incidents",
         "inc.ui.saved": "Saved. The classification and the deadlines are up to date.",
@@ -486,6 +508,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.inc.metric": "Major incidents",
         "rd.inc.counts": "{total} incident(s) recorded, {open} open, {major} major.",
         "rd.inc.next": "Next: {report} for {id} {when}.",
+        "rd.inc.recurring_exempt": "Recurring series '{series}' ({n} incidents) meets the "
+                                   "major criteria together but concerns only entities "
+                                   "declared exempt (RTS 2024/1772 Art. 8(2)); not counted.",
         "rd.inc.recurring": "Recurring series '{series}' ({n} incidents) meets the major "
                             "criteria on the toolkit's aggregation (A-INC-05).",
         "rd.conc.metric": "Largest provider group",
@@ -497,6 +522,12 @@ CATALOGUE: dict[str, dict[str, str]] = {
                          "covered by this dataset.",
         "rd.act.fix": "Fix {n} blocking validation error(s) in the register.",
         "rd.c30.exceptions": "{n} gap(s) under an approved, time-bound exception.",
+        "rd.c30.scope": "Submission view: {n} arrangement(s) used only by entities outside "
+                        "the DORA scope are not counted.",
+        "rd.inc.scope": "Submission view: {n} incident(s) concerning only entities outside "
+                        "the DORA scope are not counted.",
+        "rd.c30.unknown": "{n} arrangement(s) support functions whose criticality is not "
+                          "assessed; their Art. 30(3) items stay to assess.",
         "rd.c30.late": "{n} high-priority gap(s) are past the proposed target date and have "
                        "no agreed date.",
         "rd.c30.progress": "Of the {n} high-priority gaps, {negotiating} are in negotiation, "
@@ -526,6 +557,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
                             "functions (Art. 28(8)).",
         "rd.act.review": "Review {n} validation warning(s).",
         "rd.act.c30_high": "Close {n} high-priority contract gap(s) – {providers}.",
+        "rd.act.c30_criticality": "Assess the criticality of the functions behind {n} "
+                                  "arrangement(s) (B_06.01) to settle which Art. 30 items "
+                                  "apply.",
         "rd.act.c30_assess": "Assess {n} arrangement(s) supporting critical functions against "
                              "Art. 30.",
         "rd.act.inc_report": "Submit the {report} for {id} – due {when}.",
@@ -577,6 +611,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "scope.export_note": "{n} entit(y/ies) outside the DORA scope are left out of the "
                              "xBRL-CSV package.",
         "scope.manage": "Manage the scope",
+        "scope.eea_warning": "{names}: located in the EU/EEA. DORA normally applies to such "
+                             "an entity – leave it out of the submission only if it is not a "
+                             "financial entity within DORA's scope (Art. 2) and record why.",
         "scope.package_errors": "Validation of the package itself: {n} error(s).",
         "fin.name": "Switzerland (FINMA)",
         "fin.title": "One dataset for DORA and FINMA",
@@ -716,6 +753,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.rem.overdue": "überfällig",
         "c30.rem.proposed": "Vorschlag",
         "c30.rem.late": "Vorschlagstermin überschritten",
+        "c30.rem.past_target": "Nach Zieltermin",
         "c30.rem.late_n": "{n} nach dem vorgeschlagenen Zieltermin (kein Termin vereinbart).",
         "c30.ui.ex.title": "Befristete Ausnahme genehmigen",
         "c30.ui.ex.help": "Die Vertragsbestimmungen nach DORA sind verpflichtend: Eine Ausnahme "
@@ -744,6 +782,7 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "c30.applies_to": "gilt auch für {refs}",
         "c30.scope.all": "Art. 30 Abs. 2",
         "c30.scope.critical": "Art. 30 Abs. 2 + 3",
+        "c30.scope.unknown": "Kritikalität nicht bewertet – Art. 30 Abs. 2 + 3 zu prüfen",
         "c30.provision": "Bestimmung",
         "c30.finding": "Feststellung",
         "c30.clause": "Klausel",
@@ -841,6 +880,13 @@ CATALOGUE: dict[str, dict[str, str]] = {
                      "Funktionen",
         "c30.ui.key": "Schlüsselbestimmung",
         "c30.ui.clause_placeholder": "z. B. Ziffer 14.2",
+        "c30.ui.criticality_unknown": "Das Register sagt nicht, ob diese Vereinbarung eine "
+                                      "kritische oder wichtige Funktion unterstützt: In B_02.02 "
+                                      "ist keine Funktion verknüpft oder ihre Kritikalität in "
+                                      "B_06.01 (c0050) ist leer bzw. nicht bewertet. Bis zur "
+                                      "Bewertung bleiben die Punkte nach Art. 30 Abs. 3 zur "
+                                      "Prüfung auf der Checkliste.",
+        "c30.ui.assess_criticality": "Funktionen bewerten (B_06.01)",
         "c30.ui.no_30_3": "Art. 30 Abs. 3 ist nicht anwendbar: Das Register ordnet diese "
                           "Vereinbarung keiner kritischen oder wichtigen Funktion zu.",
         "c30.ui.save": "Bewertung speichern",
@@ -883,6 +929,11 @@ CATALOGUE: dict[str, dict[str, str]] = {
                                "Vorfall melden. Gilt nicht für Kleinstunternehmen und "
                                "Unternehmen nach DORA Art. 16(1) (RTS Art. 8(2)).",
         "inc.recurring.not_major": "Gemeinsam erfüllen sie die Kriterien nicht.",
+        "inc.recurring.exempt": "Alle Vorfälle dieser Serie betreffen Gesellschaften, für die "
+                                "die Regel zu wiederkehrenden Vorfällen als nicht anwendbar "
+                                "erklärt wurde (RTS 2024/1772 Art. 8 Abs. 2) – zur "
+                                "Information, nicht als ein schwerwiegender Vorfall zu melden.",
+        "inc.recurring.exempt_short": "ausgenommen, RTS Art. 8 Abs. 2",
         "inc.recurring.window": "Zeitraum {start} – {end}",
         "inc.st.open": "Offen",
         "inc.st.resolved": "Behoben",
@@ -988,6 +1039,16 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "inc.ui.tz_note": "Zeiten in {tz}.",
         "inc.ui.import": "Vorfallverzeichnis importieren",
         "inc.ui.timezone": "Zeitzone",
+        "inc.ui.exempt_title": "Regel zu wiederkehrenden Vorfällen (RTS 2024/1772 Art. 8 Abs. 2)",
+        "inc.ui.exempt_lead": "Die Zusammenfassung wiederkehrender Vorfälle gilt nicht für "
+                              "Kleinstunternehmen und für Unternehmen nach DORA Art. 16 Abs. 1. "
+                              "Markieren Sie die betroffenen Gesellschaften; das Toolkit prüft "
+                              "dies nicht – halten Sie die Grundlage in Ihrer Richtlinie zum "
+                              "Vorfallmanagement fest. Eine Serie ist nur ausgenommen, wenn "
+                              "alle ihre Vorfälle markierte Gesellschaften betreffen.",
+        "inc.ui.exempt_legend": "Regel nicht anwendbar auf",
+        "inc.ui.exempt_save": "Speichern",
+        "inc.ui.exempt_saved": "Gespeichert.",
         "inc.ui.apply": "Übernehmen",
         "inc.ui.back": "Alle Vorfälle",
         "inc.ui.saved": "Gespeichert. Klassifizierung und Fristen sind aktuell.",
@@ -1123,6 +1184,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "rd.inc.counts": "{total} Vorfall/Vorfälle erfasst, {open} offen, {major} "
                          "schwerwiegend.",
         "rd.inc.next": "Als Nächstes: {report} für {id} {when}.",
+        "rd.inc.recurring_exempt": "Wiederkehrende Serie „{series}“ ({n} Vorfälle) erfüllt "
+                                   "gemeinsam die Kriterien, betrifft aber nur als ausgenommen "
+                                   "erklärte Gesellschaften (RTS 2024/1772 Art. 8 Abs. 2); "
+                                   "nicht gezählt.",
         "rd.inc.recurring": "Wiederkehrende Serie „{series}“ ({n} Vorfälle) erfüllt die "
                             "Kriterien nach der Aggregation des Toolkits (A-INC-05).",
         "rd.conc.metric": "Größte Dienstleistergruppe",
@@ -1135,6 +1200,13 @@ CATALOGUE: dict[str, dict[str, str]] = {
                          "nicht durch diesen Datenbestand abgedeckt.",
         "rd.act.fix": "{n} blockierende Validierungsfehler im Register beheben.",
         "rd.c30.exceptions": "{n} Lücke(n) mit genehmigter, befristeter Ausnahme.",
+        "rd.c30.scope": "Sicht der Meldung: {n} Vereinbarung(en), die nur Gesellschaften "
+                        "außerhalb des DORA-Umfangs nutzen, werden nicht gezählt.",
+        "rd.inc.scope": "Sicht der Meldung: {n} Vorfall/Vorfälle, die nur Gesellschaften "
+                        "außerhalb des DORA-Umfangs betreffen, werden nicht gezählt.",
+        "rd.c30.unknown": "{n} Vereinbarung(en) unterstützen Funktionen ohne "
+                          "Kritikalitätsbewertung; ihre Punkte nach Art. 30 Abs. 3 bleiben zu "
+                          "prüfen.",
         "rd.c30.late": "{n} Lücke(n) hoher Priorität liegen nach dem vorgeschlagenen "
                        "Zieltermin und haben keinen vereinbarten Termin.",
         "rd.c30.progress": "Von {n} Lücken hoher Priorität sind {negotiating} in Verhandlung, "
@@ -1164,6 +1236,9 @@ CATALOGUE: dict[str, dict[str, str]] = {
                             "dokumentieren (Art. 28 Abs. 8).",
         "rd.act.review": "{n} Validierungswarnung(en) prüfen.",
         "rd.act.c30_high": "{n} Vertragslücke(n) mit hoher Priorität schließen – {providers}.",
+        "rd.act.c30_criticality": "Kritikalität der Funktionen hinter {n} Vereinbarung(en) "
+                                  "bewerten (B_06.01), um festzulegen, welche Punkte nach "
+                                  "Art. 30 gelten.",
         "rd.act.c30_assess": "{n} Vereinbarung(en) für kritische Funktionen nach Art. 30 "
                              "bewerten.",
         "rd.act.inc_report": "{report} für {id} übermitteln – fällig {when}.",
@@ -1214,6 +1289,10 @@ CATALOGUE: dict[str, dict[str, str]] = {
         "scope.export_note": "{n} Gesellschaft(en) außerhalb des DORA-Umfangs werden nicht in "
                              "das xBRL-CSV-Paket übernommen.",
         "scope.manage": "Umfang verwalten",
+        "scope.eea_warning": "{names}: mit Sitz in der EU/im EWR. DORA gilt für eine solche "
+                             "Gesellschaft in der Regel – nehmen Sie sie nur aus der Meldung, "
+                             "wenn sie kein Finanzunternehmen im Anwendungsbereich von DORA "
+                             "ist (Art. 2), und halten Sie den Grund fest.",
         "scope.package_errors": "Validierung des Pakets selbst: {n} Fehler.",
         "fin.name": "Schweiz (FINMA)",
         "fin.title": "Ein Datenbestand für DORA und FINMA",

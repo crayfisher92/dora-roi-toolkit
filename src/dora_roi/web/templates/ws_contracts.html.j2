@@ -83,7 +83,7 @@
   <tbody>{% for c in rows %}
   <tr><th scope="row"><a class="mono" href="{{ contract_url(ws.id, c.ref) }}">{{ c.ref }}</a>{% if c.inherited_from %}<div class="small muted">{{ t("c30.inherited", ref=c.inherited_from) }}</div>{% endif %}</th>
     <td>{{ c.context.provider_names }}</td>
-    <td>{% if c.context.critical %}<strong>◆ {{ t("c30.scope.critical") }}</strong>{% else %}{{ t("c30.scope.all") }}{% endif %}</td>
+    <td>{% if c.context.critical %}<strong>◆ {{ t("c30.scope.critical") }}</strong>{% elif c.context.criticality_unknown %}<strong>? {{ t("c30.scope.unknown") }}</strong>{% else %}{{ t("c30.scope.all") }}{% endif %}</td>
     <td>{{ pill(c.status.value, t("cs." ~ c.status.value)) }}</td>
     <td class="num">{{ c.missing }}</td><td class="num">{{ c.partial }}</td><td class="num">{{ c.unassessed }}</td>
     <td class="small">{{ c.assessment.assessed_on if c.assessment and c.assessment.assessed_on else "—" }}</td></tr>

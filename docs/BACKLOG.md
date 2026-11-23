@@ -130,7 +130,7 @@ same register on two dates; closing a gap that had remediation progress; DE word
 | P-24 | Low | SE | Closing a gap that had remediation progress wrote "remediation not started" into the history. | Save present after negotiating. | ✅ remediation changes are only described for gaps |
 | P-25 | Low | SE | German texts mixed Swiss and German spelling (*ausserhalb* / *außerhalb*). | i18n grep. | ✅ standard German spelling throughout, as in the rest of the interface |
 | P-26 | Low | TPR | `roi readiness` had no way to show the submission view. | CLI help. | ✅ `--exclude-entity` |
-| P-27 | Low | TPR | The plan workbook's *By provider* sheet shows gaps but not remediation progress per provider. | Workbook. | ⏳ open (the plan sheet carries progress per action; pivot in Excel) |
+| P-27 | Low | TPR | The plan workbook's *By provider* sheet shows gaps but not remediation progress per provider. | Workbook. | ✅ closed in the follow-up below (D-096) |
 | P-28 | Low | SE | An entity marked out of scope that later becomes the maintaining entity made the xBRL download fail (`ScopeError`). | Edit of B_01.01 after marking. | ✅ the maintainer is always in scope (`Workspace.dora_register`) |
 
 Re-review after the fixes (both perspectives, the probes of cycles 1–3 plus a German
@@ -148,3 +148,22 @@ The base added an audit trail of exports (B-30), a PDF concurrency limit (B-31) 
 | P-30 | Medium | SE | **Programme PDFs answered HTTP 500 when the PDF limit was reached** instead of 503 + Retry-After like the base's PDFs. | `PdfBusyError` raised by `html_to_pdf` in `pdf_response`. | ✅ 503 with `Retry-After` |
 
 No High or Medium items remain open.
+
+## Follow-up to the module review (November 2026)
+
+Open items of [`MODULE_REVIEW.md`](MODULE_REVIEW.md) that are engineering rather than legal
+interpretation, plus the open Low item P-27. Items that need a specialist's sign-off stay
+open there.
+
+| ID | Sev. | View | Finding | Evidence | Status |
+|---|---|---|---|---|---|
+| P-31 | Medium | TPR | **Arrangements whose criticality is not assessed lose the Art. 30(3) items** (A-A30-02): an empty or *not assessed* B_06.01 c0050, or no linked function, made the arrangement "not critical", so ten mandatory clauses were never checked. | Error sample: 4 such arrangements shown as "Art. 30(2)". | ✅ *criticality not assessed*, full checklist with 30(3) to assess, readiness action (D-093) |
+| P-32 | Medium | TPR | **Recurring series of exempt entities turned the readiness light red** – the RTS Art. 8(2) exemption was only a caveat in the text. | MODULE_REVIEW, incidents open items. | ✅ declared exemption per entity in the incident log; exempt series informational (D-094) |
+| P-33 | Medium | TPR | **Excluding an EU entity from the DORA scope raised no warning.** | MODULE_REVIEW, readiness open items. | ✅ warning on the FINMA page and in the CLI (D-095) |
+| P-34 | Medium | TPR | **Entities outside the DORA scope still counted in the contracts and incidents pillars** while the register light already showed the submission view. | MODULE_REVIEW, readiness open items. | ✅ DORA pillars on the scope with a note of what was left out; FINMA and concentration on the whole dataset (D-095) |
+| P-27 | Low | TPR | (cycle 3) The plan workbook's *By provider* sheet showed no remediation progress. | Workbook. | ✅ actions by progress and past target date per provider (D-096) |
+
+No High or Medium items remain open in the programme backlog. Still open in
+`MODULE_REVIEW.md` (specialist sign-off): A-A30-03 and the RTS 2024/1773 / 2025/532 contract
+content, the incident-reporting rules not modelled (A-INC-04), A-INC-05/08, the FINMA
+proportionality and unmapped margin numbers, A-FINMA-05, DORA Art. 2/16 scope rules.

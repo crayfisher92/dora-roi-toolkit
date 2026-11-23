@@ -8,6 +8,24 @@ format; they are listed under **Changed** with migration notes.
 
 ## [Unreleased]
 
+### Changed – programme modules (open items of `docs/MODULE_REVIEW.md`)
+
+- **Art. 30:** an arrangement whose function is not linked or whose criticality (B_06.01
+  c0050) is empty or *not assessed* is shown as *criticality not assessed* and keeps the
+  Art. 30(3) items *to assess* instead of skipping them; the readiness report asks for the
+  criticality assessment (A-A30-02, D-093). Assessments of such arrangements that were
+  "all checklist items present" on Art. 30(2) alone are now *incomplete*.
+- **Incidents:** entities can be declared exempt from the recurring-incident rule (RTS
+  2024/1772 Art. 8(2)) in the incident log; series concerning only those entities are shown
+  for information and no longer turn the readiness light red (D-094). The incident log JSON
+  gains `recurrence_exempt`, the summary JSON `exempt`/`reportable` per series and the
+  counts `recurring_exempt`.
+- **DORA scope:** excluding an EU/EEA entity is warned about (FINMA page, `roi export` and
+  `roi readiness --exclude-entity`); the readiness contracts and incidents pillars count only
+  what is in the scope and say how much was left out (D-095).
+- **Remediation plan workbook:** the *By provider* sheet shows actions by progress and past
+  their target date (D-096).
+
 ### Fixed
 
 - Release workflow: the GitHub release job downloads only the wheel/sdist and the release

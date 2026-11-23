@@ -272,7 +272,9 @@ def _sample_assessments_section(register: RegisterOfInformation) -> list[str]:
         gaps = "; ".join(own) or ("inherited from " + c.inherited_from
                                   if c.inherited_from else "—")
         lines.append(f"| `{c.ref}` | {_cell(c.context.provider_names)} | "
-                     f"{'30(2)+(3)' if c.context.critical else '30(2)'} | {c.status.value} | "
+                     f"{'30(2)+(3)' if c.context.full_checklist else '30(2)'}"
+                     f"{' (criticality unknown)' if c.context.criticality_unknown else ''} | "
+                     f"{c.status.value} | "
                      f"{_cell(gaps)} |")
     lines.append("")
     return lines

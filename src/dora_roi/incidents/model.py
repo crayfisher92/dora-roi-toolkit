@@ -196,7 +196,16 @@ class IncidentLog(BaseModel):
     schema_id: str = Field(default=SCHEMA, alias="schema")
     toolkit_version: str = __version__
     timezone: str = DEFAULT_TIMEZONE
+    #: LEIs of entities for which the user has declared that the aggregation of recurring
+    #: incidents (RTS 2024/1772 Art. 8(2)) does not apply – microenterprises and entities
+    #: under DORA Art. 16(1). The toolkit does not determine this (D-094).
+    recurrence_exempt: list[str] = Field(default_factory=list, max_length=500)
     incidents: dict[str, Incident] = Field(default_factory=dict)
+
+    @field_validator("recurrence_exempt")
+    @classmethod
+    def _leis(cls, value: list[str]) -> list[str]:
+        return sorted({v.strip().upper() for v in value if v and v.strip()})
 
     @property
     def tz(self) -> tzinfo:
@@ -257,7 +266,11 @@ class IncidentLog(BaseModel):
         return new, updated
 
     def to_json(self) -> str:
-        return self.model_dump_json(by_alias=True, indent=2, exclude_none=True)
+        # written only when used, so logs and project files stay readable by 0.2.0-rc.1
+        # (the pilot build), whose model forbids unknown fields
+        exclude = None if self.recurrence_exempt else {"recurrence_exempt"}
+        return self.model_dump_json(by_alias=True, indent=2, exclude_none=True,
+                                    exclude=exclude)
 
     @classmethod
     def from_json(cls, text: str | bytes) -> IncidentLog:

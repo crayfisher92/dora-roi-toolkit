@@ -315,7 +315,7 @@ def test_overview_exports() -> None:
     ov = overview(log, reg, now)
     counts = ov.counts()
     assert counts == {"total": 5, "open": 1, "major": 1, "undetermined": 0, "overdue": 0,
-                      "recurring_major": 1}
+                      "recurring_major": 1, "recurring_exempt": 0}
     assert [v.incident.id for v in ov.open_major] == ["INC-2026-014"]
     nxt = ov.next_deadline()
     assert nxt is not None and nxt[1].kind is ReportKind.INITIAL

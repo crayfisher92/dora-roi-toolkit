@@ -114,7 +114,8 @@ class IncidentOverview:
             "undetermined": sum(1 for v in self.views
                                 if v.classification.outcome.value == "undetermined"),
             "overdue": sum(len(v.overdue(self.now)) for v in self.views),
-            "recurring_major": sum(1 for g in self.recurring if g.major),
+            "recurring_major": sum(1 for g in self.recurring if g.reportable),
+            "recurring_exempt": sum(1 for g in self.recurring if g.major and g.exempt),
         }
 
     @property
@@ -180,7 +181,8 @@ def summary_dict(ov: IncidentOverview, timezone: str = "UTC") -> dict[str, Any]:
         "recurring": [{"key": g.key, "incidents": [i.id for i in g.incidents],
                        "window_start": g.window_start.isoformat(),
                        "window_end": g.window_end.isoformat(),
-                       "classification": _classification_dict(g.classification)}
+                       "classification": _classification_dict(g.classification),
+                       "exempt": g.exempt, "reportable": g.reportable}
                       for g in ov.recurring],
     }
 
@@ -201,7 +203,8 @@ def summary_markdown(ov: IncidentOverview, lang: str = "en") -> str:
                      f"| {t('inc.out.' + v.classification.outcome.value)} | {due} |")
     for g in ov.recurring:
         lines += ["", f"**{t('inc.recurring')}:** {g.key} – {', '.join(i.id for i in g.incidents)}"
-                  f" → {t('inc.out.' + g.classification.outcome.value)}"]
+                  f" → {t('inc.out.' + g.classification.outcome.value)}"
+                  + (f" ({t('inc.recurring.exempt_short')})" if g.exempt else "")]
     return "\n".join(lines) + "\n"
 
 

@@ -142,6 +142,11 @@ def _contracts_pillar(t: Any, lang: str, pf: Portfolio, plan: RemediationPlan,
         lines.append(t("rd.c30.late", n=len(late_high)))
     if plan.exceptions:
         lines.append(t("rd.c30.exceptions", n=len(plan.exceptions)))
+    unknown = pf.criticality_unknown
+    if unknown:  # A-A30-02: the Art. 30(3) items stay on the checklist until assessed
+        lines.append(t("rd.c30.unknown", n=len(unknown)))
+        actions.append(Action("medium", "contracts", t("rd.act.c30_criticality",
+                                                       n=len(unknown)), "/register/B_06.01"))
     top = gaps_by_provision(pf)
     if top:
         worst = max(top, key=lambda x: (x[1], x[2]))
@@ -189,7 +194,8 @@ def _incidents_pillar(t: Any, ov: IncidentOverview, lang: str,
     c = ov.counts()
     pending_major = [v for v in ov.views if v.classification.major
                      and any(d.submitted_at is None for d in v.deadlines)]
-    recurring = [g for g in ov.recurring if g.major]
+    recurring = [g for g in ov.recurring if g.reportable]
+    exempt = [g for g in ov.recurring if g.major and g.exempt]
     if not ov.views:
         rag = Rag.GREY
     elif c["overdue"] or recurring:
@@ -213,6 +219,8 @@ def _incidents_pillar(t: Any, ov: IncidentOverview, lang: str,
             else "medium", "incidents",
             t("rd.act.inc_report", report=t(f"inc.report.{d.kind.value}"),
               id=view.incident.id, when=when), f"/incidents/{view.incident.id}"))
+    for g in exempt:  # RTS 2024/1772 Art. 8(2), declared by the user (D-094)
+        lines.append(t("rd.inc.recurring_exempt", series=g.key, n=len(g.incidents)))
     for g in recurring:
         lines.append(t("rd.inc.recurring", series=g.key, n=len(g.incidents)))
         actions.append(Action("high", "incidents", t("rd.act.inc_recurring", series=g.key),
@@ -292,9 +300,12 @@ def build_readiness(*, report: ValidationReport, quality: QualityScore,
                     now: datetime | None = None,
                     register: RegisterOfInformation | None = None,
                     config: AnalyticsConfig | None = None,
-                    out_of_scope: int = 0) -> ReadinessView:
+                    out_of_scope: int = 0, scope_contracts: int = 0,
+                    scope_incidents: int = 0) -> ReadinessView:
     """``report``/``quality`` describe the supervisory submission: with entities outside the
-    DORA scope (``out_of_scope`` of them) pass the validation of the restricted register."""
+    DORA scope (``out_of_scope`` of them) pass the validation of the restricted register,
+    and the portfolio and incidents of the scope; ``scope_contracts`` / ``scope_incidents``
+    say how many arrangements and incidents that left out (P-34)."""
     t = translator(lang)
     moment = now or datetime.now(UTC)
     cfg = config or AnalyticsConfig()
@@ -306,6 +317,11 @@ def build_readiness(*, report: ValidationReport, quality: QualityScore,
                                  actions),
                _incidents_pillar(t, incidents, lang, actions),
                _concentration_pillar(t, analysis, cfg, actions)]
+    by_key = {p.key: p for p in pillars}
+    if scope_contracts:
+        by_key["contracts"].lines.append(t("rd.c30.scope", n=scope_contracts))
+    if scope_incidents:
+        by_key["incidents"].lines.append(t("rd.inc.scope", n=scope_incidents))
     dora = [p.rag for p in pillars if p.rag is not Rag.GREY]
     overall = min(dora, key=lambda r: r.rank) if dora else Rag.GREY
     if finma is not None:
