@@ -21,7 +21,9 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 
+from dora_roi.incidents.model import IncidentLog
 from dora_roi.model import TEMPLATES_BY_CODE, RegisterOfInformation
+from dora_roi.model.refdata import EEA_COUNTRIES
 from dora_roi.validation import Finding
 
 
@@ -33,6 +35,9 @@ class ScopeError(ValueError):
 class ScopeSummary:
     excluded_entities: list[str] = field(default_factory=list)
     removed: dict[str, int] = field(default_factory=dict)
+    #: Excluded entities located in an EU/EEA country (B_01.02 c0030) – DORA normally applies
+    #: to them, so excluding them needs a reason (P-33, a warning, not a block).
+    eea_excluded: list[str] = field(default_factory=list)
 
     @property
     def total_removed(self) -> int:
@@ -48,6 +53,7 @@ def restrict_to_scope(register: RegisterOfInformation, excluded: Iterable[str]
     if maintainer is not None and maintainer.lei in out_leis:
         raise ScopeError("the entity maintaining the register cannot be outside the scope")
     summary = ScopeSummary(sorted(out_leis))
+    summary.eea_excluded = eea_entities(register, out_leis)
     if not out_leis:
         return register, summary
     reg = RegisterOfInformation()
@@ -91,3 +97,24 @@ def findings_in(findings: Iterable[Finding], register: RegisterOfInformation) ->
     to validate the restricted register as the package it becomes (P-20)."""
     kept = {(t, r.key_str()) for t in TEMPLATES_BY_CODE for r in register.records(t)}
     return [f for f in findings if f.record_key is None or (f.template, f.record_key) in kept]
+
+
+def eea_entities(register: RegisterOfInformation, leis: Iterable[str]) -> list[str]:
+    """Those of ``leis`` whose B_01.02 country is an EU/EEA country (P-33)."""
+    wanted = set(leis)
+    return sorted(e.lei for e in register.b_01_02
+                  if e.lei in wanted and e.country and e.country.upper() in EEA_COUNTRIES)
+
+
+def incidents_in_scope(log: IncidentLog, excluded: Iterable[str]) -> tuple[IncidentLog, int]:
+    """The incident log without incidents that concern only entities outside the DORA scope
+    (incidents with no entity recorded stay in); returns the log and how many were left out.
+    Used for the DORA pillars of the readiness dashboard (P-34)."""
+    out = set(excluded)
+    if not out:
+        return log, 0
+    kept = {k: i for k, i in log.incidents.items()
+            if not (i.entity_leis and set(i.entity_leis) <= out)}
+    if len(kept) == len(log.incidents):
+        return log, 0
+    return log.model_copy(update={"incidents": kept}), len(log.incidents) - len(kept)

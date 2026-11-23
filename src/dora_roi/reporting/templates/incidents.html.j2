@@ -49,7 +49,7 @@
 <p class="section-lead">{{ t("inc.recurring.lead") }}</p>
 <ul>{% for g in ov.recurring %}<li><strong>{{ g.key }}</strong>: {{ g.incidents | map(attribute="id") | join(", ") }} –
   <span class="pill {{ g.classification.outcome.value }}">{{ t("inc.out." ~ g.classification.outcome.value) }}</span>
-  {{ t("inc.recurring.major") if g.major else t("inc.recurring.not_major") }}</li>{% endfor %}</ul>
+  {% if g.exempt %}{{ t("inc.recurring.exempt") }}{% else %}{{ t("inc.recurring.major") if g.major else t("inc.recurring.not_major") }}{% endif %}</li>{% endfor %}</ul>
 {% endif %}
 
 <h2>{{ t("g.method") }}</h2>

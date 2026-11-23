@@ -19,7 +19,7 @@ def open_sample(page: Any, label: str = "Sample with 25 deliberate errors") -> s
 
 
 PROGRAMME_PAGES = ["/contracts", "/contracts/checklist", "/contract/AR-DE-0057",
-                   "/contract/AR-DE-0026",
+                   "/contract/AR-DE-0026", "/contract/AR-AT-0063",
                    "/contract/CO-LU-0002", "/incidents", "/incidents/new",
                    "/incidents/INC-2025-006", "/finma", "/dashboard", ""]
 STANDALONE_REPORTS = ["/contracts/plan.html", "/incidents/summary.html", "/readiness.html"]
@@ -79,10 +79,33 @@ def test_dora_scope_on_finma_page(page: Any) -> None:
     page.get_by_role("button", name="Save scope").click()
     page.wait_for_url(re.compile(r"scope_saved=1"))
     assert page.get_by_role("status").filter(has_text="Scope saved").is_visible()
+    assert page.locator("[data-scope-eea]").is_visible()  # Luxembourg is in the EU (P-33)
     assert page.get_by_text(re.compile(r"record\(s\) are left out")).is_visible()
     assert page.get_by_label(re.compile("Alpenrand Bank \\(Europe\\)")).is_disabled()
     page.goto(url + "/export")
     assert page.get_by_text(re.compile("outside the DORA scope are left out")).is_visible()
+
+
+def test_unknown_criticality_and_recurring_exemption(page: Any) -> None:
+    url = open_sample(page)
+    page.goto(url + "/contract/AR-AT-0063")
+    banner = page.locator("[data-criticality-unknown]")
+    assert banner.is_visible()
+    assert page.locator("#pv-30_3_d").is_visible()  # Art. 30(3) items kept to assess
+    banner.get_by_role("link", name="Assess the functions (B_06.01)").click()
+    page.wait_for_url(re.compile(r"/register/B_06\.01"))
+    page.goto(url + "/incidents")
+    assert page.get_by_role("status").filter(has_text="Recurring").count() >= 1
+    exempt = page.locator("section[aria-labelledby=h-exempt]")
+    boxes = exempt.get_by_role("checkbox")
+    for i in range(boxes.count()):
+        boxes.nth(i).check()
+    exempt.get_by_role("button", name="Save").click()
+    page.wait_for_url(re.compile(r"exempt_saved=1"))
+    assert page.get_by_text("Saved.").is_visible()
+    assert page.get_by_text(re.compile("declared not to apply")).first.is_visible()
+    page.goto(url + "/dashboard")
+    assert page.get_by_text(re.compile("concerns only entities declared exempt")).is_visible()
 
 
 def test_contracts_filter_and_checklist(page: Any) -> None:

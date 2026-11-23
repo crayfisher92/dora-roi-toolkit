@@ -327,16 +327,25 @@ class RecurringGroup:
     window_end: datetime
     answers: Answers
     classification: Classification
+    #: Every incident of the series concerns only entities declared exempt from the
+    #: recurring-incident rule (RTS 2024/1772 Art. 8(2)); mixed series are not exempt.
+    exempt: bool = False
 
     @property
     def major(self) -> bool:
         return self.classification.major
+
+    @property
+    def reportable(self) -> bool:
+        """Major together and not exempt: to be reported as one major incident."""
+        return self.major and not self.exempt
 
 
 def recurring_groups(log: IncidentLog, now: datetime,
                      th: Thresholds = DEFAULT_THRESHOLDS) -> list[RecurringGroup]:
     """Groups of individually non-major incidents with the same recurrence key that occurred
     at least twice within ``th.recurrence_months`` – with their combined classification."""
+    exempt_leis = {x.strip().upper() for x in log.recurrence_exempt if x.strip()}
     by_key: dict[str, list[Incident]] = {}
     for inc in log.incidents.values():
         if not inc.recurrence_key.strip() or classify(inc, now, th).major:
@@ -354,10 +363,12 @@ def recurring_groups(log: IncidentLog, now: datetime,
         if len(best) < 2:
             continue
         combined = aggregate(best, now)
+        exempt = bool(exempt_leis) and all(i.entity_leis and set(i.entity_leis) <= exempt_leis
+                                           for i in best)
         groups.append(RecurringGroup(
             best[0].recurrence_key.strip(), best, best[0].start,
             add_months(best[0].start, th.recurrence_months), combined,
-            classify_answers(combined, th)))
+            classify_answers(combined, th), exempt))
     groups.sort(key=lambda g: (not g.major, g.window_start))
     return groups
 

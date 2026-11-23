@@ -32,6 +32,16 @@ def render_plan_html(plan: RemediationPlan, *, lang: str = "en", client: str | N
 _PRIO_FILL = {"high": "#F8D7D7", "medium": "#FDEBC8", "low": "#E3F1E3"}
 
 
+def _provider_progress(plan: RemediationPlan, refs: set[str]) -> list[int]:
+    """Actions of one provider's arrangements: total, by progress, and past their (agreed or
+    proposed) target date (P-27)."""
+    items = [i for i in plan.items if i.contract_ref in refs]
+    by = {k: sum(1 for i in items if i.progress_key == k)
+          for k in ("open", "planned", "negotiating", "agreed")}
+    past = sum(1 for i in items if i.overdue(plan.plan_date) or i.late(plan.plan_date))
+    return [len(items), by["open"], by["planned"], by["negotiating"], by["agreed"], past]
+
+
 def write_plan_workbook(plan: RemediationPlan, path: Path, *, lang: str = "en",
                         client: str | None = None) -> Path:
     """Write the remediation plan as an Excel workbook the client can work in."""
@@ -64,11 +74,13 @@ def write_plan_workbook(plan: RemediationPlan, path: Path, *, lang: str = "en",
         wb.sheet("Nach Dienstleister" if de else "By provider",
                  [t("g.provider"), t("c30.critical_functions"), t("g.contracts"),
                   t("c30.assessed"), t("c30.with_gaps"), t("st.missing"), t("st.partial"),
-                  t("g.status")],
+                  t("g.status"), t("c30.actions"), t("c30.rem.open"), t("c30.rem.planned"),
+                  t("c30.rem.negotiating"), t("c30.rem.agreed"), t("c30.rem.past_target")],
                  [[p.name, len(p.critical_functions), len(p.contracts), p.assessed,
-                   p.with_gaps, p.missing, p.partial, t(f"cs.{p.status.value}")]
+                   p.with_gaps, p.missing, p.partial, t(f"cs.{p.status.value}"),
+                   *_provider_progress(plan, {c.ref for c in p.contracts})]
                   for p in plan.portfolio.providers],
-                 (36, 14, 12, 12, 12, 10, 10, 22))
+                 (36, 14, 12, 12, 12, 10, 10, 22, 10, 12, 10, 14, 14, 14))
         wb.sheet("Ausnahmen" if de else "Exceptions",
                  [t("g.provider"), t("g.contract"), t("c30.provision"), "Art.", t("g.status"),
                   t("c30.ui.ex.reason"), t("c30.ui.ex.approver"), t("c30.ui.ex.until")],
@@ -80,7 +92,8 @@ def write_plan_workbook(plan: RemediationPlan, path: Path, *, lang: str = "en",
                  [t("g.contract"), t("g.provider"), t("g.critical"), t("g.status"),
                   t("c30.critical_functions")],
                  [[c.ref, c.context.provider_names,
-                   t("g.yes") if c.context.critical else t("g.no"), t(f"cs.{c.status.value}"),
+                   t("g.yes") if c.context.critical else t("c30.scope.unknown")
+                   if c.context.criticality_unknown else t("g.no"), t(f"cs.{c.status.value}"),
                    "; ".join(f"{f.function_id} {f.name}" for f in c.context.critical_functions)]
                   for c in plan.to_assess],
                  (16, 36, 14, 24, 60))

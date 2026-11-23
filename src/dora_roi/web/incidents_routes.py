@@ -179,11 +179,15 @@ def register(app: FastAPI, ui: Ui) -> None:
                 "criteria": {c.key: c for c in criteria()}}
 
     @app.get("/w/{wid}/incidents", response_class=HTMLResponse)
-    def incidents(request: Request, wid: str, imported: int = -1) -> HTMLResponse:
+    def incidents(request: Request, wid: str, imported: int = -1,
+                  exempt_saved: int = 0) -> HTMLResponse:
         ws = ui.ws_or_404(wid)
         ov = overview(ws.incidents, ws.register, _now())
         return ui.ws_page(request, ws, "ws_incidents.html.j2", "programme", ov=ov,
                           imported=imported, timezones=TIMEZONES, pdf=pdf_available(),
+                          entities=[e for e in ws.register.b_01_02 if e.lei],
+                          exempt=set(ws.incidents.recurrence_exempt),
+                          exempt_saved=exempt_saved,
                           provider_names={c: p.legal_name or c for c, p in
                                           ws.register.providers_by_code().items()},
                           **page_ctx(request, ws))
@@ -191,12 +195,25 @@ def register(app: FastAPI, ui: Ui) -> None:
     @app.post("/w/{wid}/incidents/settings")
     async def settings(request: Request, wid: str) -> Response:
         ws = ui.ws_for_edit(wid)
-        tz = form_text(await request.form(), "timezone")
+        form = await request.form()
+        tz = form_text(form, "timezone")
         if tz in TIMEZONES and tz != ws.incidents.timezone:
             with ws.lock:
                 ws.incidents.timezone = tz
                 ws.programme_changed("incident", "settings", f"Time zone {tz}",
                                      ui.user_of(request))
+        if form_text(form, "exempt_shown"):  # RTS 2024/1772 Art. 8(2), declared (D-094)
+            known = {e.lei for e in ws.register.b_01_02 if e.lei}
+            chosen = sorted({v for v in form.getlist("exempt")
+                             if isinstance(v, str) and v in known})
+            if chosen != ws.incidents.recurrence_exempt:
+                with ws.lock:
+                    ws.incidents.recurrence_exempt = chosen
+                    ws.programme_changed(
+                        "incident", "settings", "Recurring-incident rule (RTS Art. 8(2)) not "
+                        "applied to: " + (", ".join(chosen) or "none"), ui.user_of(request))
+            return RedirectResponse(f"/w/{wid}/incidents?exempt_saved=1#h-exempt",
+                                    status_code=303)
         return RedirectResponse(f"/w/{wid}/incidents", status_code=303)
 
     def summary_page(request: Request, ws: Workspace) -> str:

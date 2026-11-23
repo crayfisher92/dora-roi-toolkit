@@ -241,6 +241,7 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
             raise click.BadParameter(str(exc), param_hint="--exclude-entity") from exc
         click.echo(f"Outside the DORA scope: {', '.join(summary.excluded_entities)} "
                    f"({summary.total_removed} record(s) left out)", err=True)
+        _warn_eea(summary.eea_excluded)
         # the package is validated as what it is: the register restricted to the scope
         vreport = validate_register(
             register, parse_findings=findings_in(loaded.findings, register),
@@ -266,6 +267,14 @@ def export(input_path: Path, output: Path, fmt: str, unzipped: bool, strict: boo
     for w in result.warnings:
         click.echo(f"! {w}", err=True)
     click.echo(f"Wrote {result.path}", err=True)
+
+
+def _warn_eea(leis: list[str]) -> None:
+    """P-33: excluding an EU/EEA entity is allowed but needs a reason."""
+    if leis:
+        click.echo(f"Warning: {', '.join(leis)} is located in the EU/EEA; DORA normally "
+                   "applies to it – exclude it only if it is not a financial entity within "
+                   "DORA's scope (Art. 2).", err=True)
 
 
 @main.command()
@@ -353,7 +362,7 @@ def sample(output: Path, fmt: str, clean: bool, previous_year: bool, inventory: 
 
         book = sample_assessments(result.register)
         if assessments_out.suffix.lower() == ".xlsx":
-            refs = {r: c.critical for r, c in contract_contexts(result.register).items()}
+            refs = {r: c.full_checklist for r, c in contract_contexts(result.register).items()}
             write_assessment_workbook(book, assessments_out, refs)
             click.echo(f"Wrote {assessments_out}", err=True)
         else:
@@ -539,6 +548,7 @@ def contracts_assess(input_path: Path, assessments_path: Path, output: Path | No
             "schema": "dora-roi-toolkit/art30-remediation-plan/v1",
             "plan_date": plan.plan_date.isoformat(), "counts": pc,
             "contracts": {c.ref: {"status": c.status.value, "critical": c.context.critical,
+                                  "criticality": c.context.scope_key,
                                   "missing": c.missing, "partial": c.partial,
                                   "not_assessed": c.unassessed,
                                   "inherited_from": c.inherited_from} for c in pf.contracts},
@@ -585,7 +595,7 @@ def contracts_template(input_path: Path, output: Path, assessments_path: Path | 
         found, _ = _assessments(assessments_path)
         assert isinstance(found, AssessmentBook)
         book = found
-    refs = {r: c.critical for r, c in contract_contexts(loaded.register).items()}
+    refs = {r: c.full_checklist for r, c in contract_contexts(loaded.register).items()}
     click.echo(f"Wrote {write_assessment_workbook(book, output, refs, lang=lang)}", err=True)
 
 
@@ -824,16 +834,17 @@ def readiness(input_path: Path, output: Path, assessments_path: Path | None,
     from dora_roi.incidents.report import overview
     from dora_roi.quality import quality_score
     from dora_roi.readiness import build_readiness, render_readiness_html
+    from dora_roi.scope import ScopeError, findings_in, incidents_in_scope, restrict_to_scope
 
     loaded = _load(input_path, _code_map(code_map))
     report = validate_loaded(loaded)
+    reg = dora = loaded.register
     if exclude:
-        from dora_roi.scope import ScopeError, findings_in, restrict_to_scope
-
         try:
-            dora, _ = restrict_to_scope(loaded.register, {e.upper() for e in exclude})
+            dora, summary = restrict_to_scope(reg, {e.upper() for e in exclude})
         except ScopeError as exc:
             raise click.BadParameter(str(exc), param_hint="--exclude-entity") from exc
+        _warn_eea(summary.eea_excluded)
         report = validate_register(dora, parse_findings=findings_in(loaded.findings, dora),
                                    source=loaded.source)
     book = AssessmentBook()
@@ -844,14 +855,18 @@ def readiness(input_path: Path, output: Path, assessments_path: Path | None,
     log = _incident_log(incidents_path) if incidents_path is not None else IncidentLog()
     assert isinstance(log, IncidentLog)
     now = _now_opt(now_value)
-    reg = loaded.register
     portfolio = evaluate(reg, book)
+    # DORA pillars on the scope (P-34); FINMA and concentration on the whole dataset
+    scoped = evaluate(dora, book) if dora is not reg else portfolio
+    scoped_log, incidents_left_out = incidents_in_scope(log, {e.upper() for e in exclude})
     view = build_readiness(
         report=report, quality=quality_score(report), analysis=analyse(reg),
-        portfolio=portfolio, plan=remediation_plan(portfolio, now.date()),
-        incidents=overview(log, reg, now),
+        portfolio=scoped, plan=remediation_plan(scoped, now.date()),
+        incidents=overview(scoped_log, reg, now),
         finma=None if no_finma else evaluate_finma(reg, portfolio, log, now),
-        lang=lang, now=now, register=reg, out_of_scope=len(set(exclude)))
+        lang=lang, now=now, register=reg, out_of_scope=len(set(exclude)),
+        scope_contracts=len(portfolio.contracts) - len(scoped.contracts),
+        scope_incidents=incidents_left_out)
     _write_report(render_readiness_html(view, lang=lang, client=client_name,
                                         prepared_by=prepared_by), output)
     if json_path is not None:

@@ -49,9 +49,9 @@ Corrected:
 
 Open (specialist sign-off needed):
 
-- **A-A30-02** – an arrangement whose function is not yet assessed is treated as *not
-  critical*, so the Art. 30(3) items are skipped. Safer: show "criticality unknown" and keep
-  the 30(3) items *to assess*.
+- ~~**A-A30-02**~~ – closed with the safer option (D-093): an arrangement whose function is
+  not linked or not assessed is shown as *criticality not assessed* and keeps the Art. 30(3)
+  items *to assess*; a specialist may still confirm the interpretation.
 - **A-A30-03** – Art. 28(7) termination grounds are not a checklist item of their own.
 - Contract content required by RTS 2024/1773 (Art. 3(8), 8(2)–(4), 9(1), 10) and RTS
   2025/532 (Art. 4–6) is **not assessed**; Art. 30(4) standard clauses are not assessed
@@ -84,8 +84,9 @@ Open:
 - Not modelled: weekend/bank-holiday relief (RTS 2025/301 Art. 5(4)–(6)); updated
   intermediate reports (Art. 5(1)(b)) – the final report is due one month after the recorded
   intermediate report; notice of a delay (Art. 5(3)); reclassification to non-major.
-- The Art. 8(2) exemption is a caveat, not an entity flag; the recurring-series rule still
-  turns the readiness pillar red for exempt entities.
+- ~~The Art. 8(2) exemption is a caveat, not an entity flag~~ – closed (D-094): exempt
+  entities are declared by the user in the incident log; a series concerning only declared
+  entities is informational and no longer turns the readiness pillar red (A-INC-09).
 - No guidance in the form on the economic-impact inclusions/exclusions of Art. 7 or on
   duration estimates (Art. 3(1)).
 - **A-INC-05** (aggregation of recurring incidents) and **A-INC-08** (one classification on
@@ -147,13 +148,15 @@ Open:
 - Concentration thresholds are the toolkit's own method (A-AN-05; DORA sets no caps, cf.
   recital 67) and should be labelled as such on the dashboard.
 - Scope rules of DORA Art. 2, simplified frameworks (Art. 16) and microenterprise relief are
-  not modelled; entities excluded from the package are not cross-checked against the other
-  pillars, and an excluded EU entity raises no warning.
+  not modelled. ~~Entities excluded from the package are not cross-checked against the other
+  pillars, and an excluded EU entity raises no warning~~ – closed (D-095): the contracts and
+  incidents pillars use the DORA scope, and excluding an EU/EEA entity is warned about.
 
 ## Next steps
 
 1. Specialist sign-off on the open items above (DORA third-party risk, incident reporting,
    FINMA).
-2. Close the "criticality unknown" gap (A-A30-02) and add the Art. 8(2) entity flag – both are
-   small code changes once the interpretation is confirmed.
+2. ~~Close the "criticality unknown" gap (A-A30-02) and add the Art. 8(2) entity flag~~ –
+   done with the conservative reading (D-093, D-094); the specialist sign-off in step 1
+   covers whether these readings are confirmed.
 3. Decide whether RTS 2024/1773 and 2025/532 contract content should become checklist items.

@@ -40,6 +40,7 @@ from dora_roi.contracts.model import (
 )
 from dora_roi.contracts.provisions import PROVISIONS, Provision, applicable
 from dora_roi.model import ContractType, RegisterOfInformation
+from dora_roi.model.codelists import Criticality
 from dora_roi.model.types import INDEFINITE_END_DATE
 
 
@@ -78,6 +79,8 @@ class FunctionRef:
     entity_lei: str
     name: str
     critical: bool
+    #: B_06.01 c0050 says critical or not critical (False: not assessed, empty or no record).
+    assessed: bool = True
 
 
 @dataclass
@@ -100,7 +103,31 @@ class ContractContext:
 
     @property
     def critical(self) -> bool:
+        """Supports a function assessed as critical or important (B_06.01 c0050)."""
         return any(f.critical for f in self.functions)
+
+    @property
+    def criticality_unknown(self) -> bool:
+        """Not known to be critical, and not every linked function is assessed – or no
+        function is linked at all (A-A30-02)."""
+        return not self.critical and (not self.functions
+                                      or any(not f.assessed for f in self.functions))
+
+    @property
+    def full_checklist(self) -> bool:
+        """The Art. 30(3) items apply: the arrangement supports a critical or important
+        function, or that is not known yet – then they stay on the checklist *to assess*
+        instead of being skipped (A-A30-02, D-093)."""
+        return self.critical or self.criticality_unknown
+
+    @property
+    def scope_key(self) -> str:
+        """``critical`` · ``unknown`` · ``all`` (Art. 30(2) only)."""
+        return "critical" if self.critical else "unknown" if self.criticality_unknown else "all"
+
+    @property
+    def scope_rank(self) -> int:
+        return {"critical": 0, "unknown": 1, "all": 2}[self.scope_key]
 
     @property
     def critical_functions(self) -> list[FunctionRef]:
@@ -147,8 +174,11 @@ def contract_contexts(register: RegisterOfInformation) -> dict[str, ContractCont
             fn = fl.get((s.function_id, s.entity_lei or ""))
             candidates = [fn] if fn else by_id.get(s.function_id, [])
             critical = any(f.is_critical for f in candidates)
+            assessed = critical or any(f.criticality is Criticality.NOT_CRITICAL
+                                       for f in candidates)
             name = next((f.function_name for f in candidates if f.function_name), s.function_id)
-            ref = FunctionRef(s.function_id, s.entity_lei or "", name or s.function_id, critical)
+            ref = FunctionRef(s.function_id, s.entity_lei or "", name or s.function_id, critical,
+                              assessed)
             if ref not in ctx.functions:
                 ctx.functions.append(ref)
         if s.start_date and (ctx.start_date is None or s.start_date < ctx.start_date):
@@ -277,7 +307,7 @@ def evaluate_contract(ctx: ContractContext, book: AssessmentBook,
     parent = book.get(parent_ref) if parent_ref and (own is None or own.inherit) else None
     items: list[EffectiveItem] = []
     inherited_any = False
-    for p in applicable(ctx.critical):
+    for p in applicable(ctx.full_checklist):
         mine = own.items.get(p.id) if own else None
         if mine is not None and mine.status is not ProvisionStatus.NOT_ASSESSED:
             items.append(_effective(p, mine, on, assessed_on=own.assessed_on if own else None))
@@ -350,6 +380,12 @@ class Portfolio:
         return [c for c in self.contracts if c.context.critical]
 
     @property
+    def criticality_unknown(self) -> list[ContractCompliance]:
+        """Arrangements in the register whose function criticality is not assessed."""
+        return [c for c in self.contracts if c.context.in_register
+                and c.context.criticality_unknown]
+
+    @property
     def total_missing(self) -> int:
         return sum(c.missing for c in self.contracts)
 
@@ -378,10 +414,10 @@ def evaluate(register: RegisterOfInformation, book: AssessmentBook,
     ordered = sorted(providers.values(), key=lambda p: (
         -len(p.critical_functions), p.status.rank, -p.missing, -p.partial, p.name.casefold()))
     for p in ordered:
-        p.contracts.sort(key=lambda c: (not c.context.critical, c.status.rank, -c.missing,
+        p.contracts.sort(key=lambda c: (c.context.scope_rank, c.status.rank, -c.missing,
                                         c.ref))
     orphans = [a for ref, a in book.assessments.items() if ref not in contexts]
-    contracts.sort(key=lambda c: (not c.context.critical, c.status.rank, -c.missing, c.ref))
+    contracts.sort(key=lambda c: (c.context.scope_rank, c.status.rank, -c.missing, c.ref))
     return Portfolio(contracts, ordered, orphans)
 
 
@@ -537,7 +573,7 @@ def remediation_plan(portfolio: Portfolio, plan_date: date | None = None) -> Rem
                               i.providers.casefold(), i.contract_ref, order[i.provision.id]))
     to_assess = [c for c in portfolio.contracts
                  if c.status in (ComplianceStatus.NOT_ASSESSED, ComplianceStatus.INCOMPLETE)]
-    to_assess.sort(key=lambda c: (not c.context.critical, c.status.rank, c.ref))
+    to_assess.sort(key=lambda c: (c.context.scope_rank, c.status.rank, c.ref))
     exceptions = [ExceptionItem(c.ref, c.context.provider_names, c.context.critical,
                                 it.provision, it.status, it.exception_reason,
                                 it.exception_approver, it.exception_until, it.inherited_from)

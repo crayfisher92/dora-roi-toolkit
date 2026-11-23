@@ -6,12 +6,13 @@
 <p class="eyebrow">{{ t("c30.title") }}</p>
 <h2 class="provider-name"><span class="mono">{{ ref }}</span> {{ pill(compliance.status.value, t("cs." ~ compliance.status.value)) }}</h2>
 {% if request.query_params.get("saved") %}<div class="banner pass" role="status"><span class="icon" aria-hidden="true">✓</span><div>{{ t("c30.ui.saved") }}</div></div>{% endif %}
+{% if ctx.in_register and ctx.criticality_unknown %}<div class="banner warn" role="status" data-criticality-unknown><span class="icon" aria-hidden="true">?</span><div>{{ t("c30.ui.criticality_unknown") }} <a href="/w/{{ ws.id }}/register/B_06.01">{{ t("c30.ui.assess_criticality") }}</a></div></div>{% endif %}
 {% if not ctx.in_register %}<div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>{{ t("c30.ui.not_in_register") }}</div></div>{% endif %}
 
 <section class="grid tiles" aria-label="{{ t('c30.ui.context') }}">
   <div class="card tile"><div class="label">{{ t("g.provider") }}</div><div class="value small-value">
     {% for code, name in ctx.providers.items() %}{% if code in provider_codes %}<a href="/w/{{ ws.id }}/provider/{{ code }}">{{ name }}</a>{% else %}{{ name }}{% endif %}{% if not loop.last %}<br>{% endif %}{% else %}—{% endfor %}</div></div>
-  <div class="card tile"><div class="label">{{ t("c30.ui.scope") }}</div><div class="value small-value">{% if ctx.critical %}◆ {{ t("c30.scope.critical") }}{% else %}{{ t("c30.scope.all") }}{% endif %}</div>
+  <div class="card tile"><div class="label">{{ t("c30.ui.scope") }}</div><div class="value small-value">{% if ctx.critical %}◆ {{ t("c30.scope.critical") }}{% elif ctx.criticality_unknown %}? {{ t("c30.scope.unknown") }}{% else %}{{ t("c30.scope.all") }}{% endif %}</div>
     <div class="sub">{{ provisions | length }} {{ t("c30.ui.provisions_apply") }}</div></div>
   <div class="card tile"><div class="label">{{ t("c30.ui.result") }}</div><div class="value">{{ compliance.present }}/{{ compliance.items | length }}</div>
     <div class="sub">{{ compliance.missing }} {{ t("st.missing") | lower }} · {{ compliance.partial }} {{ t("st.partial") | lower }} · {{ compliance.unassessed }} {{ t("st.not_assessed") | lower }}</div></div>
@@ -124,7 +125,7 @@
   {% endfor %}
   {% endif %}
   {% endfor %}
-  {% if not ctx.critical %}<p class="small muted">{{ t("c30.ui.no_30_3") }}</p>{% endif %}
+  {% if not ctx.full_checklist %}<p class="small muted">{{ t("c30.ui.no_30_3") }}</p>{% endif %}
   <div class="row actions sticky-actions"><button class="btn primary" type="submit">{{ t("c30.ui.save") }}</button>
     {% if draft %}<a class="btn" href="{{ action_url }}">{{ t("c30.ui.discard") }}</a>{% endif %}</div>
 </form>

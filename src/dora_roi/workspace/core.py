@@ -102,6 +102,7 @@ class Workspace:
         self._analysis: ConcentrationAnalysis | None = None
         self._parser = Parser()
         self._portfolio: Portfolio | None = None
+        self._dora_portfolio: Portfolio | None = None
         self._row_index: dict[str, dict[int, RawRow]] = {}
         self.snapshot("Imported", user=user)
 
@@ -130,7 +131,7 @@ class Workspace:
     def _invalidate(self) -> None:
         self._derived = None
         self._analysis = None
-        self._portfolio = None
+        self._portfolio = self._dora_portfolio = None
         self._row_index = {}
 
     @property
@@ -174,7 +175,23 @@ class Workspace:
                 self.out_of_scope = set(out_of_scope)
                 if self._derived is not None:
                     self._derived.dora_report = None
-            self._portfolio = None
+            self._portfolio = self._dora_portfolio = None
+
+    def dora_excluded(self) -> set[str]:
+        """Entities outside the DORA scope, without the maintaining entity (always in)."""
+        register = self.register
+        maintainer = register.maintainer.lei if register.maintainer else None
+        return self.out_of_scope - {maintainer or ""}
+
+    def dora_portfolio(self) -> Portfolio:
+        """Art. 30 coverage of the arrangements in the DORA scope – the arrangements of the
+        restricted register (P-34); :attr:`portfolio` without entities outside the scope."""
+        with self.lock:
+            if not self.dora_excluded():
+                return self.portfolio
+            if self._dora_portfolio is None:
+                self._dora_portfolio = evaluate(self.dora_register(), self.contracts)
+            return self._dora_portfolio
 
     def dora_register(self) -> RegisterOfInformation:
         """The register restricted to the DORA reporting scope (for the xBRL-CSV package).
@@ -236,7 +253,7 @@ class Workspace:
         with self.lock:
             self.changes.append(Change(kind, area, 0, subject[:200] or None, None, None,
                                        user=user, note=summary[:500]))
-            self._portfolio = None
+            self._portfolio = self._dora_portfolio = None
             if self._derived is not None:  # the DORA scope may have changed
                 self._derived.dora_report = None
             self._changed()

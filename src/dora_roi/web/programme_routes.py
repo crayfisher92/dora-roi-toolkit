@@ -15,7 +15,7 @@ from dora_roi.model.refdata import country_name
 from dora_roi.quality import quality_score
 from dora_roi.readiness import ReadinessView, build_readiness, render_readiness_html
 from dora_roi.reporting.pdf import PdfBusyError, html_to_pdf, pdf_available
-from dora_roi.scope import restrict_to_scope
+from dora_roi.scope import incidents_in_scope, restrict_to_scope
 from dora_roi.web.feature_ui import Ui, download, stem
 from dora_roi.workspace import Workspace
 
@@ -27,7 +27,11 @@ def workspace_readiness(ws: Workspace, lang: str, now: datetime | None = None
                         ) -> ReadinessView:
     """The readiness view of a workspace (register, assessments, incidents, FINMA)."""
     moment = now or datetime.now(UTC)
-    portfolio = ws.portfolio
+    # DORA pillars use the DORA scope (P-20/P-34); the FINMA view and the group-wide
+    # concentration analysis keep the whole dataset
+    excluded = ws.dora_excluded()
+    portfolio = ws.dora_portfolio()
+    log, incidents_left_out = incidents_in_scope(ws.incidents, excluded)
     ref = ws.register.reference_date
     today = moment.date()
     plan = remediation_plan(portfolio, max(ref, today) if ref else today)
@@ -35,10 +39,12 @@ def workspace_readiness(ws: Workspace, lang: str, now: datetime | None = None
     return build_readiness(
         report=report, quality=ws.quality if report is ws.report else quality_score(report),
         analysis=ws.analysis, portfolio=portfolio,
-        plan=plan, incidents=overview(ws.incidents, ws.register, moment),
-        finma=evaluate_finma(ws.register, portfolio, ws.incidents, moment), lang=lang,
+        plan=plan, incidents=overview(log, ws.register, moment),
+        finma=evaluate_finma(ws.register, ws.portfolio, ws.incidents, moment), lang=lang,
         now=moment, register=ws.register,
-        out_of_scope=len(ws.out_of_scope) if report is not ws.report else 0)
+        out_of_scope=len(excluded),
+        scope_contracts=len(ws.portfolio.contracts) - len(portfolio.contracts),
+        scope_incidents=incidents_left_out)
 
 
 def pdf_response(html: str, filename: str) -> Response:
@@ -60,10 +66,13 @@ def register(app: FastAPI, ui: Ui) -> None:
         view = evaluate_finma(ws.register, ws.portfolio, ws.incidents)
         maintainer = ws.register.maintainer.lei if ws.register.maintainer else None
         _, summary = restrict_to_scope(ws.register, ws.out_of_scope - {maintainer or ""})
+        names = {e.lei: e.name or e.lei for e in ws.register.b_01_02 if e.lei}
         return ui.ws_page(request, ws, "ws_finma.html.j2", "programme", view=view,
                           circulars=CIRCULARS, country_name=country_name,
                           entities=ws.register.b_01_02, maintainer=maintainer,
-                          scope_summary=summary, scope_saved=scope_saved)
+                          scope_summary=summary, scope_saved=scope_saved,
+                          entity_names=lambda leis: ", ".join(
+                              names.get(x, x) for x in leis))
 
     @app.post("/w/{wid}/scope")
     async def scope(request: Request, wid: str) -> Response:

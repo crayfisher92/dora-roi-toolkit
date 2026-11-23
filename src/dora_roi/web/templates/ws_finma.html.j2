@@ -33,6 +33,7 @@
   <h3 id="h-scope">{{ t("scope.title") }}</h3>
   <p class="small muted">{{ t("scope.lead") }}</p>
   {% if scope_saved %}<p class="small" role="status">✓ {{ t("scope.saved") }}</p>{% endif %}
+  {% if scope_summary.eea_excluded %}<div class="banner warn" role="status" data-scope-eea><span class="icon" aria-hidden="true">!</span><div>{{ t("scope.eea_warning", names=entity_names(scope_summary.eea_excluded)) }}</div></div>{% endif %}
   <form method="post" action="/w/{{ ws.id }}/scope">
     <fieldset class="checks"><legend>{{ t("scope.legend") }}</legend>
       {% for e in entities %}<label class="check"><input type="checkbox" name="out" value="{{ e.lei }}" {% if e.lei in ws.out_of_scope %}checked{% endif %} {% if e.lei == maintainer %}disabled{% endif %}>

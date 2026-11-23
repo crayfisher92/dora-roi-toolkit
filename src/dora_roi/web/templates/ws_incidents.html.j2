@@ -24,7 +24,7 @@
   <a class="btn" href="/w/{{ ws.id }}/incidents/summary.json">{{ t("inc.ui.summary") }} (JSON)</a>
   <a class="btn" href="/w/{{ ws.id }}/incidents/log.json">{{ t("inc.ui.log") }} (JSON)</a></p>
 
-{% for g in ov.recurring if g.major %}
+{% for g in ov.recurring if g.reportable %}
 <div class="banner warn" role="status"><span class="icon" aria-hidden="true">!</span><div>
   <strong>{{ t("inc.recurring") }}: {{ g.key }}</strong> – {{ g.incidents | map(attribute="id") | join(", ") }}. {{ t("inc.recurring.major") }}
   <span class="small">({% for r in g.classification.met %}{{ criteria[r.criterion].title(lang) }}{% if not loop.last %}, {% endif %}{% endfor %})</span></div></div>
@@ -54,7 +54,7 @@
   <ul class="plain">{% for g in ov.recurring %}<li class="card">
     <strong>{{ g.key }}</strong> · {% for i in g.incidents %}<a class="mono" href="/w/{{ ws.id }}/incidents/{{ i.id }}">{{ i.id }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
     · {{ outcome_pill(g.classification.outcome, t) }}
-    <div class="small">{{ t("inc.recurring.window", start=local(g.window_start), end=local(g.window_end)) }} · {{ t("inc.recurring.major") if g.major else t("inc.recurring.not_major") }}</div>
+    <div class="small">{{ t("inc.recurring.window", start=local(g.window_start), end=local(g.window_end)) }} · {% if g.exempt %}{{ t("inc.recurring.exempt") }}{% else %}{{ t("inc.recurring.major") if g.major else t("inc.recurring.not_major") }}{% endif %}</div>
     {% if g.classification.met %}<div class="small">{% for r in g.classification.met %}{{ criteria[r.criterion].title(lang) }}: {% for tr in r.triggers %}{{ t("inc.tr." ~ tr.key) }} {{ tr.value }}{% if not loop.last %}; {% endif %}{% endfor %}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
   </li>{% endfor %}</ul>
 </section>
@@ -73,6 +73,16 @@
     <label for="log-file">{{ t("inc.ui.log") }} <span class="muted small">(.json)</span></label>
     <input id="log-file" name="file" type="file" accept=".json" required>
     <button class="btn" type="submit">{{ t("c30.ui.import_button") }}</button>
+  </form></section>
+<section class="card" aria-labelledby="h-exempt"><h3 id="h-exempt">{{ t("inc.ui.exempt_title") }}</h3>
+  <p class="small muted">{{ t("inc.ui.exempt_lead") }}</p>
+  {% if exempt_saved %}<p class="small" role="status">✓ {{ t("inc.ui.exempt_saved") }}</p>{% endif %}
+  <form method="post" action="/w/{{ ws.id }}/incidents/settings">
+    <input type="hidden" name="exempt_shown" value="1">
+    <fieldset class="checks"><legend>{{ t("inc.ui.exempt_legend") }}</legend>
+      {% for e in entities %}<label class="check"><input type="checkbox" name="exempt" value="{{ e.lei }}" {% if e.lei in exempt %}checked{% endif %}> {{ e.name or e.lei }}</label>{% else %}<span class="muted">—</span>{% endfor %}
+    </fieldset>
+    <p class="row"><button class="btn" type="submit">{{ t("inc.ui.exempt_save") }}</button></p>
   </form></section>
 <section class="card" aria-labelledby="h-tz"><h3 id="h-tz">{{ t("inc.ui.timezone") }}</h3>
   <form method="post" action="/w/{{ ws.id }}/incidents/settings" class="row">

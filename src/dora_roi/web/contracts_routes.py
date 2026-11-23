@@ -135,7 +135,7 @@ def register(app: FastAPI, ui: Ui) -> None:
     def assessments_xlsx(request: Request, wid: str) -> Response:
         ws = ui.ws_or_404(wid)
         ui.audit_export(request, ws, "Art. 30 assessments (Excel)")
-        refs = {r: c.critical for r, c in contract_contexts(ws.register).items()}
+        refs = {r: c.full_checklist for r, c in contract_contexts(ws.register).items()}
         with tempfile.TemporaryDirectory() as tmp:
             data = write_assessment_workbook(ws.contracts, Path(tmp) / "a.xlsx", refs,
                                              lang=ui.lang_of(request)).read_bytes()
@@ -196,7 +196,7 @@ def register(app: FastAPI, ui: Ui) -> None:
             request, ws, "ws_contract.html.j2", "programme", status=status, ctx=ctx,
             ref=ref, a=current, stored=stored, compliance=compliance,
             items={i.provision.id: i for i in compliance.items},
-            provisions=applicable(ctx.critical), all_provisions=PROVISIONS,
+            provisions=applicable(ctx.full_checklist), all_provisions=PROVISIONS,
             draft=draft is not None, suggestions=suggestions.by_id() if suggestions else {},
             suggestion_counts=suggestions.counts() if suggestions else None,
             document=document, callofs=callofs, b0201=b0201, statuses=list(ProvisionStatus),
@@ -257,7 +257,7 @@ def register(app: FastAPI, ui: Ui) -> None:
             return assessment_page(request, ws, ref, status=400,
                                    error=t("c30.ui.extract_failed", name=name, error=str(exc)))
         ctx = contract_contexts(ws.register).get(ref)
-        result = suggest(extracted.text, critical=ctx.critical if ctx else True)
+        result = suggest(extracted.text, critical=ctx.full_checklist if ctx else True)
         base = ws.contracts.get(ref) or ContractAssessment(contract_ref=ref)
         draft = apply_suggestions(base, result, lang=ui.lang_of(request))
         draft = draft.model_copy(update={"document": name[:300],
